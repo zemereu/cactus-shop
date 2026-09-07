@@ -2,7 +2,7 @@ package com.cactusshop.backend.model;
 
 import jakarta.persistence.*;
 
-@Entity // Indică faptul că acest obiect va deveni un tabel în PostgreSQL
+@Entity
 @Table(name = "cacti")
 public class Cactus {
 
@@ -15,10 +15,12 @@ public class Cactus {
     private String category;
     private String description;
 
-    // Constructor gol (necesar pentru Spring)
+    // NOU: Coloana pentru link-ul imaginii
+    @Column(length = 1000) // Setăm o lungime mai mare pentru că unele link-uri sunt lungi
+    private String imageUrl;
+
     public Cactus() {}
 
-    // Getteri și Setteri pentru a permite accesul la date
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -33,4 +35,8 @@ public class Cactus {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    // NOU: Gettere și Settere pentru imagine
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }
