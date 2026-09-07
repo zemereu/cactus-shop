@@ -1,10 +1,13 @@
 // 1. Product Interface
+// @ts-ignore
+
 interface Cactus {
     id: number;
     name: string;
     price: number;
     description: string;
     category: string;
+    imageUrl: string;
 }
 
 // 2. Aici vom ține cactușii pe care ni-i dă serverul
@@ -34,33 +37,6 @@ async function fetchCacti() {
     } catch (error) {
         console.error("Eroare:", error);
         alert("Nu m-am putut conecta la baza de date. Asigură-te că serverul Java este pornit!");
-    }
-}
-
-// Funcția care trimite cererea de ștergere către Java
-async function deleteCactus(id: number) {
-    // Întrebăm utilizatorul dacă este sigur
-    const isConfirmed = confirm("Ești sigur că vrei să ștergi acest cactus definitiv?");
-    if (!isConfirmed) return;
-
-    try {
-        // Trimitem metoda DELETE către adresa cu ID-ul respectiv (ex: /api/cacti/5)
-        const response = await fetch(`http://localhost:8080/api/cacti/${id}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('Nu am putut șterge cactusul!');
-        }
-
-        showToast("🗑️ Cactusul a fost șters cu succes!");
-
-        // Cerem din nou lista de la server pentru a actualiza ecranul
-        fetchCacti();
-
-    } catch (error) {
-        console.error("Eroare:", error);
-        alert("A apărut o eroare la ștergere.");
     }
 }
 
@@ -156,16 +132,21 @@ function renderCacti() {
     let htmlContent = "";
 
 
-
     if (filteredCacti.length === 0) {
         htmlContent = `<p style="grid-column: span 3; color: red; font-size: 1.2em;">Nu am găsit niciun cactus care să se potrivească căutării tale.</p>`;
     } else {
         for (let cactus of filteredCacti) {
             const categoryTag = `<span style="background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${cactus.category}</span>`;
 
+            // Dacă produsul nu are poză (este null din baza de date), îi punem noi una generică
+            const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
+
             htmlContent += `
                 <div style="border: 2px solid #4CAF50; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: white;">
                     <div>
+                        <!-- NOU: Eticheta pentru imagine -->
+                        <img src="${validImage}" alt="${cactus.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                        
                         ${categoryTag}
                         <h2 style="color: #2E7D32; margin-top: 10px;">🌵 ${cactus.name}</h2>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
@@ -174,10 +155,6 @@ function renderCacti() {
                     <div>
                         <button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #4CAF50; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
                             Adaugă în coș
-                        </button>
-                        <!-- NOU: Butonul de Ștergere -->
-                        <button class="delete-btn" data-id="${cactus.id}" style="background-color: #d32f2f; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 5px; font-weight: bold; font-size: 0.9em;">
-                            🗑️ Șterge (Admin)
                         </button>
                     </div>
                 </div>
@@ -199,17 +176,6 @@ function renderCacti() {
                 updateCartUI();
                 showToast(`✅ ${cactusToAdd.name} a fost adăugat în coș!`);
             }
-        });
-    });
-
-    const deleteButtons = document.querySelectorAll('.delete-btn');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const clickedButton = event.target as HTMLButtonElement;
-            const cactusId = Number(clickedButton.getAttribute('data-id'));
-
-            // Apelăm funcția noastră de ștergere
-            deleteCactus(cactusId);
         });
     });
 }
@@ -268,65 +234,74 @@ if (searchBar) {
     });
 }
 
-// 11. Initialize the app (Cerem datele de la server la încărcarea paginii)
-fetchCacti();
-updateCartUI();
+// 10. Logică pentru Procesarea Comenzilor (Checkout)
+const checkoutBtn = document.getElementById('checkout-btn');
+const checkoutForm = document.getElementById('checkout-form');
+const submitOrderBtn = document.getElementById('submit-order-btn');
 
-// 12. Logic for Admin Panel (Adding new products to PostgreSQL)
-const addCactusBtn = document.getElementById('add-new-cactus-btn');
-if (addCactusBtn) {
-    addCactusBtn.addEventListener('click', async () => {
-        const nameInput = document.getElementById('new-cactus-name') as HTMLInputElement;
-        const priceInput = document.getElementById('new-cactus-price') as HTMLInputElement;
-        const categoryInput = document.getElementById('new-cactus-category') as HTMLInputElement;
-        const descInput = document.getElementById('new-cactus-desc') as HTMLInputElement;
+if (checkoutBtn && checkoutForm && submitOrderBtn) {
 
-        const newName = nameInput.value.trim();
-        const newPrice = Number(priceInput.value);
-        const newCategory = categoryInput.value.trim();
-        const newDesc = descInput.value.trim();
+    // Când apeși "Mergi la Casă", ascunde butonul și arată formularul
+    checkoutBtn.addEventListener('click', () => {
+        if (shoppingCart.length === 0) {
+            alert("Coșul este gol! Adaugă un cactus mai întâi.");
+            return;
+        }
+        checkoutBtn.style.display = 'none';
+        checkoutForm.style.display = 'block';
+    });
 
-        if (!newName || !newPrice || !newCategory || !newDesc) {
-            alert("Te rog să completezi toate câmpurile!");
+    // Când trimiți comanda
+    submitOrderBtn.addEventListener('click', async () => {
+        const nameInput = (document.getElementById('customer-name') as HTMLInputElement).value.trim();
+        const addressInput = (document.getElementById('customer-address') as HTMLInputElement).value.trim();
+
+        if (!nameInput || !addressInput) {
+            alert("Te rog să completezi numele și adresa de livrare!");
             return;
         }
 
-        // Creăm obiectul. Observă că NU îi mai dăm un ID! Baza de date (PostgreSQL) îi va da automat unul.
-        const newCactus = {
-            name: newName,
-            price: newPrice,
-            category: newCategory,
-            description: newDesc
+        // Calculăm totalul și creăm un rezumat text al produselor (ex: "Aloe Vera, Cactus Pufos")
+        const totalPrice = shoppingCart.reduce((sum, item) => sum + item.price, 0);
+        const itemsSummary = shoppingCart.map(item => item.name).join(", ");
+
+        const newOrder = {
+            customerName: nameInput,
+            address: addressInput,
+            totalPrice: totalPrice,
+            purchasedItems: itemsSummary
         };
 
         try {
-            // Trimitem noul cactus către serverul Java folosind metoda POST
-            const response = await fetch('http://localhost:8080/api/cacti', {
+            const response = await fetch('http://localhost:8080/api/orders', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newCactus)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newOrder)
             });
 
-            if (!response.ok) {
-                throw new Error('Nu am putut salva cactusul!');
-            }
+            if (!response.ok) throw new Error("Eroare la procesarea comenzii.");
 
-            // Ștergem câmpurile formularului
-            nameInput.value = "";
-            priceInput.value = "";
-            categoryInput.value = "";
-            descInput.value = "";
+            // Afișăm succesul
+            showToast(`🎉 Comanda a fost plasată cu succes, ${nameInput}!`);
 
-            showToast(`🎉 Noul cactus "${newName}" a fost salvat permanent în baza de date!`);
+            // Golim coșul și re-desenăm interfața
+            shoppingCart = [];
+            updateCartUI();
 
-            // Cel mai important: Cerem din nou lista de la server ca să vedem noul cactus
-            fetchCacti();
+            // Resetăm formularul și închidem coșul
+            (document.getElementById('customer-name') as HTMLInputElement).value = "";
+            (document.getElementById('customer-address') as HTMLInputElement).value = "";
+            checkoutForm.style.display = 'none';
+            checkoutBtn.style.display = 'block';
+            document.getElementById('cart-modal')!.style.display = 'none';
 
         } catch (error) {
-            console.error("Eroare:", error);
-            alert("Eroare la salvare. Asigură-te că serverul Java este pornit.");
+            console.error(error);
+            alert("A apărut o eroare la salvarea comenzii.");
         }
     });
 }
+
+// 11. Initialize the app (Cerem datele de la server la încărcarea paginii)
+fetchCacti();
+updateCartUI();
