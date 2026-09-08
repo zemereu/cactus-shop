@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll() // Login-ul e public
                         .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll() // Citirea produselor e publică
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // Plasarea comenzilor e publică
+                        .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                         .anyRequest().authenticated() // RESTUL (adăugare, ștergere, citire comenzi) NECESITĂ TOKEN!
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

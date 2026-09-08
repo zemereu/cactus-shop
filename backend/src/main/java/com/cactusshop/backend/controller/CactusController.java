@@ -16,8 +16,18 @@ public class CactusController {
     private CactusRepository cactusRepository;
 
     @GetMapping
-    public List<Cactus> getAllCacti() {
-        return cactusRepository.findAll();
+    public List<Cactus> getCacti(
+            @RequestParam(required = false, defaultValue = "Toți") String category,
+            @RequestParam(required = false, defaultValue = "") String search) {
+
+        // Dacă utilizatorul vrea toate categoriile, căutăm doar după text
+        if (category.equals("Toți")) {
+            return cactusRepository.findByNameContainingIgnoreCase(search);
+        }
+        // Altfel, căutăm și după categorie, și după text
+        else {
+            return cactusRepository.findByCategoryAndNameContainingIgnoreCase(category, search);
+        }
     }
 
     @PostMapping
