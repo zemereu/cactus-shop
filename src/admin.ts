@@ -49,7 +49,7 @@ if (loginBtn) {
         const passInput = (document.getElementById('admin-pass') as HTMLInputElement).value;
 
         try {
-            const response = await fetch('http://localhost:8080/api/auth/login', {
+            const response = await fetch('cactus-shop-production.up.railway.app/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: userInput, password: passInput })
@@ -78,7 +78,7 @@ if (loginBtn) {
 // --- 2. GESTIUNE CATEGORII ---
 async function fetchAdminCategories() {
     try {
-        const response = await fetch('http://localhost:8080/api/categories');
+        const response = await fetch('cactus-shop-production.up.railway.app/api/categories');
         const categories: Category[] = await response.json();
 
         // A. Populează lista cu butoane de ștergere
@@ -96,7 +96,7 @@ async function fetchAdminCategories() {
                 btn.addEventListener('click', async (e) => {
                     const id = (e.target as HTMLButtonElement).getAttribute('data-id');
                     if (confirm("Sigur ștergi această categorie?")) {
-                        await fetch(`http://localhost:8080/api/categories/${id}`, {
+                        await fetch(`cactus-shop-production.up.railway.app/api/categories/${id}`, {
                             method: 'DELETE',
                             headers: getAuthHeader()
                         });
@@ -123,7 +123,7 @@ if (addCategoryBtn) {
         const nameInput = document.getElementById('new-category-name') as HTMLInputElement;
         if (!nameInput.value.trim()) return;
 
-        await fetch('http://localhost:8080/api/categories', {
+        await fetch('cactus-shop-production.up.railway.app/api/categories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
             body: JSON.stringify({ name: nameInput.value.trim() })
@@ -137,7 +137,7 @@ if (addCategoryBtn) {
 // --- 3. GESTIUNE CACTUȘI (PRODUSE) ---
 async function fetchAdminCacti() {
     try {
-        const response = await fetch('http://localhost:8080/api/cacti');
+        const response = await fetch('cactus-shop-production.up.railway.app/api/cacti');
         const cacti: Cactus[] = await response.json();
 
         const container = document.getElementById('admin-cacti-list');
@@ -166,7 +166,7 @@ async function fetchAdminCacti() {
                 const cactusId = Number(btn.getAttribute('data-id'));
 
                 if (confirm("Ești sigur că vrei să ștergi acest produs?")) {
-                    await fetch(`http://localhost:8080/api/cacti/${cactusId}`, {
+                    await fetch(`cactus-shop-production.up.railway.app/api/cacti/${cactusId}`, {
                         method: 'DELETE',
                         headers: getAuthHeader()
                     });
@@ -196,7 +196,7 @@ if (addCactusBtn) {
             return;
         }
 
-        await fetch('http://localhost:8080/api/cacti', {
+        await fetch('cactus-shop-production.up.railway.app/api/cacti', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
             body: JSON.stringify(newCactus)
@@ -215,7 +215,7 @@ if (addCactusBtn) {
 // --- 4. VIZUALIZARE COMENZI (necesită Auth) ---
 async function fetchAdminOrders() {
     try {
-        const response = await fetch('http://localhost:8080/api/orders', {
+        const response = await fetch('cactus-shop-production.up.railway.app/api/orders', {
             headers: getAuthHeader()
         });
 

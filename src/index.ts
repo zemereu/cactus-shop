@@ -28,7 +28,7 @@ function escapeHtml(unsafe: string | null | undefined): string {
 // 1. Fetch de la Backend (Filtrare aplicată pe server)
 async function fetchCacti() {
     try {
-        const url = new URL('http://localhost:8080/api/cacti');
+        const url = new URL('cactus-shop-production.up.railway.app/api/cacti');
         url.searchParams.append('category', selectedCategory);
         url.searchParams.append('search', searchQuery);
 
@@ -79,7 +79,7 @@ function showToast(message: string) {
 // 3. Randare Sidebar Categorii
 async function fetchAndRenderCategories() {
     try {
-        const response = await fetch('http://localhost:8080/api/categories');
+        const response = await fetch('cactus-shop-production.up.railway.app/api/categories');
         const categories = await response.json();
         const container = document.getElementById('sidebar-categories-list');
         if (!container) return;
@@ -300,7 +300,7 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
         };
 
         try {
-            const response = await fetch('http://localhost:8080/api/orders', {
+            const response = await fetch('cactus-shop-production.up.railway.app/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newOrder)
