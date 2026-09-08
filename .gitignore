@@ -1,11 +1,48 @@
-/tmp
+# --- Build output ---
+/dist
 /out-tsc
+/tmp
 
+# --- Dependencies ---
 /node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 /.pnp
 .pnp.js
+package-lock.json.bak
 
+# --- IntelliJ IDEA / WebStorm (JetBrains) ---
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf
+.idea/**/dictionaries
+.idea/**/contentModel.xml
+.idea/httpRequests/
+.idea/dataSources.xml
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/dataSources.local.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+.idea/dbnavigator.xml
+*.iws
+*.iml
+*.ipr
+out/
+cmake-build-*/
+
+# --- VS Code ---
 .vscode/*
+
+# --- Environment / secrets ---
+.env
+.env.*
+*.pem
+*.key
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db

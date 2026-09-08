@@ -1,10 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Admin - Cactus Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-$END$
+<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 20px;">
+
+<h1 style="text-align: center; color: #2f694b;">Panou de Administrare 🔐</h1>
+<div style="text-align: center; margin-bottom: 20px;">
+    <a href="index.html" style="color: #2f694b; text-decoration: none; font-weight: bold; border-bottom: 2px solid #2f694b;">⬅ Întoarce-te la Magazin</a>
+</div>
+
+<!-- Secțiunea de Login -->
+<div id="login-container" style="max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; border: 2px solid #2f694b;">
+    <h3 style="color: #2f694b;">Autentificare Admin</h3>
+    <input type="text" id="admin-user" placeholder="Nume utilizator" style="width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #2f694b; border-radius: 4px;">
+    <input type="password" id="admin-pass" placeholder="Parolă" style="width: 90%; padding: 10px; margin-bottom: 20px; border: 1px solid #2f694b; border-radius: 4px;">
+    <button id="login-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%;">
+        Login
+    </button>
+</div>
+
+<!-- Panoul de administrare propriu-zis -->
+<div id="admin-panel" style="display: none; max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b;">
+
+    <!-- 1. Gestiune Categorii -->
+    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📂 Gestiune Categorii</h3>
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="text" id="new-category-name" placeholder="Nume categorie nouă" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
+        <button id="add-category-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+            + Adaugă Categorie
+        </button>
+    </div>
+    <ul id="admin-categories-list" style="list-style: none; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;"></ul>
+
+    <!-- 2. Adăugare Produs -->
+    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">➕ Adaugă Produs Nou</h3>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;">
+        <input type="text" id="new-cactus-name" placeholder="Nume produs" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
+        <input type="number" id="new-cactus-price" placeholder="Preț (RON)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 100px;">
+
+        <!-- Aici categoriile vor fi încărcate automat din TypeScript -->
+        <select id="new-cactus-category" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;"></select>
+
+        <input type="text" id="new-cactus-desc" placeholder="Descriere" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; flex-grow: 1;">
+        <input type="text" id="new-cactus-image" placeholder="Link imagine (URL)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 100%;">
+        <button id="add-new-cactus-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+            Salvează Produs
+        </button>
+    </div>
+
+    <!-- 3. Ștergere Produse -->
+    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📋 Gestiune Produse (Ștergere)</h3>
+    <div id="admin-cacti-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px;"></div>
+
+    <!-- 4. Vizualizare Comenzi -->
+    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📦 Comenzi Primite</h3>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: white;">
+            <thead>
+            <tr style="background-color: #2f694b; color: #fdf2b8;">
+                <th style="padding: 12px; border: 1px solid #ddd;">ID</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Nume Client</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Adresă Livrare</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Produse Cumpărate</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Total (RON)</th>
+            </tr>
+            </thead>
+            <tbody id="admin-orders-list"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="dist/admin.js"></script>
 </body>
 </html>

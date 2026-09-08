@@ -1,6 +1,3 @@
-// 1. Product Interface
-// @ts-ignore
-
 interface Cactus {
     id: number;
     name: string;
@@ -10,37 +7,44 @@ interface Cactus {
     imageUrl: string;
 }
 
-// 2. Aici vom ține cactușii pe care ni-i dă serverul
 let cactiForSale: Cactus[] = [];
-
-// 3. Current filter and cart state
 let selectedCategory: string = "Toți";
 let searchQuery: string = "";
 let shoppingCart: Cactus[] = [];
 
-// Funcția "Magică" care vorbește cu serverul Java
+// --- UTILITARĂ ANTI-XSS ---
+// Scapă orice text ce ar putea proveni din date introduse de utilizator
+// înainte de a-l pune în innerHTML (nume produs, descriere, categorie, imagine).
+function escapeHtml(unsafe: string | null | undefined): string {
+    if (unsafe === null || unsafe === undefined) return "";
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// 1. Fetch de la Backend (Filtrare aplicată pe server)
 async function fetchCacti() {
     try {
-        // "Sunăm" serverul Java care ascultă pe portul 8080
-        const response = await fetch('http://localhost:8080/api/cacti');
+        const url = new URL('http://localhost:8080/api/cacti');
+        url.searchParams.append('category', selectedCategory);
+        url.searchParams.append('search', searchQuery);
 
-        if (!response.ok) {
-            throw new Error('A apărut o eroare la conectarea cu serverul!');
-        }
+        const response = await fetch(url.toString());
+        if (!response.ok) throw new Error('Eroare conectare server!');
 
-        // Traducem răspunsul de la server în date pe care TypeScript le înțelege
         cactiForSale = await response.json();
 
-        // După ce primim datele, desenăm butoanele și grila pe ecran
-        renderCategories();
+        fetchAndRenderCategories();
         renderCacti();
     } catch (error) {
         console.error("Eroare:", error);
-        alert("Nu m-am putut conecta la baza de date. Asigură-te că serverul Java este pornit!");
     }
 }
 
-// 4. Function to update Cart UI
+// 2. UI Coș & Notificări
 function updateCartUI() {
     const cartCountElement = document.getElementById('cart-count');
     if (cartCountElement) {
@@ -49,114 +53,111 @@ function updateCartUI() {
     renderCartItems();
 }
 
-// 5. Function to show animated Toast Notification
 function showToast(message: string) {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
     const toast = document.createElement('div');
     toast.innerText = message;
-
-    toast.style.backgroundColor = "#4CAF50";
-    toast.style.color = "white";
+    toast.style.backgroundColor = "#2f694b"; // Noul verde
+    toast.style.color = "#fdf2b8"; // Noul crem pentru text
     toast.style.padding = "15px 25px";
     toast.style.borderRadius = "8px";
     toast.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
     toast.style.fontWeight = "bold";
-
     toast.style.transform = "translateX(120%)";
     toast.style.transition = "transform 0.4s ease-in-out";
 
     container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.transform = "translateX(0)";
-    }, 10);
-
+    setTimeout(() => toast.style.transform = "translateX(0)", 10);
     setTimeout(() => {
         toast.style.transform = "translateX(120%)";
-
-        setTimeout(() => {
-            toast.remove();
-        }, 400);
+        setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
 
-// 6. Function to render category buttons
-function renderCategories() {
-    const container = document.getElementById('categories-container');
-    if (!container) return;
+// 3. Randare Sidebar Categorii
+async function fetchAndRenderCategories() {
+    try {
+        const response = await fetch('http://localhost:8080/api/categories');
+        const categories = await response.json();
+        const container = document.getElementById('sidebar-categories-list');
+        if (!container) return;
 
-    container.innerHTML = "";
-    // Re-calculăm categoriile unice (în caz că s-a adăugat o categorie complet nouă)
-    const uniqueCategories = ["Toți", ...new Set(cactiForSale.map(c => c.category))];
+        let htmlContent = `<button class="category-btn" data-cat="Toți" style="background: ${selectedCategory === 'Toți' ? '#2f694b' : 'transparent'}; color: ${selectedCategory === 'Toți' ? '#fdf2b8' : '#2f694b'}; border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: left;">Toți Cactușii</button>`;
 
-    for (let cat of uniqueCategories) {
-        const btn = document.createElement('button');
-        btn.innerText = cat;
-        btn.style.padding = "10px 15px";
-        btn.style.marginRight = "10px";
-        btn.style.border = "none";
-        btn.style.borderRadius = "5px";
-        btn.style.cursor = "pointer";
-        btn.style.fontWeight = "bold";
-
-        if (cat === selectedCategory) {
-            btn.style.backgroundColor = "#2E7D32";
-            btn.style.color = "white";
-        } else {
-            btn.style.backgroundColor = "#e0e0e0";
-            btn.style.color = "black";
+        for (let cat of categories) {
+            const isActive = selectedCategory === cat.name;
+            htmlContent += `<button class="category-btn" data-cat="${escapeHtml(cat.name)}" style="background: ${isActive ? '#2f694b' : 'transparent'}; color: ${isActive ? '#fdf2b8' : '#2f694b'}; border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: left;">${escapeHtml(cat.name)}</button>`;
         }
 
-        btn.addEventListener('click', () => {
-            selectedCategory = cat;
-            renderCategories();
-            renderCacti();
+        container.innerHTML = htmlContent;
+
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                selectedCategory = (e.target as HTMLButtonElement).getAttribute('data-cat') || "Toți";
+                fetchAndRenderCategories(); // Redesenează culorile
+                fetchCacti(); // Filtrează produsele
+                closeSidebar(); // Închide sidebar-ul la selecție
+            });
         });
-        container.appendChild(btn);
+    } catch (error) {
+        console.error("Eroare la categorii:", error);
     }
 }
 
-// 7. Function to render the products
+// Logica de deschidere/închidere
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const menuBtn = document.getElementById('menu-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+
+function closeSidebar() {
+    if (sidebar && sidebarOverlay) {
+        sidebar.style.left = "-300px";
+        sidebarOverlay.style.display = "none";
+    }
+}
+
+if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
+    menuBtn.addEventListener('click', () => {
+        sidebar.style.left = "0";
+        sidebarOverlay.style.display = "block";
+    });
+    closeSidebarBtn.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+}
+
+// Adaugă apelul în zona de inițializare de la finalul fișierului
+fetchAndRenderCategories();
+
+// 4. Randare Produse (Fără filtrare locală, bazat direct pe server)
 function renderCacti() {
     const container = document.getElementById('cacti-list');
     if (!container) return;
 
-    const filteredCacti = cactiForSale.filter(cactus => {
-        const matchesCategory = selectedCategory === "Toți" || cactus.category === selectedCategory;
-        const matchesName = cactus.name.toLowerCase().includes(searchQuery);
-        return matchesCategory && matchesName;
-    });
-
     let htmlContent = "";
 
-
-    if (filteredCacti.length === 0) {
-        htmlContent = `<p style="grid-column: span 3; color: red; font-size: 1.2em;">Nu am găsit niciun cactus care să se potrivească căutării tale.</p>`;
+    if (cactiForSale.length === 0) {
+        htmlContent = `<p style="grid-column: span 3; color: red; font-size: 1.2em;">Nu am găsit niciun cactus conform căutării.</p>`;
     } else {
-        for (let cactus of filteredCacti) {
-            const categoryTag = `<span style="background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${cactus.category}</span>`;
-
-            // Dacă produsul nu are poză (este null din baza de date), îi punem noi una generică
+        for (let cactus of cactiForSale) {
+            // Categoria acum are bordură verde și text verde, fără fundal plin
+            const categoryTag = `<span style="border: 1px solid #2f694b; color: #2f694b; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${escapeHtml(cactus.category)}</span>`;
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
 
             htmlContent += `
-                <div style="border: 2px solid #4CAF50; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: white;">
+                <div style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent;">
                     <div>
-                        <!-- NOU: Eticheta pentru imagine -->
-                        <img src="${validImage}" alt="${cactus.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
-                        
+                        <img src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
                         ${categoryTag}
-                        <h2 style="color: #2E7D32; margin-top: 10px;">🌵 ${cactus.name}</h2>
+                        <h2 style="color: #2f694b; margin-top: 10px;">🌵 ${escapeHtml(cactus.name)}</h2>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
-                        <p><em>${cactus.description}</em></p>
+                        <p><em>${escapeHtml(cactus.description)}</em></p>
                     </div>
-                    <div>
-                        <button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #4CAF50; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
-                            Adaugă în coș
-                        </button>
-                    </div>
+                    <button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
+                        Adaugă în coș
+                    </button>
                 </div>
             `;
         }
@@ -180,7 +181,7 @@ function renderCacti() {
     });
 }
 
-// 8. Function to render items inside the Cart Modal
+// 5. Randare elemente coș modal (Acum cu buton de ștergere)
 function renderCartItems() {
     const cartItemsContainer = document.getElementById('cart-items-container');
     const cartTotalElement = document.getElementById('cart-total');
@@ -196,11 +197,19 @@ function renderCartItems() {
     let htmlContent = "";
     let totalPrice = 0;
 
-    for (let item of shoppingCart) {
+    // Folosim un index (i) pentru a ști exact ce rând ștergem
+    for (let i = 0; i < shoppingCart.length; i++) {
+        let item = shoppingCart[i];
+
         htmlContent += `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 5px;">
-                <span>🌵 ${item.name}</span>
-                <strong>${item.price} RON</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 5px;">
+                <span>🌵 ${escapeHtml(item.name)}</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <strong>${item.price} RON</strong>
+                    <button class="remove-from-cart-btn" data-index="${i}" style="background-color: #d32f2f; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.9em; font-weight: bold;" title="Elimină produsul">
+                        X
+                    </button>
+                </div>
             </div>
         `;
         totalPrice += item.price;
@@ -208,40 +217,60 @@ function renderCartItems() {
 
     cartItemsContainer.innerHTML = htmlContent;
     cartTotalElement.innerText = totalPrice.toString();
+
+    // Activăm butoanele "X" pentru a elimina produsele
+    const removeButtons = document.querySelectorAll('.remove-from-cart-btn');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Oprim propagarea click-ului ca să nu se închidă coșul accidental
+            event.stopPropagation();
+
+            const btn = event.target as HTMLButtonElement;
+            const indexToRemove = Number(btn.getAttribute('data-index'));
+
+            // Ștergem fix 1 element de la poziția respectivă din memorie
+            shoppingCart.splice(indexToRemove, 1);
+
+            // Re-desenăm coșul și actualizăm contorul
+            updateCartUI();
+        });
+    });
 }
 
-// 9. Logic to open/close the Cart Modal
+// 6. Logica Închidere/Deschidere Coș (Click în afară)
 const cartButton = document.getElementById('cart-button');
 const cartModal = document.getElementById('cart-modal');
-const closeCartBtn = document.getElementById('close-cart-btn');
 
-if (cartButton && cartModal && closeCartBtn) {
-    cartButton.addEventListener('click', () => {
+if (cartButton && cartModal) {
+    // Deschide/Închide la click pe butonul de sus
+    cartButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Oprim propagarea pentru a nu declanșa imediat 'window.click'
         cartModal.style.display = cartModal.style.display === "none" ? "block" : "none";
     });
 
-    closeCartBtn.addEventListener('click', () => {
-        cartModal.style.display = "none";
+    // Închide fereastra dacă utilizatorul dă click oriunde altundeva pe pagină
+    window.addEventListener('click', (event) => {
+        if (cartModal.style.display === "block") {
+            const target = event.target as Node;
+            // Dacă click-ul NU s-a efectuat în interiorul ferestrei modale și NU pe butonul de coș
+            if (!cartModal.contains(target) && !cartButton.contains(target)) {
+                cartModal.style.display = "none";
+            }
+        }
+    });
+
+    // Oprim propagarea click-urilor din interiorul ferestrei modale (ca să nu se închidă accidental când scrii în input)
+    cartModal.addEventListener('click', (event) => {
+        event.stopPropagation();
     });
 }
 
-// 10. Search Bar logic
-const searchBar = document.getElementById('search-bar') as HTMLInputElement;
-if (searchBar) {
-    searchBar.addEventListener('input', (event) => {
-        searchQuery = (event.target as HTMLInputElement).value.toLowerCase();
-        renderCacti();
-    });
-}
-
-// 10. Logică pentru Procesarea Comenzilor (Checkout)
+// 7. Checkout Process
 const checkoutBtn = document.getElementById('checkout-btn');
 const checkoutForm = document.getElementById('checkout-form');
 const submitOrderBtn = document.getElementById('submit-order-btn');
 
 if (checkoutBtn && checkoutForm && submitOrderBtn) {
-
-    // Când apeși "Mergi la Casă", ascunde butonul și arată formularul
     checkoutBtn.addEventListener('click', () => {
         if (shoppingCart.length === 0) {
             alert("Coșul este gol! Adaugă un cactus mai întâi.");
@@ -251,7 +280,6 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
         checkoutForm.style.display = 'block';
     });
 
-    // Când trimiți comanda
     submitOrderBtn.addEventListener('click', async () => {
         const nameInput = (document.getElementById('customer-name') as HTMLInputElement).value.trim();
         const addressInput = (document.getElementById('customer-address') as HTMLInputElement).value.trim();
@@ -261,7 +289,6 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             return;
         }
 
-        // Calculăm totalul și creăm un rezumat text al produselor (ex: "Aloe Vera, Cactus Pufos")
         const totalPrice = shoppingCart.reduce((sum, item) => sum + item.price, 0);
         const itemsSummary = shoppingCart.map(item => item.name).join(", ");
 
@@ -281,20 +308,16 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
 
             if (!response.ok) throw new Error("Eroare la procesarea comenzii.");
 
-            // Afișăm succesul
             showToast(`🎉 Comanda a fost plasată cu succes, ${nameInput}!`);
 
-            // Golim coșul și re-desenăm interfața
             shoppingCart = [];
             updateCartUI();
 
-            // Resetăm formularul și închidem coșul
             (document.getElementById('customer-name') as HTMLInputElement).value = "";
             (document.getElementById('customer-address') as HTMLInputElement).value = "";
             checkoutForm.style.display = 'none';
             checkoutBtn.style.display = 'block';
             document.getElementById('cart-modal')!.style.display = 'none';
-
         } catch (error) {
             console.error(error);
             alert("A apărut o eroare la salvarea comenzii.");
@@ -302,6 +325,15 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
     });
 }
 
-// 11. Initialize the app (Cerem datele de la server la încărcarea paginii)
+// 8. Căutare (Apelează Java automat)
+const searchBar = document.getElementById('search-bar') as HTMLInputElement;
+if (searchBar) {
+    searchBar.addEventListener('input', (event) => {
+        searchQuery = (event.target as HTMLInputElement).value.toLowerCase();
+        fetchCacti();
+    });
+}
+
+// 9. Inițializare
 fetchCacti();
 updateCartUI();
