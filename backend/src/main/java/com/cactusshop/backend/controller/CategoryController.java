@@ -1,8 +1,11 @@
 package com.cactusshop.backend.controller;
 
+import com.cactusshop.backend.dto.CategoryRequestDTO;
 import com.cactusshop.backend.model.Category;
 import com.cactusshop.backend.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +24,18 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Category addCategory(@RequestBody Category category) {
-        return categoryRepository.save(category);
+    public ResponseEntity<?> addCategory(@RequestBody CategoryRequestDTO request) {
+
+        if (request.getName() == null || request.getName().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Numele categoriei este obligatoriu.");
+        }
+
+        // Construim entitatea NOUĂ — fără id, Spring/Hibernate îl alocă automat
+        Category category = new Category();
+        category.setName(request.getName().trim());
+
+        Category saved = categoryRepository.save(category);
+        return ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}")
