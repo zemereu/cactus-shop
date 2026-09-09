@@ -12,23 +12,12 @@ let selectedCategory: string = "Toți";
 let searchQuery: string = "";
 let shoppingCart: Cactus[] = [];
 
-// --- UTILITARĂ ANTI-XSS ---
-// Scapă orice text ce ar putea proveni din date introduse de utilizator
-// înainte de a-l pune în innerHTML (nume produs, descriere, categorie, imagine).
-function escapeHtml(unsafe: string | null | undefined): string {
-    if (unsafe === null || unsafe === undefined) return "";
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+// escapeHtml și API_BASE vin din shared.ts (încărcat înaintea acestui fișier în index.html)
 
 // 1. Fetch de la Backend (Filtrare aplicată pe server)
 async function fetchCacti() {
     try {
-        const url = new URL('cactus-shop-production.up.railway.app/api/cacti');
+        const url = new URL(`${API_BASE}/api/cacti`);
         url.searchParams.append('category', selectedCategory);
         url.searchParams.append('search', searchQuery);
 
@@ -79,7 +68,7 @@ function showToast(message: string) {
 // 3. Randare Sidebar Categorii
 async function fetchAndRenderCategories() {
     try {
-        const response = await fetch('cactus-shop-production.up.railway.app/api/categories');
+        const response = await fetch(`${API_BASE}/api/categories`);
         const categories = await response.json();
         const container = document.getElementById('sidebar-categories-list');
         if (!container) return;
@@ -300,7 +289,7 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
         };
 
         try {
-            const response = await fetch('cactus-shop-production.up.railway.app/api/orders', {
+            const response = await fetch(`${API_BASE}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newOrder)
