@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/cacti")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "https://cactshop.netlify.app")
 public class CactusController {
 
     @Autowired
