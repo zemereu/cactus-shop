@@ -278,14 +278,15 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             return;
         }
 
-        const totalPrice = shoppingCart.reduce((sum, item) => sum + item.price, 0);
-        const itemsSummary = shoppingCart.map(item => item.name).join(", ");
+        // NU mai trimitem totalPrice sau purchasedItems calculate în browser —
+        // serverul nu are încredere în ele. Trimitem doar ID-urile produselor
+        // din coș; serverul calculează totalul real din baza de date.
+        const cactusIds = shoppingCart.map(item => item.id);
 
         const newOrder = {
             customerName: nameInput,
             address: addressInput,
-            totalPrice: totalPrice,
-            purchasedItems: itemsSummary
+            cactusIds: cactusIds
         };
 
         try {
