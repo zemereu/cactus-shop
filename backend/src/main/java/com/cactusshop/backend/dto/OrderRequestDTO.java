@@ -1,16 +1,20 @@
 package com.cactusshop.backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
-// Ce trimite clientul la crearea unei comenzi.
-// NU are câmp 'id' (serverul îl alocă) și NU are 'totalPrice'
-// (serverul îl calculează din prețurile reale ale produselor,
-// nu are încredere în ce trimite browser-ul).
 public class OrderRequestDTO {
 
+    @NotBlank(message = "Numele clientului este obligatoriu.")
     private String customerName;
+
+    @NotBlank(message = "Adresa de livrare este obligatorie.")
     private String address;
-    private List<Long> cactusIds; // id-ul fiecărui produs din coș (repetat dacă e cumpărat de mai multe ori)
+
+    @NotEmpty(message = "Coșul este gol.")
+    private List<Long> cactusIds;
 
     public OrderRequestDTO() {}
 

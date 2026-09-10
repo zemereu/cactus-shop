@@ -5,6 +5,7 @@ import com.cactusshop.backend.model.Cactus;
 import com.cactusshop.backend.model.Order;
 import com.cactusshop.backend.repository.CactusRepository;
 import com.cactusshop.backend.repository.OrderRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,22 +27,9 @@ public class OrderController {
     private CactusRepository cactusRepository;
 
     @PostMapping
-    public ResponseEntity<?> placeOrder(@RequestBody OrderRequestDTO request) {
-
-        // --- Validări de bază ---
-        if (request.getCustomerName() == null || request.getCustomerName().isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Numele clientului este obligatoriu.");
-        }
-        if (request.getAddress() == null || request.getAddress().isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Adresa de livrare este obligatorie.");
-        }
-        if (request.getCactusIds() == null || request.getCactusIds().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coșul este gol.");
-        }
+    public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request) {
 
         // --- Preluăm produsele REALE din baza de date, după ID ---
-        // NU avem încredere în niciun preț trimis de client — doar în ID-uri,
-        // și calculăm totalul din prețurile efective salvate în baza de date.
         List<Cactus> purchasedCacti = new ArrayList<>();
         for (Long id : request.getCactusIds()) {
             Cactus cactus = cactusRepository.findById(id).orElse(null);
@@ -55,7 +43,6 @@ public class OrderController {
         double realTotal = purchasedCacti.stream().mapToDouble(Cactus::getPrice).sum();
         String itemsSummary = purchasedCacti.stream().map(Cactus::getName).collect(Collectors.joining(", "));
 
-        // --- Construim comanda cu date de încredere, nu cu ce a trimis clientul ---
         Order order = new Order();
         order.setCustomerName(request.getCustomerName().trim());
         order.setAddress(request.getAddress().trim());
@@ -66,7 +53,6 @@ public class OrderController {
         return ResponseEntity.ok(saved);
     }
 
-    // Vom folosi acest endpoint mai târziu, în panoul de Admin, pentru a vedea comenzile
     @GetMapping
     public List<Order> getAllOrders() {
         return orderRepository.findAll();

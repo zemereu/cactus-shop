@@ -1,14 +1,19 @@
 package com.cactusshop.backend.dto;
 
-// Ce trimite adminul la crearea unui produs nou.
-// Fără câmp 'id' — serverul îl alocă mereu automat,
-// niciodată nu-l lăsăm pe client să-l aleagă (previne suprascrierea
-// accidentală sau intenționată a unui produs existent).
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
 public class CactusRequestDTO {
 
+    @NotBlank(message = "Numele produsului este obligatoriu.")
     private String name;
+
+    @Positive(message = "Prețul trebuie să fie mai mare decât 0.")
     private double price;
+
+    @NotBlank(message = "Categoria este obligatorie.")
     private String category;
+
     private String description;
     private String imageUrl;
 
