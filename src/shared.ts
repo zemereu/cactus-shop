@@ -3,6 +3,10 @@
 // Acest fișier trebuie încărcat ÎNAINTE de index.js / admin.js în HTML,
 // altfel API_BASE și escapeHtml nu vor exista încă atunci când sunt apelate.
 
+// Cele 3 categorii principale fixe ale magazinului.
+// Subcategoriile (genurile) din interiorul lor sunt adăugate dinamic din admin.
+const MAIN_CATEGORIES = ["Cactuși", "Suculente", "Semințe"];
+
 // Adresa backend-ului. VERIFICĂ acest domeniu — trebuie să fie EXACT
 // domeniul public din Railway (Settings → Networking).
 const API_BASE = 'https://cactus-shop-production.up.railway.app';

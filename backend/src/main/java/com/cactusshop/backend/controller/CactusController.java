@@ -20,14 +20,23 @@ public class CactusController {
 
     @GetMapping
     public List<Cactus> getCacti(
+            @RequestParam(required = false) String mainCategory,
             @RequestParam(required = false, defaultValue = "Toți") String category,
             @RequestParam(required = false, defaultValue = "") String search) {
 
-        if (category.equals("Toți")) {
+        // Fără categorie principală specificată -> căutare generală (compatibilitate)
+        if (mainCategory == null || mainCategory.isBlank()) {
             return cactusRepository.findByNameContainingIgnoreCase(search);
-        } else {
-            return cactusRepository.findByCategoryAndNameContainingIgnoreCase(category, search);
         }
+
+        // Categorie principală + "Toți" -> toate genurile din acea categorie principală
+        if (category.equals("Toți")) {
+            return cactusRepository.findByMainCategoryAndNameContainingIgnoreCase(mainCategory, search);
+        }
+
+        // Categorie principală + gen specific
+        return cactusRepository.findByMainCategoryAndCategoryAndNameContainingIgnoreCase(
+                mainCategory, category, search);
     }
 
     @PostMapping
@@ -37,6 +46,7 @@ public class CactusController {
         cactus.setName(request.getName().trim());
         cactus.setPrice(request.getPrice());
         cactus.setCategory(request.getCategory().trim());
+        cactus.setMainCategory(request.getMainCategory().trim());
         cactus.setDescription(request.getDescription() != null ? request.getDescription().trim() : "");
         cactus.setImageUrl(request.getImageUrl() != null ? request.getImageUrl().trim() : "");
 

@@ -4,29 +4,38 @@ interface Cactus {
     price: number;
     description: string;
     category: string;
+    mainCategory: string;
     imageUrl: string;
 }
 
+interface Category {
+    id: number;
+    name: string;
+    mainCategory: string;
+}
+
 let cactiForSale: Cactus[] = [];
-let selectedCategory: string = "Toți";
+let allCategories: Category[] = [];
+let selectedMainCategory: string = "Cactuși";
+let selectedSubCategory: string = "Toți";
+let expandedMainCategory: string = "Cactuși"; // care secțiune e deschisă în sidebar
 let searchQuery: string = "";
 let shoppingCart: Cactus[] = [];
 
-// escapeHtml și API_BASE vin din shared.ts (încărcat înaintea acestui fișier în index.html)
+// MAIN_CATEGORIES, escapeHtml și API_BASE vin din shared.ts (încărcat înaintea acestui fișier în index.html)
 
-// 1. Fetch de la Backend (Filtrare aplicată pe server)
+// 1. Fetch de la Backend (Filtrare aplicată pe server, pe 2 niveluri)
 async function fetchCacti() {
     try {
         const url = new URL(`${API_BASE}/api/cacti`);
-        url.searchParams.append('category', selectedCategory);
+        url.searchParams.append('mainCategory', selectedMainCategory);
+        url.searchParams.append('category', selectedSubCategory);
         url.searchParams.append('search', searchQuery);
 
         const response = await fetch(url.toString());
         if (!response.ok) throw new Error('Eroare conectare server!');
 
         cactiForSale = await response.json();
-
-        fetchAndRenderCategories();
         renderCacti();
     } catch (error) {
         console.error("Eroare:", error);
@@ -65,34 +74,104 @@ function showToast(message: string) {
     }, 3000);
 }
 
-// 3. Randare Sidebar Categorii
+// 3. Randare Sidebar — 3 categorii principale expandabile, fiecare cu subcategoriile ei
 async function fetchAndRenderCategories() {
     try {
         const response = await fetch(`${API_BASE}/api/categories`);
-        const categories = await response.json();
-        const container = document.getElementById('sidebar-categories-list');
-        if (!container) return;
-
-        let htmlContent = `<button class="category-btn" data-cat="Toți" style="background: ${selectedCategory === 'Toți' ? '#2f694b' : 'transparent'}; color: ${selectedCategory === 'Toți' ? '#fdf2b8' : '#2f694b'}; border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: left;">Toți Cactușii</button>`;
-
-        for (let cat of categories) {
-            const isActive = selectedCategory === cat.name;
-            htmlContent += `<button class="category-btn" data-cat="${escapeHtml(cat.name)}" style="background: ${isActive ? '#2f694b' : 'transparent'}; color: ${isActive ? '#fdf2b8' : '#2f694b'}; border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: left;">${escapeHtml(cat.name)}</button>`;
-        }
-
-        container.innerHTML = htmlContent;
-
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                selectedCategory = (e.target as HTMLButtonElement).getAttribute('data-cat') || "Toți";
-                fetchAndRenderCategories(); // Redesenează culorile
-                fetchCacti(); // Filtrează produsele
-                closeSidebar(); // Închide sidebar-ul la selecție
-            });
-        });
+        allCategories = await response.json();
+        renderSidebar();
     } catch (error) {
         console.error("Eroare la categorii:", error);
     }
+}
+
+function renderSidebar() {
+    const container = document.getElementById('sidebar-categories-list');
+    if (!container) return;
+
+    let html = "";
+
+    for (const main of MAIN_CATEGORIES) {
+        const isMainActive = selectedMainCategory === main;
+        const isExpanded = expandedMainCategory === main;
+        const subcats = allCategories.filter(c => c.mainCategory === main);
+
+        // Butonul categoriei principale (click = selectează + expandează/restrânge)
+        html += `
+            <button class="main-cat-btn" data-main="${escapeHtml(main)}"
+                style="background: ${isMainActive ? '#2f694b' : 'transparent'}; color: ${isMainActive ? '#fdf2b8' : '#2f694b'};
+                       border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer;
+                       font-weight: bold; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                <span>${escapeHtml(main)}</span>
+                <span>${isExpanded ? '▾' : '▸'}</span>
+            </button>
+        `;
+
+        // Subcategoriile — vizibile doar dacă secțiunea e expandată
+        if (isExpanded) {
+            html += `<div style="display: flex; flex-direction: column; gap: 6px; margin: 4px 0 8px 15px;">`;
+
+            const isAllActive = isMainActive && selectedSubCategory === 'Toți';
+            html += `
+                <button class="sub-cat-btn" data-main="${escapeHtml(main)}" data-sub="Toți"
+                    style="background: ${isAllActive ? '#2f694b' : 'transparent'}; color: ${isAllActive ? '#fdf2b8' : '#2f694b'};
+                           border: 1px solid #2f694b; padding: 8px; border-radius: 5px; cursor: pointer;
+                           font-weight: normal; text-align: left; font-size: 0.9em;">
+                    Toate
+                </button>
+            `;
+
+            if (subcats.length === 0) {
+                html += `<span style="color: #999; font-style: italic; font-size: 0.85em; padding: 4px;">Momentan nimic aici</span>`;
+            } else {
+                for (const sub of subcats) {
+                    const isSubActive = isMainActive && selectedSubCategory === sub.name;
+                    html += `
+                        <button class="sub-cat-btn" data-main="${escapeHtml(main)}" data-sub="${escapeHtml(sub.name)}"
+                            style="background: ${isSubActive ? '#2f694b' : 'transparent'}; color: ${isSubActive ? '#fdf2b8' : '#2f694b'};
+                                   border: 1px solid #2f694b; padding: 8px; border-radius: 5px; cursor: pointer;
+                                   font-weight: normal; text-align: left; font-size: 0.9em;">
+                            ${escapeHtml(sub.name)}
+                        </button>
+                    `;
+                }
+            }
+
+            html += `</div>`;
+        }
+    }
+
+    container.innerHTML = html;
+
+    // Click pe categorie principală -> selectează + expandează secțiunea (sau o restrânge dacă era deja deschisă)
+    document.querySelectorAll('.main-cat-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const main = (e.currentTarget as HTMLButtonElement).getAttribute('data-main') || "Cactuși";
+
+            if (expandedMainCategory === main) {
+                expandedMainCategory = ""; // restrânge dacă era deja deschisă
+            } else {
+                expandedMainCategory = main;
+            }
+
+            selectedMainCategory = main;
+            selectedSubCategory = "Toți";
+            renderSidebar();
+            fetchCacti();
+        });
+    });
+
+    // Click pe subcategorie -> selectează gen specific + închide sidebar-ul
+    document.querySelectorAll('.sub-cat-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLButtonElement;
+            selectedMainCategory = target.getAttribute('data-main') || "Cactuși";
+            selectedSubCategory = target.getAttribute('data-sub') || "Toți";
+            renderSidebar();
+            fetchCacti();
+            closeSidebar();
+        });
+    });
 }
 
 // Logica de deschidere/închidere

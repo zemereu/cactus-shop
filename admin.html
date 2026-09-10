@@ -27,13 +27,18 @@
 
     <!-- 1. Gestiune Categorii -->
     <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📂 Gestiune Categorii</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input type="text" id="new-category-name" placeholder="Nume categorie nouă" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+        <select id="new-category-main" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
+            <option value="Cactuși">Cactuși</option>
+            <option value="Suculente">Suculente</option>
+            <option value="Semințe">Semințe</option>
+        </select>
+        <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
         <button id="add-category-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
-            + Adaugă Categorie
+            + Adaugă Subcategorie
         </button>
     </div>
-    <ul id="admin-categories-list" style="list-style: none; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;"></ul>
+    <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; margin-bottom: 40px;"></div>
 
     <!-- 2. Adăugare Produs -->
     <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">➕ Adaugă Produs Nou</h3>
@@ -41,7 +46,13 @@
         <input type="text" id="new-cactus-name" placeholder="Nume produs" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
         <input type="number" id="new-cactus-price" placeholder="Preț (RON)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 100px;">
 
-        <!-- Aici categoriile vor fi încărcate automat din TypeScript -->
+        <select id="new-cactus-main-category" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
+            <option value="Cactuși">Cactuși</option>
+            <option value="Suculente">Suculente</option>
+            <option value="Semințe">Semințe</option>
+        </select>
+
+        <!-- Aici subcategoriile (genul) vor fi încărcate automat din TypeScript, filtrate după categoria principală de mai sus -->
         <select id="new-cactus-category" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;"></select>
 
         <input type="text" id="new-cactus-desc" placeholder="Descriere" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; flex-grow: 1;">

@@ -12,11 +12,15 @@ public class Cactus {
 
     private String name;
     private double price;
-    private String category;
+
+    private String category; // subcategoria (genul), ex: "Mammillaria"
+
+    // Categoria principală: "Cactuși" | "Suculente" | "Semințe"
+    private String mainCategory;
+
     private String description;
 
-    // NOU: Coloana pentru link-ul imaginii
-    @Column(length = 1000) // Setăm o lungime mai mare pentru că unele link-uri sunt lungi
+    @Column(length = 1000)
     private String imageUrl;
 
     public Cactus() {}
@@ -33,10 +37,12 @@ public class Cactus {
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
 
+    public String getMainCategory() { return mainCategory; }
+    public void setMainCategory(String mainCategory) { this.mainCategory = mainCategory; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    // NOU: Gettere și Settere pentru imagine
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

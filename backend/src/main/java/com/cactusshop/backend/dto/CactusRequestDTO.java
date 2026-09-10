@@ -11,8 +11,11 @@ public class CactusRequestDTO {
     @Positive(message = "Prețul trebuie să fie mai mare decât 0.")
     private double price;
 
-    @NotBlank(message = "Categoria este obligatorie.")
+    @NotBlank(message = "Subcategoria (genul) este obligatorie.")
     private String category;
+
+    @NotBlank(message = "Categoria principală este obligatorie.")
+    private String mainCategory;
 
     private String description;
     private String imageUrl;
@@ -27,6 +30,9 @@ public class CactusRequestDTO {
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+
+    public String getMainCategory() { return mainCategory; }
+    public void setMainCategory(String mainCategory) { this.mainCategory = mainCategory; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

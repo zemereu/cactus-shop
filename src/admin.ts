@@ -5,6 +5,7 @@ interface Cactus {
     price: number;
     description: string;
     category: string;
+    mainCategory: string;
     imageUrl: string;
 }
 
@@ -19,7 +20,10 @@ interface Order {
 interface Category {
     id: number;
     name: string;
+    mainCategory: string;
 }
+
+// MAIN_CATEGORIES, escapeHtml și API_BASE vin din shared.ts
 
 // --- UTILITARE JWT ---
 function getAuthHeader() {
@@ -68,52 +72,92 @@ async function fetchAdminCategories() {
         const response = await fetch(`${API_BASE}/api/categories`);
         const categories: Category[] = await response.json();
 
-        // A. Populează lista cu butoane de ștergere
+        // A. Afișăm subcategoriile grupate pe cele 3 categorii principale
         const list = document.getElementById('admin-categories-list');
         if (list) {
-            list.innerHTML = categories.map(cat =>
-                `<li style="background: #fdf2b8; border: 1px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold;">
-                    ${escapeHtml(cat.name)} 
-                    <button class="delete-cat-btn" data-id="${cat.id}" style="background: #d32f2f; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 10px; font-weight: bold;">X</button>
-                </li>`
-            ).join("");
+            let html = "";
+            for (const main of MAIN_CATEGORIES) {
+                const subcats = categories.filter(c => c.mainCategory === main);
+                html += `
+                    <div style="width: 100%; margin-bottom: 15px;">
+                        <h4 style="color: #2f694b; margin-bottom: 8px;">${escapeHtml(main)}</h4>
+                        <ul style="list-style: none; padding: 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                            ${subcats.length === 0
+                    ? `<li style="color: #999; font-style: italic;">Nicio subcategorie încă</li>`
+                    : subcats.map(cat =>
+                        `<li style="background: #fdf2b8; border: 1px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold;">
+                                        ${escapeHtml(cat.name)}
+                                        <button class="delete-cat-btn" data-id="${cat.id}" style="background: #d32f2f; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 10px; font-weight: bold;">X</button>
+                                    </li>`
+                    ).join("")
+                }
+                        </ul>
+                    </div>
+                `;
+            }
+            list.innerHTML = html;
 
-            // Activăm butoanele de ștergere a categoriei (necesită Auth)
             document.querySelectorAll('.delete-cat-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = (e.target as HTMLButtonElement).getAttribute('data-id');
-                    if (confirm("Sigur ștergi această categorie?")) {
+                    if (confirm("Sigur ștergi această subcategorie?")) {
                         await fetch(`${API_BASE}/api/categories/${id}`, {
                             method: 'DELETE',
                             headers: getAuthHeader()
                         });
-                        fetchAdminCategories(); // Reîncărcăm
+                        fetchAdminCategories();
                     }
                 });
             });
         }
 
-        // B. Populează Dropdown-ul din formularul de adăugare produs
-        const select = document.getElementById('new-cactus-category') as HTMLSelectElement;
-        if (select) {
-            select.innerHTML = categories.map(cat => `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`).join("");
-        }
+        // B. Populează dropdown-ul de subcategorie din formularul de adăugare produs,
+        // filtrat după categoria principală selectată acolo.
+        updateCactusCategoryDropdown(categories);
     } catch (error) {
         console.error("Eroare la preluarea categoriilor:", error);
     }
 }
 
-// Adăugare categorie nouă (necesită Auth)
+// Reumple dropdown-ul de subcategorie (gen) în funcție de categoria principală aleasă
+function updateCactusCategoryDropdown(categories: Category[]) {
+    const mainSelect = document.getElementById('new-cactus-main-category') as HTMLSelectElement;
+    const subSelect = document.getElementById('new-cactus-category') as HTMLSelectElement;
+    if (!mainSelect || !subSelect) return;
+
+    const selectedMain = mainSelect.value;
+    const subcats = categories.filter(c => c.mainCategory === selectedMain);
+
+    if (subcats.length === 0) {
+        subSelect.innerHTML = `<option value="">Nicio subcategorie — adaugă una mai sus</option>`;
+    } else {
+        subSelect.innerHTML = subcats.map(cat => `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`).join("");
+    }
+}
+
+// Când adminul schimbă categoria principală din formularul de produs,
+// reîncărcăm lista de subcategorii disponibile
+const mainCategorySelect = document.getElementById('new-cactus-main-category');
+if (mainCategorySelect) {
+    mainCategorySelect.addEventListener('change', async () => {
+        const response = await fetch(`${API_BASE}/api/categories`);
+        const categories: Category[] = await response.json();
+        updateCactusCategoryDropdown(categories);
+    });
+}
+
+// Adăugare subcategorie nouă (necesită Auth)
 const addCategoryBtn = document.getElementById('add-category-btn');
 if (addCategoryBtn) {
     addCategoryBtn.addEventListener('click', async () => {
         const nameInput = document.getElementById('new-category-name') as HTMLInputElement;
-        if (!nameInput.value.trim()) return;
+        const mainSelect = document.getElementById('new-category-main') as HTMLSelectElement;
+        if (!nameInput.value.trim() || !mainSelect) return;
 
         await fetch(`${API_BASE}/api/categories`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-            body: JSON.stringify({ name: nameInput.value.trim() })
+            body: JSON.stringify({ name: nameInput.value.trim(), mainCategory: mainSelect.value })
         });
 
         nameInput.value = "";
@@ -173,13 +217,14 @@ if (addCactusBtn) {
         const newCactus = {
             name: (document.getElementById('new-cactus-name') as HTMLInputElement).value.trim(),
             price: Number((document.getElementById('new-cactus-price') as HTMLInputElement).value),
-            category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value, // Preluăm din select!
+            mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
+            category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
             description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
             imageUrl: (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim()
         };
 
-        if (!newCactus.name || !newCactus.price || !newCactus.category) {
-            alert("Completează toate câmpurile obligatorii!");
+        if (!newCactus.name || !newCactus.price || !newCactus.category || !newCactus.mainCategory) {
+            alert("Completează toate câmpurile obligatorii (inclusiv subcategoria)!");
             return;
         }
 
@@ -189,7 +234,6 @@ if (addCactusBtn) {
             body: JSON.stringify(newCactus)
         });
 
-        // Golim inputurile
         (document.getElementById('new-cactus-name') as HTMLInputElement).value = "";
         (document.getElementById('new-cactus-price') as HTMLInputElement).value = "";
         (document.getElementById('new-cactus-desc') as HTMLInputElement).value = "";

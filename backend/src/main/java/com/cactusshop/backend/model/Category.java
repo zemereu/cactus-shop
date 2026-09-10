@@ -8,11 +8,20 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+
+    private String name; // numele subcategoriei (genul), ex: "Mammillaria"
+
+    // Categoria principală sub care se încadrează: "Cactuși" | "Suculente" | "Semințe"
+    private String mainCategory;
 
     public Category() {}
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getMainCategory() { return mainCategory; }
+    public void setMainCategory(String mainCategory) { this.mainCategory = mainCategory; }
 }

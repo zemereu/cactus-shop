@@ -9,9 +9,14 @@ import java.util.List;
 @Repository
 public interface CactusRepository extends JpaRepository<Cactus, Long> {
 
-    // Caută după Categorie ȘI Nume (ignorând literele mari/mici)
-    List<Cactus> findByCategoryAndNameContainingIgnoreCase(String category, String name);
+    // Filtrare completă: categorie principală + gen + text căutat
+    List<Cactus> findByMainCategoryAndCategoryAndNameContainingIgnoreCase(
+            String mainCategory, String category, String name);
 
-    // Caută doar după Nume (pentru categoria "Toți")
+    // Filtrare doar după categorie principală + text (toate genurile, "Toți")
+    List<Cactus> findByMainCategoryAndNameContainingIgnoreCase(
+            String mainCategory, String name);
+
+    // Căutare generală, fără filtrare pe categorie (păstrat pentru compatibilitate)
     List<Cactus> findByNameContainingIgnoreCase(String name);
 }

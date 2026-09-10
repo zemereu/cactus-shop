@@ -18,15 +18,22 @@ public class CategoryController {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    // Fără parametru -> toate subcategoriile.
+    // Cu ?mainCategory=Cactuși -> doar subcategoriile din acea categorie principală.
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<Category> getCategories(
+            @RequestParam(required = false) String mainCategory) {
+        if (mainCategory == null || mainCategory.isBlank()) {
+            return categoryRepository.findAll();
+        }
+        return categoryRepository.findByMainCategory(mainCategory);
     }
 
     @PostMapping
     public ResponseEntity<?> addCategory(@Valid @RequestBody CategoryRequestDTO request) {
         Category category = new Category();
         category.setName(request.getName().trim());
+        category.setMainCategory(request.getMainCategory().trim());
 
         Category saved = categoryRepository.save(category);
         return ResponseEntity.ok(saved);
