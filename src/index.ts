@@ -22,9 +22,25 @@ let selectedMainCategory: string = "Cactuși";
 let selectedSubCategory: string = "Toți";
 let expandedMainCategory: string = "Cactuși"; // care secțiune e deschisă în sidebar
 let searchQuery: string = "";
-let shoppingCart: Cactus[] = [];
 
-// PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml și API_BASE vin din shared.ts (încărcat înaintea acestui fișier în index.html)
+// Coșul se încarcă din localStorage la pornire, ca să nu dispară
+// când navighezi pe altă pagină (ex: cont.html) și te întorci.
+function loadCartFromStorage(): Cactus[] {
+    try {
+        const raw = localStorage.getItem(CART_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+function saveCartToStorage() {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(shoppingCart));
+}
+
+let shoppingCart: Cactus[] = loadCartFromStorage();
+
+// PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml, API_BASE, CART_STORAGE_KEY,
+// CUSTOMER_JWT_KEY, CUSTOMER_NAME_KEY vin din shared.ts
 
 // 1. Fetch de la Backend (Filtrare aplicată pe server, pe 3 niveluri)
 async function fetchCacti() {
@@ -45,12 +61,23 @@ async function fetchCacti() {
     }
 }
 
+// Actualizează link-ul "Cont" din header cu numele clientului, dacă e logat
+function updateAccountLink() {
+    const accountLink = document.getElementById('account-link');
+    if (!accountLink) return;
+
+    const name = localStorage.getItem(CUSTOMER_NAME_KEY);
+    accountLink.innerText = name ? `👤 ${name}` : `👤 Cont`;
+}
+updateAccountLink();
+
 // 2. UI Coș & Notificări
 function updateCartUI() {
     const cartCountElement = document.getElementById('cart-count');
     if (cartCountElement) {
         cartCountElement.innerText = shoppingCart.length.toString();
     }
+    saveCartToStorage();
     renderCartItems();
 }
 
@@ -111,9 +138,7 @@ function renderSidebar() {
     for (const main of MAIN_CATEGORIES) {
         const isMainActive = selectedMainCategory === main;
         const isExpanded = expandedMainCategory === main;
-        const subcats = allCategories
-            .filter(c => c.mainCategory === main)
-            .sort((a, b) => a.name.localeCompare(b.name)); // NOU: Sortează alfabetic după nume
+        const subcats = allCategories.filter(c => c.mainCategory === main);
 
         // Butonul categoriei principale (click = selectează + expandează/restrânge)
         html += `
