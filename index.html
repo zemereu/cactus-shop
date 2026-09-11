@@ -6,7 +6,6 @@
     <title>Bun venit la Cactus Shop 🌵</title>
     <!-- Importăm fontul Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
         /* Efect pentru butoanele din pagină */
         .cta-button {
@@ -29,16 +28,44 @@
             transform: translateY(-5px);
             box-shadow: 0 12px 24px rgba(47, 105, 75, 0.15) !important;
         }
+
+        /* NOU: Efect pentru butoanele din header */
+        .header-btn {
+            background-color: transparent;
+            border: 2px solid #2f694b;
+            color: #2f694b;
+            padding: 8px 20px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .header-btn:hover {
+            background-color: #2f694b;
+            color: #fdf2b8;
+        }
     </style>
 </head>
 <body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh;">
 
-<!-- HEADER-UL (Mărit și Centrat) -->
-<header style="display: flex; align-items: center; justify-content: center; padding: 20px 40px; background-color: #fdf2b8; border-bottom: 2px solid rgba(47, 105, 75, 0.1);">
-    <a href="index.html" style="display: flex; align-items: center; gap: 15px; text-decoration: none;">
+<!-- HEADER-UL NOU (Grid cu 3 coloane pentru a menține logo-ul centrat) -->
+<header style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 20px 40px; background-color: #fdf2b8; border-bottom: 2px solid rgba(47, 105, 75, 0.1);">
+
+    <!-- Coloana 1 (Stânga): Goală, pentru a echilibra grid-ul -->
+    <div></div>
+
+    <!-- Coloana 2 (Centru): Logo și Nume -->
+    <a href="index.html" style="display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none;">
         <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 75px; width: auto; object-fit: contain;">
         <h1 style="margin: 0; color: #2f694b; font-size: 2.2em; font-weight: 900;">Cactus Shop</h1>
     </a>
+
+    <!-- Coloana 3 (Dreapta): Butoanele Noi -->
+    <div style="display: flex; gap: 15px; justify-self: end; align-items: center;">
+        <a href="verifica-comanda.html" class="header-btn">Verifică Comanda</a>
+        <a href="#" class="header-btn">Cont</a>
+    </div>
+
 </header>
 
 <!-- CONȚINUTUL PRINCIPAL -->
@@ -142,7 +169,6 @@
 <footer style="text-align: center; padding: 30px 20px; color: #2f694b; font-weight: bold; border-top: 1px solid rgba(47, 105, 75, 0.1);">
     <div style="margin-bottom: 12px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
         <a href="termeni.html" style="color: #2f694b; text-decoration: none; border-bottom: 1px solid #2f694b;">Termeni și Condiții</a>
-        <a href="verifica-comanda.html" style="color: #2f694b; text-decoration: none; border-bottom: 1px solid #2f694b;">Verifică Comanda</a>
     </div>
     &copy; 2026 Cactus Shop. Toate drepturile rezervate.
 </footer>

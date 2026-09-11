@@ -111,7 +111,9 @@ function renderSidebar() {
     for (const main of MAIN_CATEGORIES) {
         const isMainActive = selectedMainCategory === main;
         const isExpanded = expandedMainCategory === main;
-        const subcats = allCategories.filter(c => c.mainCategory === main);
+        const subcats = allCategories
+            .filter(c => c.mainCategory === main)
+            .sort((a, b) => a.name.localeCompare(b.name)); // NOU: Sortează alfabetic după nume
 
         // Butonul categoriei principale (click = selectează + expandează/restrânge)
         html += `

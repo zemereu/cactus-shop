@@ -81,7 +81,9 @@ async function fetchAdminCategories() {
         if (list) {
             let html = "";
             for (const main of MAIN_CATEGORIES) {
-                const subcats = categories.filter(c => c.mainCategory === main);
+                const subcats = categories
+                    .filter(c => c.mainCategory === main)
+                    .sort((a, b) => a.name.localeCompare(b.name)); // Sortare alfabetică pentru listă
                 html += `
                     <div style="width: 100%; margin-bottom: 15px;">
                         <h4 style="color: #2f694b; margin-bottom: 8px;">${escapeHtml(main)}</h4>
@@ -130,7 +132,9 @@ function updateCactusCategoryDropdown(categories: Category[]) {
     if (!mainSelect || !subSelect) return;
 
     const selectedMain = mainSelect.value;
-    const subcats = categories.filter(c => c.mainCategory === selectedMain);
+    const subcats = categories
+        .filter(c => c.mainCategory === selectedMain)
+        .sort((a, b) => a.name.localeCompare(b.name)); // Sortare alfabetică pentru dropdown
 
     if (subcats.length === 0) {
         subSelect.innerHTML = `<option value="">Nicio subcategorie — adaugă una mai sus</option>`;
