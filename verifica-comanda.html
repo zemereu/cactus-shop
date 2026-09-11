@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifică Comanda - Cactus Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 20px;">
+
+<header style="display: flex; align-items: center; justify-content: center; padding: 20px; margin-bottom: 20px;">
+    <a href="shop.html" style="display: flex; align-items: center; gap: 15px; text-decoration: none;">
+        <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 60px; width: auto; object-fit: contain;">
+        <h1 style="margin: 0; color: #2f694b; font-size: 1.8em;">Cactus Shop</h1>
+    </a>
+</header>
+
+<div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b;">
+    <h2 style="color: #2f694b; margin-top: 0;">📦 Verifică Statusul Comenzii</h2>
+    <p style="color: #555;">Introdu numărul comenzii (primit la finalul checkout-ului) și adresa de email folosită la plasarea comenzii.</p>
+
+    <input type="number" id="lookup-order-id" placeholder="Numărul comenzii (ex: 42)" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+    <input type="email" id="lookup-email" placeholder="Email folosit la comandă" style="width: 100%; padding: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+
+    <button id="lookup-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+        Verifică
+    </button>
+
+    <div id="lookup-result" style="margin-top: 20px;"></div>
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="shop.html" style="color: #2f694b; text-decoration: none; font-weight: bold;">⬅ Înapoi la magazin</a>
+</div>
+
+<script src="dist/shared.js"></script>
+<script src="dist/orderStatus.js"></script>
+</body>
+</html>

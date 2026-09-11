@@ -13,10 +13,13 @@ interface Cactus {
 interface Order {
     id: number;
     customerName: string;
+    email: string;
     address: string;
     totalPrice: number;
     purchasedItems: string;
+    status: string;
 }
+
 
 interface Category {
     id: number;
@@ -24,7 +27,7 @@ interface Category {
     mainCategory: string;
 }
 
-// PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml și API_BASE vin din shared.ts
+// PRODUCT_TYPES, MAIN_CATEGORIES, ORDER_STATUSES, escapeHtml și API_BASE vin din shared.ts
 
 // --- UTILITARE JWT ---
 function getAuthHeader() {
@@ -269,14 +272,38 @@ async function fetchAdminOrders() {
             htmlContent += `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 12px; font-weight: bold; color: #2f694b;">#${order.id}</td>
-                    <td style="padding: 12px; color: #333;">${escapeHtml(order.customerName)}</td>
+                    <td style="padding: 12px; color: #333;">${escapeHtml(order.customerName)}<br><span style="font-size: 0.8em; color: #999;">${escapeHtml(order.email)}</span></td>
                     <td style="padding: 12px; color: #333;">${escapeHtml(order.address)}</td>
                     <td style="padding: 12px; color: #2f694b;">${escapeHtml(order.purchasedItems)}</td>
                     <td style="padding: 12px; color: #d32f2f; font-weight: bold;">${order.totalPrice} RON</td>
+                    <td style="padding: 12px;">
+                        <select class="order-status-select" data-id="${order.id}" style="padding: 6px; border: 1px solid #2f694b; border-radius: 4px;">
+                            ${ORDER_STATUSES.map(s => `<option value="${escapeHtml(s)}" ${s === order.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
+                        </select>
+                    </td>
                 </tr>
             `;
         }
         tableBody.innerHTML = htmlContent;
+
+        document.querySelectorAll('.order-status-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const target = e.target as HTMLSelectElement;
+                const orderId = target.getAttribute('data-id');
+                const newStatus = target.value;
+
+                const response = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (!response.ok) {
+                    alert("Nu am putut actualiza statusul comenzii.");
+                    fetchAdminOrders(); // reîncarcă starea reală dacă a eșuat
+                }
+            });
+        });
 
     } catch (error) {
         console.error("Eroare la preluarea comenzilor:", error);

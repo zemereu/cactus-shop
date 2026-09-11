@@ -3,7 +3,7 @@ package com.cactusshop.backend.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "orders") // Folosim "orders" pentru că "order" este un cuvânt rezervat în SQL
+@Table(name = "orders")
 public class Order {
 
     @Id
@@ -11,11 +11,15 @@ public class Order {
     private Long id;
 
     private String customerName;
+    private String email;
     private String address;
     private double totalPrice;
 
-    @Column(length = 2000) // Oferim spațiu suficient pentru o listă lungă de produse
+    @Column(length = 2000)
     private String purchasedItems;
+
+    // "Neplătită" | "Plătită - în pregătire" | "Expediată" | "Livrată"
+    private String status = "Neplătită";
 
     public Order() {}
 
@@ -25,6 +29,9 @@ public class Order {
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
 
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
@@ -33,4 +40,7 @@ public class Order {
 
     public String getPurchasedItems() { return purchasedItems; }
     public void setPurchasedItems(String purchasedItems) { this.purchasedItems = purchasedItems; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

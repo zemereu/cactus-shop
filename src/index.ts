@@ -376,10 +376,11 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
 
     submitOrderBtn.addEventListener('click', async () => {
         const nameInput = (document.getElementById('customer-name') as HTMLInputElement).value.trim();
+        const emailInput = (document.getElementById('customer-email') as HTMLInputElement).value.trim();
         const addressInput = (document.getElementById('customer-address') as HTMLInputElement).value.trim();
 
-        if (!nameInput || !addressInput) {
-            alert("Te rog să completezi numele și adresa de livrare!");
+        if (!nameInput || !emailInput || !addressInput) {
+            alert("Te rog să completezi numele, emailul și adresa de livrare!");
             return;
         }
 
@@ -390,6 +391,7 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
 
         const newOrder = {
             customerName: nameInput,
+            email: emailInput,
             address: addressInput,
             cactusIds: cactusIds
         };
@@ -403,16 +405,37 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
 
             if (!response.ok) throw new Error("Eroare la procesarea comenzii.");
 
-            showToast(`🎉 Comanda a fost plasată cu succes, ${nameInput}!`);
+            const savedOrder = await response.json();
 
             shoppingCart = [];
             updateCartUI();
 
             (document.getElementById('customer-name') as HTMLInputElement).value = "";
+            (document.getElementById('customer-email') as HTMLInputElement).value = "";
             (document.getElementById('customer-address') as HTMLInputElement).value = "";
             checkoutForm.style.display = 'none';
+
+            // Afișăm confirmarea cu nr. comandă + detaliile de plată prin transfer bancar
+            const confirmationDiv = document.getElementById('order-confirmation');
+            if (confirmationDiv) {
+                confirmationDiv.style.display = 'block';
+                confirmationDiv.innerHTML = `
+                    <p style="color: #2f694b; font-weight: bold;">🎉 Comanda #${savedOrder.id} a fost plasată!</p>
+                    <p><strong>Notează numărul comenzii</strong> — ai nevoie de el ca să verifici statusul mai târziu.</p>
+                    <p style="margin-top: 10px;"><strong>Total de plată: ${savedOrder.totalPrice} RON</strong></p>
+                    <div style="background: #fdf2b8; border: 1px solid #2f694b; border-radius: 4px; padding: 10px; margin-top: 10px;">
+                        <p style="margin: 0 0 5px 0; font-weight: bold;">Plată prin transfer bancar:</p>
+                        <p style="margin: 2px 0;">IBAN: ${escapeHtml(BANK_TRANSFER_INFO.iban)}</p>
+                        <p style="margin: 2px 0;">Bancă: ${escapeHtml(BANK_TRANSFER_INFO.bank)}</p>
+                        <p style="margin: 2px 0;">Titular: ${escapeHtml(BANK_TRANSFER_INFO.holder)}</p>
+                        <p style="margin: 8px 0 0 0; font-style: italic;">Menționează numărul comenzii (#${savedOrder.id}) la detalii transfer.</p>
+                    </div>
+                    <p style="margin-top: 10px;">Comanda ta va apărea ca „plătită" după ce confirmăm transferul.
+                       Poți verifica oricând statusul pe pagina <a href="verifica-comanda.html" style="color: #2f694b; font-weight: bold;">Verifică Comanda</a>.</p>
+                `;
+            }
+
             checkoutBtn.style.display = 'block';
-            document.getElementById('cart-modal')!.style.display = 'none';
         } catch (error) {
             console.error(error);
             alert("A apărut o eroare la salvarea comenzii.");
