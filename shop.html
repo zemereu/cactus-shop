@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Cactus Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 20px;">
+
+<!-- Un singur HEADER complet, împărțit în 3 coloane pentru a centra căutarea -->
+<header style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 30px; margin-top: 10px; gap: 20px;">
+
+    <!-- Stânga: Buton Meniu + Logo + Titlu -->
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <button id="menu-btn" style="background: none; border: none; font-size: 24px; color: #2f694b; cursor: pointer; padding: 0;">
+            ☰
+        </button>
+        <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 60px; width: auto; object-fit: contain;">
+        <h1 style="margin: 0; color: #2f694b; font-size: 1.8em; white-space: nowrap;">Cactus Shop</h1>
+    </div>
+
+    <!-- Centru: Bara de căutare (Perfect centrată) -->
+    <div style="width: 400px; justify-self: center;">
+        <input type="text" id="search-bar" placeholder="Caută cactus după nume..."
+               style="width: 100%; box-sizing: border-box; padding: 10px; border: 2px solid #2f694b; border-radius: 5px; font-size: 16px; background-color: transparent; color: #333;">
+    </div>
+
+    <!-- Dreapta: Butonul și Fereastra Coșului -->
+    <div style="position: relative; justify-self: end;">
+        <div id="cart-button" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap;">
+            🛒 Coș: <span id="cart-count">0</span>
+        </div>
+
+        <div id="cart-modal" style="display: none; position: absolute; top: 55px; right: 0; width: 320px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 15px; text-align: left;">
+            <h3 style="margin-top: 0; color: #2f694b; border-bottom: 1px solid #2f694b; padding-bottom: 10px;">Produse în coș</h3>
+
+            <div id="cart-items-container" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+
+            <div style="border-top: 1px solid #2f694b; padding-top: 10px; font-weight: bold; text-align: right; font-size: 1.1em;">
+                Total: <span id="cart-total" style="color: #d32f2f;">0</span> RON
+            </div>
+
+            <button id="checkout-btn" style="width: 100%; margin-top: 15px; background-color: #FF9800; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                💳 Mergi la Casă
+            </button>
+
+            <div id="checkout-form" style="display: none; margin-top: 15px; border-top: 1px solid #2f694b; padding-top: 15px;">
+                <input type="text" id="customer-name" placeholder="Numele tău" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; background-color: transparent;">
+                <input type="text" id="customer-address" placeholder="Adresa de livrare" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; background-color: transparent;">
+                <button id="submit-order-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                    Trimite Comanda 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Sidebar-ul Ascuns pentru Categorii -->
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
+<div id="sidebar" style="position: fixed; top: 0; left: -300px; width: 250px; height: 100%; background-color: #fdf2b8; border-right: 2px solid #2f694b; z-index: 1000; transition: left 0.3s ease; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.2);">
+    <button id="close-sidebar-btn" style="background: none; border: none; font-size: 20px; color: #d32f2f; cursor: pointer; float: right; font-weight: bold;">X</button>
+    <h2 style="color: #2f694b; border-bottom: 2px solid #2f694b; padding-bottom: 10px;">Categorii</h2>
+    <div id="sidebar-categories-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
+</div>
+
+<!-- Grila de cactuși și Notificările -->
+<div id="cacti-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<script src="dist/shared.js"></script>
+<script src="dist/shared.js"></script>
+<script src="dist/index.js"></script>
+</body>
+</html>

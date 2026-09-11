@@ -9,7 +9,7 @@
 
 <h1 style="text-align: center; color: #2f694b;">Panou de Administrare 🔐</h1>
 <div style="text-align: center; margin-bottom: 20px;">
-    <a href="index.html" style="color: #2f694b; text-decoration: none; font-weight: bold; border-bottom: 2px solid #2f694b;">⬅ Întoarce-te la Magazin</a>
+    <a href="shop.html" style="color: #2f694b; text-decoration: none; font-weight: bold; border-bottom: 2px solid #2f694b;">⬅ Întoarce-te la Magazin</a>
 </div>
 
 <!-- Secțiunea de Login -->
@@ -31,7 +31,6 @@
         <select id="new-category-main" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
             <option value="Cactuși">Cactuși</option>
             <option value="Suculente">Suculente</option>
-            <option value="Semințe">Semințe</option>
         </select>
         <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
         <button id="add-category-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
@@ -46,10 +45,14 @@
         <input type="text" id="new-cactus-name" placeholder="Nume produs" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
         <input type="number" id="new-cactus-price" placeholder="Preț (RON)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 100px;">
 
+        <select id="new-cactus-product-type" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
+            <option value="Plantă">Plantă</option>
+            <option value="Semințe">Semințe</option>
+        </select>
+
         <select id="new-cactus-main-category" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
             <option value="Cactuși">Cactuși</option>
             <option value="Suculente">Suculente</option>
-            <option value="Semințe">Semințe</option>
         </select>
 
         <!-- Aici subcategoriile (genul) vor fi încărcate automat din TypeScript, filtrate după categoria principală de mai sus -->

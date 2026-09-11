@@ -4,6 +4,7 @@ interface Cactus {
     name: string;
     price: number;
     description: string;
+    productType: string;
     category: string;
     mainCategory: string;
     imageUrl: string;
@@ -23,7 +24,7 @@ interface Category {
     mainCategory: string;
 }
 
-// MAIN_CATEGORIES, escapeHtml și API_BASE vin din shared.ts
+// PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml și API_BASE vin din shared.ts
 
 // --- UTILITARE JWT ---
 function getAuthHeader() {
@@ -217,14 +218,15 @@ if (addCactusBtn) {
         const newCactus = {
             name: (document.getElementById('new-cactus-name') as HTMLInputElement).value.trim(),
             price: Number((document.getElementById('new-cactus-price') as HTMLInputElement).value),
+            productType: (document.getElementById('new-cactus-product-type') as HTMLSelectElement).value,
             mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
             category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
             description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
             imageUrl: (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim()
         };
 
-        if (!newCactus.name || !newCactus.price || !newCactus.category || !newCactus.mainCategory) {
-            alert("Completează toate câmpurile obligatorii (inclusiv subcategoria)!");
+        if (!newCactus.name || !newCactus.price || !newCactus.category || !newCactus.mainCategory || !newCactus.productType) {
+            alert("Completează toate câmpurile obligatorii (inclusiv tip produs și subcategorie)!");
             return;
         }
 

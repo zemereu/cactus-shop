@@ -13,10 +13,14 @@ public class Cactus {
     private String name;
     private double price;
 
-    private String category; // subcategoria (genul), ex: "Mammillaria"
+    // "Plantă" | "Semințe" — nivelul de sus, tip de produs
+    private String productType;
 
-    // Categoria principală: "Cactuși" | "Suculente" | "Semințe"
+    // "Cactuși" | "Suculente" — nivelul din mijloc
     private String mainCategory;
+
+    // genul, ex: "Mammillaria", "Lithops" — nivelul de jos
+    private String category;
 
     private String description;
 
@@ -34,11 +38,14 @@ public class Cactus {
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getProductType() { return productType; }
+    public void setProductType(String productType) { this.productType = productType; }
 
     public String getMainCategory() { return mainCategory; }
     public void setMainCategory(String mainCategory) { this.mainCategory = mainCategory; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

@@ -2,72 +2,146 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <title>Cactus Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bun venit la Cactus Shop 🌵</title>
+    <!-- Importăm fontul Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Efect pentru butoanele din pagină */
+        .cta-button {
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .cta-button.primary:hover {
+            transform: scale(1.05);
+            background-color: #e68a00 !important;
+        }
+        .cta-button.secondary:hover {
+            transform: scale(1.05);
+            background-color: rgba(255, 152, 0, 0.2) !important;
+        }
+
+        /* Efect de ridicare pentru carduri (hover) */
+        .hover-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(47, 105, 75, 0.15) !important;
+        }
+    </style>
 </head>
-<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 20px;">
+<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh;">
 
-<!-- Un singur HEADER complet, împărțit în 3 coloane pentru a centra căutarea -->
-<header style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 30px; margin-top: 10px; gap: 20px;">
-
-    <!-- Stânga: Buton Meniu + Logo + Titlu -->
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <button id="menu-btn" style="background: none; border: none; font-size: 24px; color: #2f694b; cursor: pointer; padding: 0;">
-            ☰
-        </button>
-        <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 60px; width: auto; object-fit: contain;">
-        <h1 style="margin: 0; color: #2f694b; font-size: 1.8em; white-space: nowrap;">Cactus Shop</h1>
-    </div>
-
-    <!-- Centru: Bara de căutare (Perfect centrată) -->
-    <div style="width: 400px; justify-self: center;">
-        <input type="text" id="search-bar" placeholder="Caută cactus după nume..."
-               style="width: 100%; box-sizing: border-box; padding: 10px; border: 2px solid #2f694b; border-radius: 5px; font-size: 16px; background-color: transparent; color: #333;">
-    </div>
-
-    <!-- Dreapta: Butonul și Fereastra Coșului -->
-    <div style="position: relative; justify-self: end;">
-        <div id="cart-button" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap;">
-            🛒 Coș: <span id="cart-count">0</span>
-        </div>
-
-        <div id="cart-modal" style="display: none; position: absolute; top: 55px; right: 0; width: 320px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 15px; text-align: left;">
-            <h3 style="margin-top: 0; color: #2f694b; border-bottom: 1px solid #2f694b; padding-bottom: 10px;">Produse în coș</h3>
-
-            <div id="cart-items-container" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
-
-            <div style="border-top: 1px solid #2f694b; padding-top: 10px; font-weight: bold; text-align: right; font-size: 1.1em;">
-                Total: <span id="cart-total" style="color: #d32f2f;">0</span> RON
-            </div>
-
-            <button id="checkout-btn" style="width: 100%; margin-top: 15px; background-color: #FF9800; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                💳 Mergi la Casă
-            </button>
-
-            <div id="checkout-form" style="display: none; margin-top: 15px; border-top: 1px solid #2f694b; padding-top: 15px;">
-                <input type="text" id="customer-name" placeholder="Numele tău" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; background-color: transparent;">
-                <input type="text" id="customer-address" placeholder="Adresa de livrare" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; background-color: transparent;">
-                <button id="submit-order-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                    Trimite Comanda 🚀
-                </button>
-            </div>
-        </div>
-    </div>
+<!-- HEADER-UL (Mărit și Centrat) -->
+<header style="display: flex; align-items: center; justify-content: center; padding: 20px 40px; background-color: #fdf2b8; border-bottom: 2px solid rgba(47, 105, 75, 0.1);">
+    <a href="index.html" style="display: flex; align-items: center; gap: 15px; text-decoration: none;">
+        <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 75px; width: auto; object-fit: contain;">
+        <h1 style="margin: 0; color: #2f694b; font-size: 2.2em; font-weight: 900;">Cactus Shop</h1>
+    </a>
 </header>
 
-<!-- Sidebar-ul Ascuns pentru Categorii -->
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
-<div id="sidebar" style="position: fixed; top: 0; left: -300px; width: 250px; height: 100%; background-color: #fdf2b8; border-right: 2px solid #2f694b; z-index: 1000; transition: left 0.3s ease; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.2);">
-    <button id="close-sidebar-btn" style="background: none; border: none; font-size: 20px; color: #d32f2f; cursor: pointer; float: right; font-weight: bold;">X</button>
-    <h2 style="color: #2f694b; border-bottom: 2px solid #2f694b; padding-bottom: 10px;">Categorii</h2>
-    <div id="sidebar-categories-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
-</div>
+<!-- CONȚINUTUL PRINCIPAL -->
+<main style="flex-grow: 1;">
 
-<!-- Grila de cactuși și Notificările -->
-<div id="cacti-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>
-<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
+    <!-- 1. Secțiunea Principală (HERO) -->
+    <section style="display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
+        <div style="max-width: 1100px; width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; background-color: #2f694b; color: #fdf2b8; padding: 50px; border-radius: 16px; box-shadow: 0 10px 30px rgba(47, 105, 75, 0.3);">
 
-<script src="dist/shared.js"></script>
-<script src="dist/index.js"></script>
+            <!-- Text și Butoane (Stânga) -->
+            <div style="flex: 1 1 400px; padding-right: 30px; margin-bottom: 20px;">
+                <h2 style="font-size: 3.2em; margin-top: 0; margin-bottom: 20px; line-height: 1.1;">
+                    PREMIUM CACTI & SUCCULENTS
+                </h2>
+                <p style="font-size: 1.2em; margin-bottom: 30px; line-height: 1.6; opacity: 0.9;">
+                    Descoperă colecția noastră rară. Plante rezistente, perfecte pentru biroul sau livingul tău, livrate în siguranță direct la ușă.
+                </p>
+
+                <!-- Containerul pentru ambele butoane -->
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <a href="shop.html" class="cta-button primary" style="background-color: #FF9800; color: #fdf2b8; padding: 15px 30px; text-decoration: none; font-size: 1.2em; font-weight: bold; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.4);">
+                        🛒 Intră în Magazin
+                    </a>
+                    <a href="#" class="cta-button secondary" style="background-color: transparent; border: 2px solid #FF9800; color: #fdf2b8; padding: 13px 30px; text-decoration: none; font-size: 1.2em; font-weight: bold; border-radius: 8px; display: inline-block;">
+                        📖 Despre noi
+                    </a>
+                </div>
+            </div>
+
+            <!-- Imaginea de impact (Dreapta) -->
+            <div style="flex: 1 1 300px; text-align: center;">
+                <img src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=600&q=80" alt="Cactus Decorativ" style="max-width: 100%; height: 400px; object-fit: cover; border-radius: 12px; border: 4px solid #fdf2b8; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Banda de Încredere (Trust Badges) -->
+    <section style="max-width: 1100px; margin: 0 auto 80px auto; padding: 0 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
+        <!-- Badge 1 -->
+        <div class="hover-card" style="flex: 1 1 300px; background-color: white; padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid #2f694b;">
+            <div style="font-size: 3em; margin-bottom: 15px;">📦</div>
+            <h3 style="color: #2f694b; margin: 0 0 10px 0; font-size: 1.3em;">Ambalare Securizată</h3>
+            <p style="margin: 0; color: #555; line-height: 1.5;">Plantele ajung perfect intacte la tine, protejate cu materiale ecologice.</p>
+        </div>
+        <!-- Badge 2 -->
+        <div class="hover-card" style="flex: 1 1 300px; background-color: white; padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid #FF9800;">
+            <div style="font-size: 3em; margin-bottom: 15px;">🚚</div>
+            <h3 style="color: #2f694b; margin: 0 0 10px 0; font-size: 1.3em;">Livrare Rapidă</h3>
+            <p style="margin: 0; color: #555; line-height: 1.5;">Expediem comenzile în 24-48 de ore, oriunde în țară.</p>
+        </div>
+        <!-- Badge 3 -->
+        <div class="hover-card" style="flex: 1 1 300px; background-color: white; padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid #2f694b;">
+            <div style="font-size: 3em; margin-bottom: 15px;">🌱</div>
+            <h3 style="color: #2f694b; margin: 0 0 10px 0; font-size: 1.3em;">Calitate Garantată</h3>
+            <p style="margin: 0; color: #555; line-height: 1.5;">Toți cactușii sunt crescuți cu pasiune, în condiții optime de seră.</p>
+        </div>
+    </section>
+
+    <!-- 3. Secțiunea de Recenzii (Social Proof) -->
+    <section style="background-color: #2f694b; padding: 80px 20px;">
+        <div style="max-width: 1100px; margin: 0 auto; text-align: center;">
+            <h2 style="color: #fdf2b8; font-size: 2.8em; margin-top: 0; margin-bottom: 50px;">Ce spun clienții noștri</h2>
+
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
+                <!-- Recenzia 1 -->
+                <div style="flex: 1 1 300px; background-color: #fdf2b8; padding: 30px; border-radius: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+                    <div style="color: #FF9800; font-size: 1.5em; margin-bottom: 15px;">⭐⭐⭐⭐⭐</div>
+                    <p style="font-style: italic; color: #333; line-height: 1.6; margin-bottom: 25px;">
+                        "Cel mai frumos cactus pe care l-am comandat online! S-a integrat perfect pe biroul meu. A ajuns impecabil."
+                    </p>
+                    <h4 style="color: #2f694b; margin: 0; font-size: 1.1em;">- Andrei M.</h4>
+                    <span style="font-size: 0.85em; color: #666;">Cumpărător verificat</span>
+                </div>
+
+                <!-- Recenzia 2 -->
+                <div style="flex: 1 1 300px; background-color: #fdf2b8; padding: 30px; border-radius: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+                    <div style="color: #FF9800; font-size: 1.5em; margin-bottom: 15px;">⭐⭐⭐⭐⭐</div>
+                    <p style="font-style: italic; color: #333; line-height: 1.6; margin-bottom: 25px;">
+                        "Am cumpărat o Aloe Vera și un Saguaro mic. Plantele sunt extrem de sănătoase, iar pământul nici măcar nu s-a vărsat în cutie!"
+                    </p>
+                    <h4 style="color: #2f694b; margin: 0; font-size: 1.1em;">- Elena R.</h4>
+                    <span style="font-size: 0.85em; color: #666;">Cumpărător verificat</span>
+                </div>
+
+                <!-- Recenzia 3 -->
+                <div style="flex: 1 1 300px; background-color: #fdf2b8; padding: 30px; border-radius: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+                    <div style="color: #FF9800; font-size: 1.5em; margin-bottom: 15px;">⭐⭐⭐⭐⭐</div>
+                    <p style="font-style: italic; color: #333; line-height: 1.6; margin-bottom: 25px;">
+                        "Recomand din suflet! Livrarea a fost super rapidă (a doua zi). E minunat să vezi câtă pasiune se pune în aceste plante."
+                    </p>
+                    <h4 style="color: #2f694b; margin: 0; font-size: 1.1em;">- Cristi P.</h4>
+                    <span style="font-size: 0.85em; color: #666;">Cumpărător verificat</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer-ul legal -->
+<footer style="text-align: center; padding: 30px 20px; color: #2f694b; font-weight: bold; border-top: 1px solid rgba(47, 105, 75, 0.1);">
+    &copy; 2026 Cactus Shop. Toate drepturile rezervate.
+</footer>
+
 </body>
 </html>
