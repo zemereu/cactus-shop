@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contul meu - Cactus Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 20px;">
+
+<header style="display: flex; align-items: center; justify-content: center; padding: 20px; margin-bottom: 20px;">
+    <a href="index.html" style="display: flex; align-items: center; gap: 15px; text-decoration: none;">
+        <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 60px; width: auto; object-fit: contain;">
+        <h1 style="margin: 0; color: #2f694b; font-size: 1.8em;">Cactus Shop</h1>
+    </a>
+</header>
+
+<div style="max-width: 420px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b;">
+
+    <!-- Tab-uri Login / Înregistrare -->
+    <div style="display: flex; margin-bottom: 20px; border-bottom: 2px solid #fdf2b8;">
+        <button id="tab-login" class="account-tab" style="flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-weight: bold; color: #2f694b; border-bottom: 3px solid #2f694b;">
+            Autentificare
+        </button>
+        <button id="tab-register" class="account-tab" style="flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-weight: bold; color: #999; border-bottom: 3px solid transparent;">
+            Cont Nou
+        </button>
+    </div>
+
+    <!-- Formular Login -->
+    <div id="login-panel">
+        <input type="email" id="login-email" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+        <input type="password" id="login-password" placeholder="Parolă" style="width: 100%; padding: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+        <button id="login-submit-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+            Autentificare
+        </button>
+        <p id="login-error" style="color: #d32f2f; margin-top: 10px; display: none;"></p>
+    </div>
+
+    <!-- Formular Înregistrare -->
+    <div id="register-panel" style="display: none;">
+        <input type="text" id="register-name" placeholder="Nume complet" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+        <input type="email" id="register-email" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+        <input type="password" id="register-password" placeholder="Parolă (minim 8 caractere)" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+        <input type="text" id="register-address" placeholder="Adresă de livrare" style="width: 100%; padding: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+        <button id="register-submit-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+            Creează Cont
+        </button>
+        <p id="register-error" style="color: #d32f2f; margin-top: 10px; display: none;"></p>
+    </div>
+
+    <!-- Afișat când ești deja logat -->
+    <div id="logged-in-panel" style="display: none; text-align: center;">
+        <p style="color: #2f694b; font-size: 1.1em;">Bun venit, <strong id="logged-in-name"></strong>!</p>
+        <button id="logout-btn" style="width: 100%; background-color: #d32f2f; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+            Deconectare
+        </button>
+    </div>
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="shop.html" style="color: #2f694b; text-decoration: none; font-weight: bold;">⬅ Înapoi la magazin</a>
+</div>
+
+<script src="dist/shared.js"></script>
+<script src="dist/account.js"></script>
+</body>
+</html>

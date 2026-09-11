@@ -30,12 +30,24 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll() // Login-ul e public
-                        .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll() // Citirea produselor e publică
-                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // Plasarea comenzilor e publică
-                        .requestMatchers(HttpMethod.GET, "/api/orders/lookup").permitAll() // Verificarea statusului e publică (necesită id + email)
+                        // --- Public ---
+                        .requestMatchers("/api/auth/login").permitAll() // login admin
+                        .requestMatchers("/api/customers/register", "/api/customers/login").permitAll() // cont client
+                        .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // comandă guest
+                        .requestMatchers(HttpMethod.GET, "/api/orders/lookup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
-                        .anyRequest().authenticated() // RESTUL (adăugare, ștergere, citire toate comenzile, schimbare status) NECESITĂ TOKEN!
+
+                        // --- Doar ADMIN ---
+                        .requestMatchers(HttpMethod.POST, "/api/cacti").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cacti/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/**").hasRole("ADMIN")
+
+                        // --- Orice altceva (viitoare endpoint-uri de client) — doar autentificat, orice rol ---
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

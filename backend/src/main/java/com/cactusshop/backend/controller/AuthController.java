@@ -23,7 +23,6 @@ public class AuthController {
     @Autowired
     private LoginRateLimiter rateLimiter;
 
-    // Citite din variabile de mediu, NU hardcodate în cod.
     @Value("${ADMIN_USERNAME}")
     private String adminUsername;
 
@@ -37,7 +36,6 @@ public class AuthController {
 
         String clientIp = extractClientIp(request);
 
-        // --- Verificăm dacă acest IP e blocat din cauza prea multor încercări eșuate ---
         if (rateLimiter.isBlocked(clientIp)) {
             long minutes = rateLimiter.minutesRemaining(clientIp);
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
@@ -57,7 +55,7 @@ public class AuthController {
 
         if (usernameMatches && passwordMatches) {
             rateLimiter.recordSuccess(clientIp);
-            String token = jwtUtil.generateToken(username);
+            String token = jwtUtil.generateToken(username, "ADMIN");
             return ResponseEntity.ok(Map.of("token", token));
         } else {
             rateLimiter.recordFailure(clientIp);
@@ -65,14 +63,9 @@ public class AuthController {
         }
     }
 
-    // Railway (și majoritatea platformelor cloud) rulează aplicația în spatele
-    // unui proxy, deci request.getRemoteAddr() ar întoarce mereu IP-ul intern
-    // al proxy-ului, nu al vizitatorului real. Verificăm header-ul X-Forwarded-For
-    // dacă există.
     private String extractClientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            // Poate conține o listă "client, proxy1, proxy2" — primul e clientul real
             return forwarded.split(",")[0].trim();
         }
         return request.getRemoteAddr();

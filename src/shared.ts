@@ -13,6 +13,11 @@ const BANK_TRANSFER_INFO = {
 
 const ORDER_STATUSES = ["Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"];
 
+// Cheia din localStorage pentru tokenul de CLIENT — distinctă de 'jwtToken'
+// (folosit de admin.ts pentru login-ul de admin), ca să nu se amestece cele două.
+const CUSTOMER_JWT_KEY = "customerJwtToken";
+const CUSTOMER_NAME_KEY = "customerName";
+
 // Nivelul de sus: tipul de produs — orizontal, se aplică peste orice gen.
 const PRODUCT_TYPES = ["Plantă", "Semințe"];
 
