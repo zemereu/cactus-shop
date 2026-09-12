@@ -4,6 +4,8 @@ import com.cactusshop.backend.dto.CactusRequestDTO;
 import com.cactusshop.backend.model.Cactus;
 import com.cactusshop.backend.repository.CactusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,19 +16,19 @@ public class CactusService {
     @Autowired
     private CactusRepository cactusRepository;
 
-    // Produse active — pentru magazin (clienți)
-    public List<Cactus> getActiveCacti(String productType, String mainCategory, String category, String search) {
+    // Produse active — pentru magazin (clienți), cu paginare
+    public Page<Cactus> getActiveCacti(String productType, String mainCategory, String category, String search, Pageable pageable) {
         if (productType == null || productType.isBlank() || mainCategory == null || mainCategory.isBlank()) {
-            return cactusRepository.findByActiveTrueAndNameContainingIgnoreCase(search);
+            return cactusRepository.findByActiveTrueAndNameContainingIgnoreCase(search, pageable);
         }
 
         if (category.equals("Toți")) {
             return cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndNameContainingIgnoreCase(
-                    productType, mainCategory, search);
+                    productType, mainCategory, search, pageable);
         }
 
         return cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
-                productType, mainCategory, category, search);
+                productType, mainCategory, category, search, pageable);
     }
 
     // Toate produsele — pentru admin

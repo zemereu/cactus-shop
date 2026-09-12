@@ -5,6 +5,9 @@ import com.cactusshop.backend.model.Cactus;
 import com.cactusshop.backend.service.CactusService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,15 +21,18 @@ public class CactusController {
     @Autowired
     private CactusService cactusService;
 
-    // Public — doar produse active
+    // Public — doar produse active, cu paginare
     @GetMapping
-    public List<Cactus> getCacti(
+    public Page<Cactus> getCacti(
             @RequestParam(required = false) String productType,
             @RequestParam(required = false) String mainCategory,
             @RequestParam(required = false, defaultValue = "Toți") String category,
-            @RequestParam(required = false, defaultValue = "") String search) {
+            @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
 
-        return cactusService.getActiveCacti(productType, mainCategory, category, search);
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
+        return cactusService.getActiveCacti(productType, mainCategory, category, search, pageable);
     }
 
     // Admin — toate produsele (inclusiv inactive)

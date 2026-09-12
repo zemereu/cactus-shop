@@ -7,6 +7,9 @@ let selectedMainCategory: string = "Cactuși";
 let selectedSubCategory: string = "Toți";
 let expandedMainCategory: string = "Cactuși"; // care secțiune e deschisă în sidebar
 let searchQuery: string = "";
+let currentPage: number = 0;
+let totalPages: number = 0;
+const PAGE_SIZE: number = 12;
 
 // Coșul se încarcă din localStorage la pornire, ca să nu dispară
 // când navighezi pe altă pagină (ex: cont.html) și te întorci.
@@ -27,7 +30,7 @@ let shoppingCart: Cactus[] = loadCartFromStorage();
 // PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml, API_BASE, CART_STORAGE_KEY,
 // CUSTOMER_JWT_KEY, CUSTOMER_NAME_KEY vin din shared.ts
 
-// 1. Fetch de la Backend (Filtrare aplicată pe server, pe 3 niveluri)
+// 1. Fetch de la Backend (Filtrare aplicată pe server, cu paginare)
 async function fetchCacti() {
     try {
         const url = new URL(`${API_BASE}/api/cacti`);
@@ -35,12 +38,17 @@ async function fetchCacti() {
         url.searchParams.append('mainCategory', selectedMainCategory);
         url.searchParams.append('category', selectedSubCategory);
         url.searchParams.append('search', searchQuery);
+        url.searchParams.append('page', currentPage.toString());
+        url.searchParams.append('size', PAGE_SIZE.toString());
 
         const response = await fetch(url.toString());
         if (!response.ok) throw new Error('Eroare conectare server!');
 
-        cactiForSale = await response.json();
+        const data = await response.json();
+        cactiForSale = data.content;
+        totalPages = data.totalPages;
         renderCacti();
+        renderPagination();
     } catch (error) {
         console.error("Eroare:", error);
     }
@@ -176,6 +184,7 @@ function renderSidebar() {
     document.querySelectorAll('.product-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             selectedProductType = (e.currentTarget as HTMLButtonElement).getAttribute('data-type') || "Plantă";
+            currentPage = 0;
             renderSidebar();
             fetchCacti();
         });
@@ -194,6 +203,7 @@ function renderSidebar() {
 
             selectedMainCategory = main;
             selectedSubCategory = "Toți";
+            currentPage = 0;
             renderSidebar();
             fetchCacti();
         });
@@ -205,6 +215,7 @@ function renderSidebar() {
             const target = e.currentTarget as HTMLButtonElement;
             selectedMainCategory = target.getAttribute('data-main') || "Cactuși";
             selectedSubCategory = target.getAttribute('data-sub') || "Toți";
+            currentPage = 0;
             renderSidebar();
             fetchCacti();
             closeSidebar();
@@ -471,11 +482,57 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
     });
 }
 
-// 8. Căutare (Apelează Java automat)
+// 8. Paginare
+function renderPagination() {
+    let container = document.getElementById('pagination-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'pagination-container';
+        container.style.cssText = 'display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px; margin-bottom: 20px;';
+        const cactiList = document.getElementById('cacti-list');
+        if (cactiList && cactiList.parentNode) {
+            cactiList.parentNode.insertBefore(container, cactiList.nextSibling);
+        }
+    }
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+
+    html += `<button class="page-btn" data-page="${currentPage - 1}" ${currentPage === 0 ? 'disabled' : ''}
+        style="padding: 8px 15px; border: 2px solid #2f694b; border-radius: 5px; background: ${currentPage === 0 ? '#e0e0e0' : 'transparent'}; color: #2f694b; font-weight: bold; cursor: ${currentPage === 0 ? 'not-allowed' : 'pointer'};">
+        ◀ Înapoi
+    </button>`;
+
+    html += `<span style="color: #2f694b; font-weight: bold;">Pagina ${currentPage + 1} din ${totalPages}</span>`;
+
+    html += `<button class="page-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages - 1 ? 'disabled' : ''}
+        style="padding: 8px 15px; border: 2px solid #2f694b; border-radius: 5px; background: ${currentPage >= totalPages - 1 ? '#e0e0e0' : 'transparent'}; color: #2f694b; font-weight: bold; cursor: ${currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer'};">
+        Înainte ▶
+    </button>`;
+
+    container.innerHTML = html;
+
+    document.querySelectorAll('.page-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLButtonElement;
+            if (target.disabled) return;
+            currentPage = Number(target.getAttribute('data-page'));
+            fetchCacti();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+}
+
+// 9. Căutare (Apelează Java automat)
 const searchBar = document.getElementById('search-bar') as HTMLInputElement;
 if (searchBar) {
     searchBar.addEventListener('input', (event) => {
         searchQuery = (event.target as HTMLInputElement).value.toLowerCase();
+        currentPage = 0;
         fetchCacti();
     });
 }
