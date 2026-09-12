@@ -1,5 +1,5 @@
 "use strict";
-// CUSTOMER_NAME_KEY, API_BASE, escapeHtml vin din shared.ts
+// CUSTOMER_NAME_KEY, API_BASE, escapeHtml, authFetch, initAccountDropdown vin din shared.ts
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,14 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// Dacă clientul e deja logat, afișează numele lui în loc de "Cont"
-const accountLink = document.getElementById('account-link');
-if (accountLink) {
-    const name = localStorage.getItem(CUSTOMER_NAME_KEY);
-    if (name) {
-        accountLink.innerText = `👤 ${name}`;
-    }
-}
+// Cont dropdown — vine din shared.ts
+initAccountDropdown();
 // Încarcă primele 3 recenzii generale aprobate pe landing page
 function loadLandingReviews() {
     return __awaiter(this, void 0, void 0, function* () {
