@@ -48,22 +48,34 @@
 </head>
 <body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh;">
 
-<!-- HEADER-UL NOU (Grid cu 3 coloane pentru a menține logo-ul centrat) -->
+<!-- HEADER (logo stânga, nume centru, cont cu dropdown dreapta) -->
 <header style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 20px 40px; background-color: #fdf2b8; border-bottom: 2px solid rgba(47, 105, 75, 0.1);">
 
-    <!-- Coloana 1 (Stânga): Goală, pentru a echilibra grid-ul -->
-    <div></div>
+    <!-- Stânga: Logo -->
+    <div>
+        <a href="index.html" style="text-decoration: none;">
+            <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 75px; width: auto; object-fit: contain;">
+        </a>
+    </div>
 
-    <!-- Coloana 2 (Centru): Logo și Nume -->
-    <a href="index.html" style="display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none;">
-        <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 75px; width: auto; object-fit: contain;">
+    <!-- Centru: Nume -->
+    <a href="index.html" style="text-decoration: none;">
         <h1 style="margin: 0; color: #2f694b; font-size: 2.2em; font-weight: 900;">Cactus Shop</h1>
     </a>
 
-    <!-- Coloana 3 (Dreapta): Butoanele Noi -->
+    <!-- Dreapta: Butoane -->
     <div style="display: flex; gap: 15px; justify-self: end; align-items: center;">
         <a href="verifica-comanda.html" class="header-btn">Verifică Comanda</a>
-        <a href="cont.html" id="account-link" class="header-btn">Cont</a>
+
+        <div style="position: relative;">
+            <a href="cont.html" id="account-link" class="header-btn" style="display: inline-block;">👤 Cont</a>
+
+            <div id="account-dropdown" style="display: none; position: absolute; top: 50px; right: 0; width: 200px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px; text-align: left;">
+                <a href="verifica-comanda.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">📦 Vezi comenzi</a>
+                <a href="cont.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">⚙️ Detalii cont</a>
+                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;">🚪 Delogare</a>
+            </div>
+        </div>
     </div>
 
 </header>
@@ -89,7 +101,7 @@
                     <a href="shop.html" class="cta-button primary" style="background-color: #FF9800; color: #fdf2b8; padding: 15px 30px; text-decoration: none; font-size: 1.2em; font-weight: bold; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.4);">
                         🛒 Intră în Magazin
                     </a>
-                    <a href="#" class="cta-button secondary" style="background-color: transparent; border: 2px solid #FF9800; color: #fdf2b8; padding: 13px 30px; text-decoration: none; font-size: 1.2em; font-weight: bold; border-radius: 8px; display: inline-block;">
+                    <a href="#despre-noi" class="cta-button secondary" style="background-color: transparent; border: 2px solid #FF9800; color: #fdf2b8; padding: 13px 30px; text-decoration: none; font-size: 1.2em; font-weight: bold; border-radius: 8px; display: inline-block;">
                         📖 Despre noi
                     </a>
                 </div>
@@ -124,6 +136,43 @@
         </div>
     </section>
 
+    <!-- Despre Noi -->
+    <section id="despre-noi" style="padding: 80px 20px; background-color: white;">
+        <div style="max-width: 1100px; margin: 0 auto;">
+            <h2 style="text-align: center; color: #2f694b; font-size: 2.8em; margin-top: 0; margin-bottom: 50px;">Despre Noi</h2>
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px; margin-bottom: 60px;">
+                <div style="flex: 1 1 300px;">
+                    <img src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=600&q=80" alt="Sera noastra" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                </div>
+                <div style="flex: 1 1 400px;">
+                    <h3 style="color: #2f694b; margin-top: 0;">Pasiune pentru plante din 2020</h3>
+                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
+                        Totul a început cu un singur cactus pe pervaz. Astăzi, creștem peste 200 de specii de cactuși și suculente în sera noastră din România. Fiecare plantă e îngrijită manual, de la semințe până la livrare.
+                    </p>
+                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
+                        Misiunea noastră e simplă: să aducem un colț de natură în casa ta, cu plante sănătoase, ambalate cu grijă și livrate rapid.
+                    </p>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px;">
+                <div style="flex: 1 1 400px; order: 1;">
+                    <h3 style="color: #2f694b; margin-top: 0;">De ce noi?</h3>
+                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
+                        Nu suntem un depozit — suntem cultivatori. Știm povestea fiecărei plante pentru că am crescut-o noi. Oferim sfaturi de îngrijire personalizate și suntem mereu la un mesaj distanță dacă ai nevoie de ajutor.
+                    </p>
+                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
+                        Ambalăm ecologic, expediem în 24-48 de ore, și garantăm că planta ajunge vie și sănătoasă la tine.
+                    </p>
+                </div>
+                <div style="flex: 1 1 300px; order: 2;">
+                    <img src="https://images.unsplash.com/photo-1446071103084-c257b5f70672?auto=format&fit=crop&w=600&q=80" alt="Colectia noastra" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- 3. Secțiunea de Recenzii (reale, încărcate din backend) -->
     <section style="background-color: #2f694b; padding: 80px 20px;">
         <div style="max-width: 1100px; margin: 0 auto; text-align: center;">
@@ -149,7 +198,7 @@
     &copy; 2026 Cactus Shop. Toate drepturile rezervate.
 </footer>
 
-<script src="../../../../../dist/shared.js"></script>
-<script src="../../../../../dist/landing.js"></script>
+<script src="dist/shared.js"></script>
+<script src="dist/landing.js"></script>
 </body>
 </html>

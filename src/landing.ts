@@ -1,13 +1,7 @@
-// CUSTOMER_NAME_KEY, API_BASE, escapeHtml vin din shared.ts
+// CUSTOMER_NAME_KEY, API_BASE, escapeHtml, authFetch, initAccountDropdown vin din shared.ts
 
-// Dacă clientul e deja logat, afișează numele lui în loc de "Cont"
-const accountLink = document.getElementById('account-link');
-if (accountLink) {
-    const name = localStorage.getItem(CUSTOMER_NAME_KEY);
-    if (name) {
-        accountLink.innerText = `👤 ${name}`;
-    }
-}
+// Cont dropdown — vine din shared.ts
+initAccountDropdown();
 
 // Încarcă primele 3 recenzii generale aprobate pe landing page
 async function loadLandingReviews() {

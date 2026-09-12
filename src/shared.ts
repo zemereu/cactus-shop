@@ -87,3 +87,48 @@ function escapeHtml(unsafe: string | null | undefined): string {
 function starsDisplay(rating: number): string {
     return '★'.repeat(rating) + '☆'.repeat(5 - rating);
 }
+
+// Inițializează dropdown-ul de cont — folosit pe orice pagină care are
+// #account-link, #account-dropdown și #dropdown-logout-btn în header.
+function initAccountDropdown() {
+    const accountLink = document.getElementById('account-link') as HTMLAnchorElement | null;
+    const dropdown = document.getElementById('account-dropdown');
+    const logoutBtn = document.getElementById('dropdown-logout-btn');
+    if (!accountLink) return;
+
+    const customerName = localStorage.getItem(CUSTOMER_NAME_KEY);
+
+    if (customerName) {
+        accountLink.innerText = `👤 ${customerName}`;
+        accountLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+    }
+
+    if (dropdown) {
+        window.addEventListener('click', (event) => {
+            if (dropdown.style.display === 'block') {
+                const target = event.target as Node;
+                if (!dropdown.contains(target) && target !== accountLink) {
+                    dropdown.style.display = 'none';
+                }
+            }
+        });
+        dropdown.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            await authFetch(`${API_BASE}/api/customers/logout`, { method: 'POST' });
+            localStorage.removeItem(CUSTOMER_NAME_KEY);
+            window.location.reload();
+        });
+    }
+}
