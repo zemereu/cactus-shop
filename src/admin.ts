@@ -8,6 +8,7 @@ interface Cactus {
     category: string;
     mainCategory: string;
     imageUrl: string;
+    stock: number;
 }
 
 interface Order {
@@ -190,6 +191,7 @@ async function fetchAdminCacti() {
                     <img src="${escapeHtml(validImage)}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;">
                     <h4 style="margin: 10px 0 5px 0; color: #2f694b;">${escapeHtml(cactus.name)}</h4>
                     <p style="margin: 0; color: #d32f2f; font-weight: bold;">${cactus.price} RON</p>
+                    <p style="margin: 4px 0 0 0; color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size: 0.85em; font-weight: bold;">Stoc: ${cactus.stock}</p>
                     <button class="delete-cactus-btn" data-id="${cactus.id}" style="background-color: #d32f2f; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold;">
                         🗑️ Șterge
                     </button>
@@ -229,7 +231,8 @@ if (addCactusBtn) {
             mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
             category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
             description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
-            imageUrl: (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim()
+            imageUrl: (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim(),
+            stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0
         };
 
         if (!newCactus.name || !newCactus.price || !newCactus.category || !newCactus.mainCategory || !newCactus.productType) {
@@ -247,6 +250,7 @@ if (addCactusBtn) {
         (document.getElementById('new-cactus-price') as HTMLInputElement).value = "";
         (document.getElementById('new-cactus-desc') as HTMLInputElement).value = "";
         (document.getElementById('new-cactus-image') as HTMLInputElement).value = "";
+        (document.getElementById('new-cactus-stock') as HTMLInputElement).value = "";
 
         fetchAdminCacti();
     });

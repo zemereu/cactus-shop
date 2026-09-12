@@ -14,7 +14,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "https://cactshop.netlify.app")
 public class AuthController {
 
     @Autowired

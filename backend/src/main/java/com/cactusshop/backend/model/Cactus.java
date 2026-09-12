@@ -27,6 +27,8 @@ public class Cactus {
     @Column(length = 1000)
     private String imageUrl;
 
+    private int stock = 0;
+
     public Cactus() {}
 
     public Long getId() { return id; }
@@ -52,4 +54,7 @@ public class Cactus {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 }

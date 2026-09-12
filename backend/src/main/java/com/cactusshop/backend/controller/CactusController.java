@@ -49,6 +49,7 @@ public class CactusController {
         cactus.setCategory(request.category().trim());
         cactus.setDescription(request.description() != null ? request.description().trim() : "");
         cactus.setImageUrl(request.imageUrl() != null ? request.imageUrl().trim() : "");
+        cactus.setStock(request.stock());
 
         Cactus saved = cactusRepository.save(cactus);
         return ResponseEntity.ok(saved);

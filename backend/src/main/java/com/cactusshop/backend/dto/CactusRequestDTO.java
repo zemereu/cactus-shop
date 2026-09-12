@@ -10,5 +10,6 @@ public record CactusRequestDTO(
         @NotBlank(message = "Categoria principală (Cactuși/Suculente) este obligatorie.") String mainCategory,
         @NotBlank(message = "Genul (subcategoria) este obligatoriu.") String category,
         String description,
-        String imageUrl
+        String imageUrl,
+        int stock
 ) {}

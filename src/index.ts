@@ -7,6 +7,7 @@ interface Cactus {
     category: string;
     mainCategory: string;
     imageUrl: string;
+    stock: number;
 }
 
 interface Category {
@@ -276,9 +277,14 @@ function renderCacti() {
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
                         <p><em>${escapeHtml(cactus.description)}</em></p>
                     </div>
-                    <button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
-                        Adaugă în coș
-                    </button>
+                    ${cactus.stock > 0
+                ? `<button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
+                            Adaugă în coș
+                          </button>`
+                : `<button disabled style="background-color: #999; color: white; padding: 10px; border: none; border-radius: 4px; width: 100%; margin-top: 15px; font-weight: bold; cursor: not-allowed;">
+                            Stoc epuizat
+                          </button>`
+            }
                 </div>
             `;
         }
@@ -430,7 +436,10 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
                 body: JSON.stringify(newOrder)
             });
 
-            if (!response.ok) throw new Error("Eroare la procesarea comenzii.");
+            if (!response.ok) {
+                const errorMsg = await response.text();
+                throw new Error(errorMsg || "Eroare la procesarea comenzii.");
+            }
 
             const savedOrder = await response.json();
 
@@ -463,9 +472,9 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             }
 
             checkoutBtn.style.display = 'block';
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("A apărut o eroare la salvarea comenzii.");
+            alert(error.message || "A apărut o eroare la salvarea comenzii.");
         }
     });
 }

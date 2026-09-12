@@ -43,7 +43,17 @@ public class OrderController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Produs invalid sau inexistent (id: " + id + ").");
             }
+            if (cactus.getStock() <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Produsul \"" + cactus.getName() + "\" nu mai este in stoc.");
+            }
             purchasedCacti.add(cactus);
+        }
+
+        // Scade stocul pentru fiecare produs cumpărat
+        for (Cactus cactus : purchasedCacti) {
+            cactus.setStock(cactus.getStock() - 1);
+            cactusRepository.save(cactus);
         }
 
         double realTotal = purchasedCacti.stream().mapToDouble(Cactus::getPrice).sum();
