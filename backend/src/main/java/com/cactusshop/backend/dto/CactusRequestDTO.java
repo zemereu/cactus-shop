@@ -11,5 +11,5 @@ public record CactusRequestDTO(
         @NotBlank(message = "Genul (subcategoria) este obligatoriu.") String category,
         String description,
         String imageUrl,
-        int stock
+        Integer stock
 ) {}

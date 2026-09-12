@@ -1,20 +1,4 @@
-interface Cactus {
-    id: number;
-    name: string;
-    price: number;
-    description: string;
-    productType: string;
-    category: string;
-    mainCategory: string;
-    imageUrl: string;
-    stock: number;
-}
-
-interface Category {
-    id: number;
-    name: string;
-    mainCategory: string;
-}
+// Interfețele Cactus și Category vin din shared.ts
 
 let cactiForSale: Cactus[] = [];
 let allCategories: Category[] = [];
@@ -275,6 +259,9 @@ function renderCacti() {
                         ${categoryTag}
                         <h2 style="color: #2f694b; margin-top: 10px;">🌵 ${escapeHtml(cactus.name)}</h2>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
+                        <p style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
+                            ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
+                        </p>
                         <p><em>${escapeHtml(cactus.description)}</em></p>
                     </div>
                     ${cactus.stock > 0
@@ -300,6 +287,11 @@ function renderCacti() {
             const cactusToAdd = cactiForSale.find(c => c.id === cactusId);
 
             if (cactusToAdd) {
+                const alreadyInCart = shoppingCart.filter(c => c.id === cactusId).length;
+                if (alreadyInCart >= cactusToAdd.stock) {
+                    showToast(`⚠️ Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
+                    return;
+                }
                 shoppingCart.push(cactusToAdd);
                 updateCartUI();
                 showToast(`✅ ${cactusToAdd.name} a fost adăugat în coș!`);

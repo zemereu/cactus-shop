@@ -45,6 +45,7 @@ public class SecurityConfig {
 
                         // --- Doar ADMIN ---
                         .requestMatchers(HttpMethod.POST, "/api/cacti").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cacti/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/cacti/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")

@@ -30,6 +30,35 @@ const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
 // domeniul public din Railway (Settings → Networking).
 const API_BASE = 'https://cactus-shop-production.up.railway.app';
 
+// --- Interfețe comune (folosite de index.ts, admin.ts, etc.) ---
+interface Cactus {
+    id: number;
+    name: string;
+    price: number;
+    description: string;
+    productType: string;
+    category: string;
+    mainCategory: string;
+    imageUrl: string;
+    stock: number;
+}
+
+interface Category {
+    id: number;
+    name: string;
+    mainCategory: string;
+}
+
+interface Order {
+    id: number;
+    customerName: string;
+    email: string;
+    address: string;
+    totalPrice: number;
+    purchasedItems: string;
+    status: string;
+}
+
 // Scapă orice text ce ar putea proveni din date introduse de utilizator
 // înainte de a-l pune în innerHTML (nume produs, descriere, categorie,
 // nume client, adresă, etc.) — previne XSS stocat.

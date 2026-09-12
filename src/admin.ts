@@ -1,34 +1,4 @@
-// --- INTERFEȚE ---
-interface Cactus {
-    id: number;
-    name: string;
-    price: number;
-    description: string;
-    productType: string;
-    category: string;
-    mainCategory: string;
-    imageUrl: string;
-    stock: number;
-}
-
-interface Order {
-    id: number;
-    customerName: string;
-    email: string;
-    address: string;
-    totalPrice: number;
-    purchasedItems: string;
-    status: string;
-}
-
-
-interface Category {
-    id: number;
-    name: string;
-    mainCategory: string;
-}
-
-// PRODUCT_TYPES, MAIN_CATEGORIES, ORDER_STATUSES, escapeHtml și API_BASE vin din shared.ts
+// Interfețele Cactus, Order, Category + constantele vin din shared.ts
 
 // --- UTILITARE JWT ---
 function getAuthHeader() {
@@ -192,13 +162,76 @@ async function fetchAdminCacti() {
                     <h4 style="margin: 10px 0 5px 0; color: #2f694b;">${escapeHtml(cactus.name)}</h4>
                     <p style="margin: 0; color: #d32f2f; font-weight: bold;">${cactus.price} RON</p>
                     <p style="margin: 4px 0 0 0; color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size: 0.85em; font-weight: bold;">Stoc: ${cactus.stock}</p>
-                    <button class="delete-cactus-btn" data-id="${cactus.id}" style="background-color: #d32f2f; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold;">
-                        🗑️ Șterge
-                    </button>
+                    <div class="edit-panel" data-id="${cactus.id}" style="display: none; margin-top: 8px; text-align: left; font-size: 0.85em;">
+                        <input type="text" class="edit-name" value="${escapeHtml(cactus.name)}" placeholder="Nume" style="width: 100%; padding: 4px; margin-bottom: 4px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 3px;">
+                        <input type="number" class="edit-price" value="${cactus.price}" placeholder="Preț" style="width: 48%; padding: 4px; margin-bottom: 4px; border: 1px solid #2f694b; border-radius: 3px;">
+                        <input type="number" class="edit-stock" value="${cactus.stock}" placeholder="Stoc" min="0" style="width: 48%; padding: 4px; margin-bottom: 4px; border: 1px solid #2f694b; border-radius: 3px; float: right;">
+                        <input type="text" class="edit-desc" value="${escapeHtml(cactus.description)}" placeholder="Descriere" style="width: 100%; padding: 4px; margin-bottom: 4px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 3px;">
+                        <input type="text" class="edit-image" value="${escapeHtml(cactus.imageUrl)}" placeholder="URL imagine" style="width: 100%; padding: 4px; margin-bottom: 6px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 3px;">
+                        <input type="hidden" class="edit-product-type" value="${escapeHtml(cactus.productType)}">
+                        <input type="hidden" class="edit-main-category" value="${escapeHtml(cactus.mainCategory)}">
+                        <input type="hidden" class="edit-category" value="${escapeHtml(cactus.category)}">
+                        <button class="save-edit-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 5px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">
+                            💾 Salvează
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 5px; margin-top: 8px;">
+                        <button class="edit-cactus-btn" data-id="${cactus.id}" style="background-color: #FF9800; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
+                            ✏️ Editează
+                        </button>
+                        <button class="delete-cactus-btn" data-id="${cactus.id}" style="background-color: #d32f2f; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
+                            🗑️ Șterge
+                        </button>
+                    </div>
                 </div>
             `;
         }
         container.innerHTML = htmlContent;
+
+        // Toggle edit panel
+        document.querySelectorAll('.edit-cactus-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const btn = event.target as HTMLButtonElement;
+                const id = btn.getAttribute('data-id');
+                const panel = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
+                if (panel) {
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        });
+
+        // Save edit
+        document.querySelectorAll('.save-edit-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const btn = event.target as HTMLButtonElement;
+                const id = btn.getAttribute('data-id');
+                const panel = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
+                if (!panel) return;
+
+                const updated = {
+                    name: (panel.querySelector('.edit-name') as HTMLInputElement).value.trim(),
+                    price: Number((panel.querySelector('.edit-price') as HTMLInputElement).value),
+                    stock: Number((panel.querySelector('.edit-stock') as HTMLInputElement).value) || 0,
+                    description: (panel.querySelector('.edit-desc') as HTMLInputElement).value.trim(),
+                    imageUrl: (panel.querySelector('.edit-image') as HTMLInputElement).value.trim(),
+                    productType: (panel.querySelector('.edit-product-type') as HTMLInputElement).value,
+                    mainCategory: (panel.querySelector('.edit-main-category') as HTMLInputElement).value,
+                    category: (panel.querySelector('.edit-category') as HTMLInputElement).value
+                };
+
+                const response = await fetch(`${API_BASE}/api/cacti/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+                    body: JSON.stringify(updated)
+                });
+
+                if (response.ok) {
+                    fetchAdminCacti();
+                } else {
+                    alert("Eroare la salvarea modificărilor.");
+                }
+            });
+        });
 
         // Ștergere cactus (necesită Auth)
         document.querySelectorAll('.delete-cactus-btn').forEach(button => {
