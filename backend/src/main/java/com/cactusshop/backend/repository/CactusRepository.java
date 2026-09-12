@@ -9,14 +9,23 @@ import java.util.List;
 @Repository
 public interface CactusRepository extends JpaRepository<Cactus, Long> {
 
-    // Filtrare completă: tip produs + categorie principală + gen + text
+    // --- Filtre publice (doar produse active) ---
+
+    List<Cactus> findByActiveTrueAndProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
+            String productType, String mainCategory, String category, String name);
+
+    List<Cactus> findByActiveTrueAndProductTypeAndMainCategoryAndNameContainingIgnoreCase(
+            String productType, String mainCategory, String name);
+
+    List<Cactus> findByActiveTrueAndNameContainingIgnoreCase(String name);
+
+    // --- Filtre admin (toate produsele, inclusiv inactive) ---
+
     List<Cactus> findByProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
             String productType, String mainCategory, String category, String name);
 
-    // Filtrare: tip produs + categorie principală + text (toate genurile, "Toți")
     List<Cactus> findByProductTypeAndMainCategoryAndNameContainingIgnoreCase(
             String productType, String mainCategory, String name);
 
-    // Căutare generală, fără filtrare (păstrat pentru compatibilitate)
     List<Cactus> findByNameContainingIgnoreCase(String name);
 }

@@ -1,6 +1,7 @@
 package com.cactusshop.backend.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "cacti")
@@ -11,7 +12,9 @@ public class Cactus {
     private Long id;
 
     private String name;
-    private double price;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price;
 
     // "Plantă" | "Semințe" — nivelul de sus, tip de produs
     private String productType;
@@ -29,6 +32,8 @@ public class Cactus {
 
     private int stock = 0;
 
+    private boolean active = true;
+
     public Cactus() {}
 
     public Long getId() { return id; }
@@ -37,8 +42,8 @@ public class Cactus {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 
     public String getProductType() { return productType; }
     public void setProductType(String productType) { this.productType = productType; }
@@ -57,4 +62,7 @@ public class Cactus {
 
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
 }

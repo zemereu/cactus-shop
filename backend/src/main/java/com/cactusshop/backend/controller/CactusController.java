@@ -18,6 +18,7 @@ public class CactusController {
     @Autowired
     private CactusService cactusService;
 
+    // Public — doar produse active
     @GetMapping
     public List<Cactus> getCacti(
             @RequestParam(required = false) String productType,
@@ -25,7 +26,13 @@ public class CactusController {
             @RequestParam(required = false, defaultValue = "Toți") String category,
             @RequestParam(required = false, defaultValue = "") String search) {
 
-        return cactusService.getCacti(productType, mainCategory, category, search);
+        return cactusService.getActiveCacti(productType, mainCategory, category, search);
+    }
+
+    // Admin — toate produsele (inclusiv inactive)
+    @GetMapping("/all")
+    public List<Cactus> getAllCacti() {
+        return cactusService.getAllCacti();
     }
 
     @PostMapping
@@ -37,6 +44,28 @@ public class CactusController {
     @DeleteMapping("/{id}")
     public void deleteCactus(@PathVariable Long id) {
         cactusService.deleteCactus(id);
+    }
+
+    @PutMapping("/{id}/reactivate")
+    public ResponseEntity<?> reactivateCactus(@PathVariable Long id) {
+        try {
+            Cactus saved = cactusService.reactivateCactus(id);
+            return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<?> hardDeleteCactus(@PathVariable Long id) {
+        try {
+            cactusService.hardDeleteCactus(id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")

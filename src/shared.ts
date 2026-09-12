@@ -41,6 +41,7 @@ interface Cactus {
     mainCategory: string;
     imageUrl: string;
     stock: number;
+    active: boolean;
 }
 
 interface Category {

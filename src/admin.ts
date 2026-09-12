@@ -147,7 +147,9 @@ if (addCategoryBtn) {
 // --- 3. GESTIUNE CACTUȘI (PRODUSE) ---
 async function fetchAdminCacti() {
     try {
-        const response = await fetch(`${API_BASE}/api/cacti`);
+        const response = await fetch(`${API_BASE}/api/cacti/all`, {
+            headers: getAuthHeader()
+        });
         const cacti: Cactus[] = await response.json();
 
         const container = document.getElementById('admin-cacti-list');
@@ -157,7 +159,8 @@ async function fetchAdminCacti() {
         for (let cactus of cacti) {
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
             htmlContent += `
-                <div style="background: #fdf2b8; padding: 10px; border: 1px solid #2f694b; border-radius: 6px; text-align: center;">
+                <div style="background: ${cactus.active ? '#fdf2b8' : '#e0e0e0'}; padding: 10px; border: 1px solid ${cactus.active ? '#2f694b' : '#999'}; border-radius: 6px; text-align: center; ${cactus.active ? '' : 'opacity: 0.7;'}">
+                    ${cactus.active ? '' : '<p style="margin: 0 0 5px 0; color: #d32f2f; font-weight: bold; font-size: 0.8em;">❌ DEZACTIVAT</p>'}
                     <img src="${escapeHtml(validImage)}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;">
                     <h4 style="margin: 10px 0 5px 0; color: #2f694b;">${escapeHtml(cactus.name)}</h4>
                     <p style="margin: 0; color: #d32f2f; font-weight: bold;">${cactus.price} RON</p>
@@ -179,9 +182,17 @@ async function fetchAdminCacti() {
                         <button class="edit-cactus-btn" data-id="${cactus.id}" style="background-color: #FF9800; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
                             ✏️ Editează
                         </button>
-                        <button class="delete-cactus-btn" data-id="${cactus.id}" style="background-color: #d32f2f; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
-                            🗑️ Șterge
-                        </button>
+                        ${cactus.active
+                ? `<button class="delete-cactus-btn" data-id="${cactus.id}" style="background-color: #d32f2f; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
+                                🗑️ Dezactivează
+                              </button>`
+                : `<button class="reactivate-cactus-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">
+                                ✅ Reactivează
+                              </button>
+                              <button class="hard-delete-btn" data-id="${cactus.id}" style="background-color: #7f0000; color: white; padding: 5px; border: none; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold; font-size: 0.8em;">
+                                ⛔ Șterge definitiv
+                              </button>`
+            }
                     </div>
                 </div>
             `;
@@ -233,19 +244,50 @@ async function fetchAdminCacti() {
             });
         });
 
-        // Ștergere cactus (necesită Auth)
+        // Dezactivare cactus (soft-delete, necesită Auth)
         document.querySelectorAll('.delete-cactus-btn').forEach(button => {
             button.addEventListener('click', async (event) => {
                 const btn = event.target as HTMLButtonElement;
                 const cactusId = Number(btn.getAttribute('data-id'));
 
-                if (confirm("Ești sigur că vrei să ștergi acest produs?")) {
+                if (confirm("Ești sigur că vrei să dezactivezi acest produs? Nu va mai apărea în magazin.")) {
                     await fetch(`${API_BASE}/api/cacti/${cactusId}`, {
                         method: 'DELETE',
                         headers: getAuthHeader()
                     });
                     fetchAdminCacti();
                 }
+            });
+        });
+
+        // Reactivare cactus
+        document.querySelectorAll('.reactivate-cactus-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const btn = event.target as HTMLButtonElement;
+                const cactusId = Number(btn.getAttribute('data-id'));
+
+                await fetch(`${API_BASE}/api/cacti/${cactusId}/reactivate`, {
+                    method: 'PUT',
+                    headers: getAuthHeader()
+                });
+                fetchAdminCacti();
+            });
+        });
+
+        // Ștergere permanentă (doar produse inactive)
+        document.querySelectorAll('.hard-delete-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const btn = event.target as HTMLButtonElement;
+                const cactusId = Number(btn.getAttribute('data-id'));
+
+                if (!confirm("ATENȚIE: Produsul va fi șters definitiv din baza de date. Continui?")) return;
+                if (!confirm("Ești absolut sigur? Acțiunea este ireversibilă.")) return;
+
+                await fetch(`${API_BASE}/api/cacti/${cactusId}/permanent`, {
+                    method: 'DELETE',
+                    headers: getAuthHeader()
+                });
+                fetchAdminCacti();
             });
         });
     } catch (error) {

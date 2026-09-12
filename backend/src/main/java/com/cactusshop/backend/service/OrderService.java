@@ -9,6 +9,7 @@ import com.cactusshop.backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +48,9 @@ public class OrderService {
             cactusRepository.save(cactus);
         }
 
-        double realTotal = purchasedCacti.stream().mapToDouble(Cactus::getPrice).sum();
+        BigDecimal realTotal = purchasedCacti.stream()
+                .map(Cactus::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         String itemsSummary = purchasedCacti.stream()
                 .map(Cactus::getName)
                 .collect(Collectors.joining(", "));
