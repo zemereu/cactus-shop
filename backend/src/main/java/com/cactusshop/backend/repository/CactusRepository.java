@@ -4,12 +4,19 @@ import com.cactusshop.backend.model.Cactus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 public interface CactusRepository extends JpaRepository<Cactus, Long> {
+
+    // Decrementare atomică — returnează nr. de rânduri afectate (0 = stoc insuficient)
+    @Modifying
+    @Query("UPDATE Cactus c SET c.stock = c.stock - :quantity WHERE c.id = :id AND c.stock >= :quantity")
+    int decrementStock(Long id, int quantity);
 
     // --- Filtre publice cu paginare (doar produse active) ---
 

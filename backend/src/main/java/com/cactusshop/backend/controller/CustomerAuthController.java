@@ -7,6 +7,8 @@ import com.cactusshop.backend.dto.CustomerUpdateDTO;
 import com.cactusshop.backend.model.Customer;
 import com.cactusshop.backend.repository.CustomerRepository;
 import com.cactusshop.backend.security.JwtUtil;
+import com.cactusshop.backend.security.LoginRateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,9 @@ public class CustomerAuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private LoginRateLimiter rateLimiter;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -52,17 +57,35 @@ public class CustomerAuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody CustomerLoginDTO request) {
+    public ResponseEntity<?> login(@Valid @RequestBody CustomerLoginDTO request, HttpServletRequest httpRequest) {
+
+        String clientIp = extractClientIp(httpRequest);
+
+        if (rateLimiter.isBlocked(clientIp)) {
+            long minutes = rateLimiter.minutesRemaining(clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Prea multe încercări eșuate. Încearcă din nou peste " + minutes + " minute.");
+        }
 
         String email = request.email().trim().toLowerCase();
         Customer customer = customerRepository.findByEmail(email).orElse(null);
 
         if (customer == null || !passwordEncoder.matches(request.password(), customer.getPasswordHash())) {
+            rateLimiter.recordFailure(clientIp);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email sau parolă incorecte.");
         }
 
+        rateLimiter.recordSuccess(clientIp);
         String token = jwtUtil.generateToken(email, "CUSTOMER");
         return ResponseEntity.ok(Map.of("token", token, "name", customer.getName()));
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @GetMapping("/me")

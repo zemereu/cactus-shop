@@ -459,15 +459,16 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             if (confirmationDiv) {
                 confirmationDiv.style.display = 'block';
                 confirmationDiv.innerHTML = `
-                    <p style="color: #2f694b; font-weight: bold;">🎉 Comanda #${savedOrder.id} a fost plasată!</p>
-                    <p><strong>Notează numărul comenzii</strong> — ai nevoie de el ca să verifici statusul mai târziu.</p>
+                    <p style="color: #2f694b; font-weight: bold;">🎉 Comanda a fost plasată!</p>
+                    <p><strong>Codul comenzii:</strong> <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-size: 0.85em; word-break: break-all;">${escapeHtml(savedOrder.orderToken)}</code></p>
+                    <p>Notează acest cod — ai nevoie de el ca să verifici statusul mai târziu.</p>
                     <p style="margin-top: 10px;"><strong>Total de plată: ${savedOrder.totalPrice} RON</strong></p>
                     <div style="background: #fdf2b8; border: 1px solid #2f694b; border-radius: 4px; padding: 10px; margin-top: 10px;">
                         <p style="margin: 0 0 5px 0; font-weight: bold;">Plată prin transfer bancar:</p>
                         <p style="margin: 2px 0;">IBAN: ${escapeHtml(BANK_TRANSFER_INFO.iban)}</p>
                         <p style="margin: 2px 0;">Bancă: ${escapeHtml(BANK_TRANSFER_INFO.bank)}</p>
                         <p style="margin: 2px 0;">Titular: ${escapeHtml(BANK_TRANSFER_INFO.holder)}</p>
-                        <p style="margin: 8px 0 0 0; font-style: italic;">Menționează numărul comenzii (#${savedOrder.id}) la detalii transfer.</p>
+                        <p style="margin: 8px 0 0 0; font-style: italic;">Menționează codul comenzii la detalii transfer.</p>
                     </div>
                     <p style="margin-top: 10px;">Comanda ta va apărea ca „plătită" după ce confirmăm transferul.
                        Poți verifica oricând statusul pe pagina <a href="verifica-comanda.html" style="color: #2f694b; font-weight: bold;">Verifică Comanda</a>.</p>

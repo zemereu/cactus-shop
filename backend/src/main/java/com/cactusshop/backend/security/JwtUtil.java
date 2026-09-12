@@ -2,15 +2,24 @@ package com.cactusshop.backend.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final SecretKey key = Jwts.SIG.HS256.key().build();
+
+    private final SecretKey key;
     private final long expirationMs = 3600000; // Valabil 1 oră
+
+    public JwtUtil(@Value("${JWT_SECRET}") String secret) {
+        // Cheia trebuie să aibă minim 32 de caractere (256 biți) pentru HS256
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     // 'role' e "ADMIN" pentru autentificarea din panoul de admin,
     // "CUSTOMER" pentru conturile de client. Fără asta, orice token

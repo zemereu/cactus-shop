@@ -8,11 +8,10 @@ import com.cactusshop.backend.repository.CactusRepository;
 import com.cactusshop.backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,46 +27,51 @@ public class OrderService {
             "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"
     );
 
+    @Transactional
     public Order placeOrder(OrderRequestDTO request) {
-        List<Cactus> purchasedCacti = new ArrayList<>();
-
+        // Contorizează câte bucăți din fiecare produs
+        Map<Long, Integer> quantityMap = new LinkedHashMap<>();
         for (Long id : request.cactusIds()) {
+            quantityMap.merge(id, 1, Integer::sum);
+        }
+
+        // Validează existența și scade stocul atomic
+        List<String> itemNames = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (Map.Entry<Long, Integer> entry : quantityMap.entrySet()) {
+            Long id = entry.getKey();
+            int qty = entry.getValue();
+
             Cactus cactus = cactusRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Produs invalid sau inexistent (id: " + id + ")."));
 
-            if (cactus.getStock() <= 0) {
+            int updated = cactusRepository.decrementStock(id, qty);
+            if (updated == 0) {
                 throw new IllegalStateException(
-                        "Produsul \"" + cactus.getName() + "\" nu mai este in stoc.");
+                        "Stoc insuficient pentru \"" + cactus.getName() + "\".");
             }
-            purchasedCacti.add(cactus);
-        }
 
-        for (Cactus cactus : purchasedCacti) {
-            cactus.setStock(cactus.getStock() - 1);
-            cactusRepository.save(cactus);
+            for (int i = 0; i < qty; i++) {
+                itemNames.add(cactus.getName());
+            }
+            total = total.add(cactus.getPrice().multiply(BigDecimal.valueOf(qty)));
         }
-
-        BigDecimal realTotal = purchasedCacti.stream()
-                .map(Cactus::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        String itemsSummary = purchasedCacti.stream()
-                .map(Cactus::getName)
-                .collect(Collectors.joining(", "));
 
         Order order = new Order();
         order.setCustomerName(request.customerName().trim());
         order.setEmail(request.email().trim());
         order.setAddress(request.address().trim());
-        order.setTotalPrice(realTotal);
-        order.setPurchasedItems(itemsSummary);
+        order.setTotalPrice(total);
+        order.setPurchasedItems(String.join(", ", itemNames));
         order.setStatus("Neplătită");
 
         return orderRepository.save(order);
     }
 
-    public OrderStatusResponseDTO lookupOrder(Long orderId, String email) {
-        Order order = orderRepository.findById(orderId).orElse(null);
+    public OrderStatusResponseDTO lookupOrder(String orderToken, String email) {
+        Order order = orderRepository.findByOrderToken(orderToken).orElse(null);
 
         if (order == null || order.getEmail() == null
                 || !order.getEmail().equalsIgnoreCase(email.trim())) {
@@ -75,7 +79,8 @@ public class OrderService {
         }
 
         return new OrderStatusResponseDTO(
-                order.getId(), order.getStatus(), order.getPurchasedItems(), order.getTotalPrice());
+                order.getId(), order.getOrderToken(), order.getStatus(),
+                order.getPurchasedItems(), order.getTotalPrice());
     }
 
     public Order updateStatus(Long id, String status) {

@@ -2,6 +2,7 @@ package com.cactusshop.backend.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -10,6 +11,10 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // Token unic pentru lookup public — nu e ghicibil ca un ID secvențial
+    @Column(unique = true, nullable = false, updatable = false)
+    private String orderToken = UUID.randomUUID().toString();
 
     private String customerName;
     private String email;
@@ -28,6 +33,8 @@ public class Order {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getOrderToken() { return orderToken; }
 
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }

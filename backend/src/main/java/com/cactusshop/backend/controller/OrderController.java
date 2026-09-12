@@ -34,10 +34,10 @@ public class OrderController {
 
     @GetMapping("/lookup")
     public ResponseEntity<?> lookupOrder(
-            @RequestParam Long orderId,
+            @RequestParam String orderToken,
             @RequestParam String email) {
 
-        OrderStatusResponseDTO result = orderService.lookupOrder(orderId, email);
+        OrderStatusResponseDTO result = orderService.lookupOrder(orderToken, email);
         if (result == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Nu am găsit nicio comandă cu aceste date.");
