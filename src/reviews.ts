@@ -19,11 +19,9 @@ if (titleEl) {
     titleEl.innerText = cactusId ? 'Recenzii produs' : 'Recenzii despre magazin';
 }
 
-function starsDisplay(rating: number): string {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-}
+// starsDisplay vine din shared.ts
 
-// --- Randare listă recenzii ---
+// --- Randare lista recenzii ---
 async function loadReviews() {
     const listEl = document.getElementById('reviews-list');
     if (!listEl) return;
@@ -125,6 +123,7 @@ if (submitBtn) {
                 (document.getElementById('review-comment') as HTMLTextAreaElement).value = "";
                 selectedRating = 0;
                 starElements.forEach(s => s.textContent = '☆');
+                setTimeout(() => { window.location.href = 'index.html'; }, 3000);
             } else {
                 const errorMsg = await response.text();
                 messageEl.style.color = '#d32f2f';

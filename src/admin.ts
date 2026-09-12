@@ -22,6 +22,7 @@ if (loginBtn) {
                 fetchAdminCategories();
                 fetchAdminCacti();
                 fetchAdminOrders();
+                fetchPendingReviews();
             } else {
                 alert("❌ Date de autentificare incorecte (Respinse de Server)!");
             }
@@ -375,5 +376,75 @@ async function fetchAdminOrders() {
     } catch (error) {
         console.error("Eroare la preluarea comenzilor:", error);
         document.getElementById('admin-orders-list')!.innerHTML = `<tr><td colspan="5" style="color: red;">Eroare de securitate. Nu poți accesa comenzile.</td></tr>`;
+    }
+}
+// --- 5. MODERARE RECENZII ---
+interface PendingReview {
+    id: number;
+    customerName: string;
+    customerEmail: string;
+    cactusId: number | null;
+    rating: number;
+    comment: string;
+    createdAt: string;
+}
+
+// starsDisplay vine din shared.ts
+
+async function fetchPendingReviews() {
+    const container = document.getElementById('admin-reviews-list');
+    if (!container) return;
+
+    try {
+        const response = await authFetch(`${API_BASE}/api/reviews/pending`);
+        const reviews: PendingReview[] = await response.json();
+
+        if (reviews.length === 0) {
+            container.innerHTML = `<p style="color: #999; font-style: italic;">Nicio recenzie in asteptare.</p>`;
+            return;
+        }
+
+        container.innerHTML = reviews.map(r => `
+            <div style="background: #fdf2b8; padding: 15px; border: 1px solid #2f694b; border-radius: 6px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <strong style="color: #2f694b;">${escapeHtml(r.customerName)}</strong>
+                        <span style="color: #999; font-size: 0.85em;">(${escapeHtml(r.customerEmail)})</span>
+                        ${r.cactusId ? `<span style="color: #666; font-size: 0.85em;"> — Produs #${r.cactusId}</span>` : '<span style="color: #666; font-size: 0.85em;"> — Recenzie generala</span>'}
+                    </div>
+                    <div style="color: #FF9800; font-size: 1.2em;">${starsDisplay(r.rating)}</div>
+                </div>
+                <p style="margin: 10px 0; color: #333; font-style: italic;">"${escapeHtml(r.comment)}"</p>
+                <div style="display: flex; gap: 8px;">
+                    <button class="approve-review-btn" data-id="${r.id}" style="background-color: #2f694b; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        ✅ Aproba
+                    </button>
+                    <button class="reject-review-btn" data-id="${r.id}" style="background-color: #d32f2f; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        ❌ Respinge
+                    </button>
+                </div>
+            </div>
+        `).join("");
+
+        document.querySelectorAll('.approve-review-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+                await authFetch(`${API_BASE}/api/reviews/${id}/approve`, { method: 'PUT' });
+                fetchPendingReviews();
+            });
+        });
+
+        document.querySelectorAll('.reject-review-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+                if (confirm("Esti sigur ca vrei sa respingi aceasta recenzie?")) {
+                    await authFetch(`${API_BASE}/api/reviews/${id}`, { method: 'DELETE' });
+                    fetchPendingReviews();
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error("Eroare la preluarea recenziilor:", error);
     }
 }

@@ -83,3 +83,7 @@ function escapeHtml(unsafe: string | null | undefined): string {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+function starsDisplay(rating: number): string {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+}
