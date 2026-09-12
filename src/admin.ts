@@ -1,11 +1,5 @@
 // Interfețele Cactus, Order, Category + constantele vin din shared.ts
-
-// --- UTILITARE JWT ---
-function getAuthHeader() {
-    return { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` };
-}
-
-// escapeHtml și API_BASE vin din shared.ts (încărcat înaintea acestui fișier în admin.html)
+// authFetch vine din shared.ts — trimite cookie-ul JWT automat
 
 // --- 1. SISTEMUL DE LOGIN ---
 const loginBtn = document.getElementById('login-btn');
@@ -15,20 +9,16 @@ if (loginBtn) {
         const passInput = (document.getElementById('admin-pass') as HTMLInputElement).value;
 
         try {
-            const response = await fetch(`${API_BASE}/api/auth/login`, {
+            const response = await authFetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: userInput, password: passInput })
             });
 
             if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('jwtToken', data.token); // Salvăm token-ul
-
                 document.getElementById('login-container')!.style.display = "none";
                 document.getElementById('admin-panel')!.style.display = "block";
 
-                // Încărcăm toate datele imediat ce ne-am logat
                 fetchAdminCategories();
                 fetchAdminCacti();
                 fetchAdminOrders();
@@ -44,7 +34,7 @@ if (loginBtn) {
 // --- 2. GESTIUNE CATEGORII ---
 async function fetchAdminCategories() {
     try {
-        const response = await fetch(`${API_BASE}/api/categories`);
+        const response = await authFetch(`${API_BASE}/api/categories`);
         const categories: Category[] = await response.json();
 
         // A. Afișăm subcategoriile grupate pe cele 3 categorii principale
@@ -78,9 +68,8 @@ async function fetchAdminCategories() {
                 btn.addEventListener('click', async (e) => {
                     const id = (e.target as HTMLButtonElement).getAttribute('data-id');
                     if (confirm("Sigur ștergi această subcategorie?")) {
-                        await fetch(`${API_BASE}/api/categories/${id}`, {
+                        await authFetch(`${API_BASE}/api/categories/${id}`, {
                             method: 'DELETE',
-                            headers: getAuthHeader()
                         });
                         fetchAdminCategories();
                     }
@@ -119,7 +108,7 @@ function updateCactusCategoryDropdown(categories: Category[]) {
 const mainCategorySelect = document.getElementById('new-cactus-main-category');
 if (mainCategorySelect) {
     mainCategorySelect.addEventListener('change', async () => {
-        const response = await fetch(`${API_BASE}/api/categories`);
+        const response = await authFetch(`${API_BASE}/api/categories`);
         const categories: Category[] = await response.json();
         updateCactusCategoryDropdown(categories);
     });
@@ -133,9 +122,9 @@ if (addCategoryBtn) {
         const mainSelect = document.getElementById('new-category-main') as HTMLSelectElement;
         if (!nameInput.value.trim() || !mainSelect) return;
 
-        await fetch(`${API_BASE}/api/categories`, {
+        await authFetch(`${API_BASE}/api/categories`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: nameInput.value.trim(), mainCategory: mainSelect.value })
         });
 
@@ -147,8 +136,7 @@ if (addCategoryBtn) {
 // --- 3. GESTIUNE CACTUȘI (PRODUSE) ---
 async function fetchAdminCacti() {
     try {
-        const response = await fetch(`${API_BASE}/api/cacti/all`, {
-            headers: getAuthHeader()
+        const response = await authFetch(`${API_BASE}/api/cacti/all`, {
         });
         const cacti: Cactus[] = await response.json();
 
@@ -230,9 +218,9 @@ async function fetchAdminCacti() {
                     category: (panel.querySelector('.edit-category') as HTMLInputElement).value
                 };
 
-                const response = await fetch(`${API_BASE}/api/cacti/${id}`, {
+                const response = await authFetch(`${API_BASE}/api/cacti/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updated)
                 });
 
@@ -251,9 +239,8 @@ async function fetchAdminCacti() {
                 const cactusId = Number(btn.getAttribute('data-id'));
 
                 if (confirm("Ești sigur că vrei să dezactivezi acest produs? Nu va mai apărea în magazin.")) {
-                    await fetch(`${API_BASE}/api/cacti/${cactusId}`, {
+                    await authFetch(`${API_BASE}/api/cacti/${cactusId}`, {
                         method: 'DELETE',
-                        headers: getAuthHeader()
                     });
                     fetchAdminCacti();
                 }
@@ -266,9 +253,8 @@ async function fetchAdminCacti() {
                 const btn = event.target as HTMLButtonElement;
                 const cactusId = Number(btn.getAttribute('data-id'));
 
-                await fetch(`${API_BASE}/api/cacti/${cactusId}/reactivate`, {
+                await authFetch(`${API_BASE}/api/cacti/${cactusId}/reactivate`, {
                     method: 'PUT',
-                    headers: getAuthHeader()
                 });
                 fetchAdminCacti();
             });
@@ -283,9 +269,8 @@ async function fetchAdminCacti() {
                 if (!confirm("ATENȚIE: Produsul va fi șters definitiv din baza de date. Continui?")) return;
                 if (!confirm("Ești absolut sigur? Acțiunea este ireversibilă.")) return;
 
-                await fetch(`${API_BASE}/api/cacti/${cactusId}/permanent`, {
+                await authFetch(`${API_BASE}/api/cacti/${cactusId}/permanent`, {
                     method: 'DELETE',
-                    headers: getAuthHeader()
                 });
                 fetchAdminCacti();
             });
@@ -315,9 +300,9 @@ if (addCactusBtn) {
             return;
         }
 
-        await fetch(`${API_BASE}/api/cacti`, {
+        await authFetch(`${API_BASE}/api/cacti`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newCactus)
         });
 
@@ -334,8 +319,7 @@ if (addCactusBtn) {
 // --- 4. VIZUALIZARE COMENZI (necesită Auth) ---
 async function fetchAdminOrders() {
     try {
-        const response = await fetch(`${API_BASE}/api/orders`, {
-            headers: getAuthHeader()
+        const response = await authFetch(`${API_BASE}/api/orders`, {
         });
 
         if (!response.ok) throw new Error('Neautorizat');
@@ -375,9 +359,9 @@ async function fetchAdminOrders() {
                 const orderId = target.getAttribute('data-id');
                 const newStatus = target.value;
 
-                const response = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+                const response = await authFetch(`${API_BASE}/api/orders/${orderId}/status`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus })
                 });
 

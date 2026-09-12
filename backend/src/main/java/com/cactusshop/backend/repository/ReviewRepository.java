@@ -17,4 +17,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     // Recenzii care așteaptă aprobare din admin
     List<Review> findByApprovedFalseOrderByCreatedAtAsc();
+
+    // Verifică dacă un client a lăsat deja o recenzie (per produs sau generală)
+    boolean existsByCustomerEmailAndCactusId(String customerEmail, Long cactusId);
 }

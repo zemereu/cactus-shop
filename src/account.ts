@@ -1,4 +1,4 @@
-// API_BASE, CUSTOMER_JWT_KEY, CUSTOMER_NAME_KEY vin din shared.ts
+// API_BASE, CUSTOMER_NAME_KEY, authFetch vin din shared.ts
 
 interface CustomerProfile {
     name: string;
@@ -6,9 +6,6 @@ interface CustomerProfile {
     address: string;
 }
 
-// Reținem de unde a venit clientul (ex: shop.html), ca să-l trimitem
-// automat înapoi acolo după login/înregistrare reușite, în loc să-l
-// lăsăm blocat pe pagina de cont.
 const REDIRECT_FALLBACK = "shop.html";
 function getRedirectTarget(): string {
     const referrer = document.referrer;
@@ -18,14 +15,12 @@ function getRedirectTarget(): string {
             if (referrerUrl.origin === window.location.origin) {
                 return referrer;
             }
-        } catch {
-            // referrer invalid, ignorăm
-        }
+        } catch {}
     }
     return REDIRECT_FALLBACK;
 }
 
-// --- Comutare între tab-uri Login / Înregistrare ---
+// --- Comutare tab-uri Login / Inregistrare ---
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
 const loginPanel = document.getElementById('login-panel');
@@ -47,23 +42,16 @@ function activateTab(tab: 'login' | 'register') {
 if (tabLogin) tabLogin.addEventListener('click', () => activateTab('login'));
 if (tabRegister) tabRegister.addEventListener('click', () => activateTab('register'));
 
-// --- Dacă e deja logat la încărcarea paginii, arată panoul de cont cu datele reale ---
+// --- Daca e deja logat, arata panoul de cont ---
 async function checkLoggedInState() {
-    const token = localStorage.getItem(CUSTOMER_JWT_KEY);
-    if (!token) return;
-
     const loggedInPanel = document.getElementById('logged-in-panel');
     const loggedInName = document.getElementById('logged-in-name');
     const tabsContainer = tabLogin?.parentElement;
 
     try {
-        const response = await fetch(`${API_BASE}/api/customers/me`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await authFetch(`${API_BASE}/api/customers/me`);
 
         if (!response.ok) {
-            // Token expirat sau invalid — curățăm și lăsăm formularul de login
-            localStorage.removeItem(CUSTOMER_JWT_KEY);
             localStorage.removeItem(CUSTOMER_NAME_KEY);
             return;
         }
@@ -76,6 +64,8 @@ async function checkLoggedInState() {
         if (loggedInPanel) loggedInPanel.style.display = 'block';
         if (loggedInName) loggedInName.innerText = profile.name;
 
+        localStorage.setItem(CUSTOMER_NAME_KEY, profile.name);
+
         const profileName = document.getElementById('profile-name');
         const profileEmail = document.getElementById('profile-email');
         const profileAddress = document.getElementById('profile-address') as HTMLInputElement;
@@ -85,7 +75,7 @@ async function checkLoggedInState() {
         if (profileAddress) profileAddress.value = profile.address;
 
     } catch (error) {
-        console.error("Eroare la încărcarea contului:", error);
+        console.error("Eroare la incarcarea contului:", error);
     }
 }
 checkLoggedInState();
@@ -99,12 +89,12 @@ if (loginSubmitBtn) {
         const errorEl = document.getElementById('login-error');
 
         if (!email || !password) {
-            if (errorEl) { errorEl.innerText = "Completează emailul și parola."; errorEl.style.display = 'block'; }
+            if (errorEl) { errorEl.innerText = "Completeaza emailul si parola."; errorEl.style.display = 'block'; }
             return;
         }
 
         try {
-            const response = await fetch(`${API_BASE}/api/customers/login`, {
+            const response = await authFetch(`${API_BASE}/api/customers/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -112,15 +102,12 @@ if (loginSubmitBtn) {
 
             if (!response.ok) {
                 const message = await response.text();
-                if (errorEl) { errorEl.innerText = message || "Email sau parolă incorecte."; errorEl.style.display = 'block'; }
+                if (errorEl) { errorEl.innerText = message || "Email sau parola incorecte."; errorEl.style.display = 'block'; }
                 return;
             }
 
             const data = await response.json();
-            localStorage.setItem(CUSTOMER_JWT_KEY, data.token);
             localStorage.setItem(CUSTOMER_NAME_KEY, data.name);
-
-            // Ne întoarcem automat de unde a venit clientul, nu rămânem pe cont.html
             window.location.href = getRedirectTarget();
         } catch (error) {
             console.error(error);
@@ -129,7 +116,7 @@ if (loginSubmitBtn) {
     });
 }
 
-// --- Înregistrare ---
+// --- Inregistrare ---
 const registerSubmitBtn = document.getElementById('register-submit-btn');
 if (registerSubmitBtn) {
     registerSubmitBtn.addEventListener('click', async () => {
@@ -140,16 +127,16 @@ if (registerSubmitBtn) {
         const errorEl = document.getElementById('register-error');
 
         if (!name || !email || !password || !address) {
-            if (errorEl) { errorEl.innerText = "Completează toate câmpurile."; errorEl.style.display = 'block'; }
+            if (errorEl) { errorEl.innerText = "Completeaza toate campurile."; errorEl.style.display = 'block'; }
             return;
         }
         if (password.length < 8) {
-            if (errorEl) { errorEl.innerText = "Parola trebuie să aibă cel puțin 8 caractere."; errorEl.style.display = 'block'; }
+            if (errorEl) { errorEl.innerText = "Parola trebuie sa aiba cel putin 8 caractere."; errorEl.style.display = 'block'; }
             return;
         }
 
         try {
-            const response = await fetch(`${API_BASE}/api/customers/register`, {
+            const response = await authFetch(`${API_BASE}/api/customers/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password, address })
@@ -162,9 +149,7 @@ if (registerSubmitBtn) {
             }
 
             const data = await response.json();
-            localStorage.setItem(CUSTOMER_JWT_KEY, data.token);
             localStorage.setItem(CUSTOMER_NAME_KEY, data.name);
-
             window.location.href = getRedirectTarget();
         } catch (error) {
             console.error(error);
@@ -173,26 +158,25 @@ if (registerSubmitBtn) {
     });
 }
 
-// --- Salvare adresă (din panoul de cont, când ești deja logat) ---
+// --- Salvare adresa ---
 const saveAddressBtn = document.getElementById('save-address-btn');
 if (saveAddressBtn) {
     saveAddressBtn.addEventListener('click', async () => {
-        const token = localStorage.getItem(CUSTOMER_JWT_KEY);
         const addressInput = document.getElementById('profile-address') as HTMLInputElement;
         const messageEl = document.getElementById('profile-message');
-        if (!token || !addressInput || !messageEl) return;
+        if (!addressInput || !messageEl) return;
 
         try {
-            const response = await fetch(`${API_BASE}/api/customers/me`, {
+            const response = await authFetch(`${API_BASE}/api/customers/me`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ address: addressInput.value.trim() })
             });
 
             messageEl.style.display = 'block';
             if (response.ok) {
                 messageEl.style.color = '#2f694b';
-                messageEl.innerText = "Adresa a fost salvată.";
+                messageEl.innerText = "Adresa a fost salvata.";
             } else {
                 messageEl.style.color = '#d32f2f';
                 messageEl.innerText = "Nu am putut salva adresa.";
@@ -209,8 +193,8 @@ if (saveAddressBtn) {
 // --- Deconectare ---
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem(CUSTOMER_JWT_KEY);
+    logoutBtn.addEventListener('click', async () => {
+        await authFetch(`${API_BASE}/api/customers/logout`, { method: 'POST' });
         localStorage.removeItem(CUSTOMER_NAME_KEY);
         window.location.href = REDIRECT_FALLBACK;
     });

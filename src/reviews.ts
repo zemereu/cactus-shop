@@ -1,4 +1,4 @@
-// API_BASE, CUSTOMER_JWT_KEY, CUSTOMER_NAME_KEY, escapeHtml vin din shared.ts
+// API_BASE, CUSTOMER_NAME_KEY, escapeHtml, authFetch vin din shared.ts
 
 interface ReviewResponse {
     id: number;
@@ -56,16 +56,23 @@ async function loadReviews() {
 }
 loadReviews();
 
-// --- Formular de trimitere (doar dacă e logat) ---
-const token = localStorage.getItem(CUSTOMER_JWT_KEY);
+// --- Formular de trimitere (vizibil doar dacă e logat) ---
 const formContainer = document.getElementById('review-form-container');
 const loginPrompt = document.getElementById('login-prompt');
 
-if (token) {
-    if (formContainer) formContainer.style.display = 'block';
-} else {
-    if (loginPrompt) loginPrompt.style.display = 'block';
+async function checkReviewAuth() {
+    try {
+        const response = await authFetch(`${API_BASE}/api/customers/me`);
+        if (response.ok) {
+            if (formContainer) formContainer.style.display = 'block';
+        } else {
+            if (loginPrompt) loginPrompt.style.display = 'block';
+        }
+    } catch {
+        if (loginPrompt) loginPrompt.style.display = 'block';
+    }
 }
+checkReviewAuth();
 
 // --- Selector de stele ---
 let selectedRating = 0;
@@ -101,12 +108,9 @@ if (submitBtn) {
         }
 
         try {
-            const response = await fetch(`${API_BASE}/api/reviews`, {
+            const response = await authFetch(`${API_BASE}/api/reviews`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem(CUSTOMER_JWT_KEY)}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     rating: selectedRating,
                     comment: comment,
@@ -122,8 +126,9 @@ if (submitBtn) {
                 selectedRating = 0;
                 starElements.forEach(s => s.textContent = '☆');
             } else {
+                const errorMsg = await response.text();
                 messageEl.style.color = '#d32f2f';
-                messageEl.innerText = "Nu am putut trimite recenzia.";
+                messageEl.innerText = errorMsg || "Nu am putut trimite recenzia.";
             }
         } catch (error) {
             console.error(error);

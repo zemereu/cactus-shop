@@ -6,6 +6,7 @@ import com.cactusshop.backend.model.Customer;
 import com.cactusshop.backend.model.Review;
 import com.cactusshop.backend.repository.CustomerRepository;
 import com.cactusshop.backend.repository.ReviewRepository;
+import com.cactusshop.backend.repository.CactusRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,9 @@ public class ReviewController {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private CactusRepository cactusRepository;
+
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     // Doar clienți autentificați pot trimite o recenzie. Identitatea vine
@@ -38,6 +42,16 @@ public class ReviewController {
 
         if (customer == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cont inexistent.");
+        }
+
+        // Verifică dacă produsul există (dacă e recenzie de produs)
+        if (request.cactusId() != null && !cactusRepository.existsById(request.cactusId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Produsul nu exista.");
+        }
+
+        // Verifică dacă clientul a lăsat deja o recenzie
+        if (reviewRepository.existsByCustomerEmailAndCactusId(email, request.cactusId())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ai lasat deja o recenzie.");
         }
 
         Review review = new Review();

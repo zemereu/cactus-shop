@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -34,6 +35,26 @@ public class JwtUtil {
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
+    }
+
+    public ResponseCookie createJwtCookie(String token) {
+        return ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api")
+                .maxAge(expirationMs / 1000)
+                .build();
+    }
+
+    public ResponseCookie createLogoutCookie() {
+        return ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api")
+                .maxAge(0)
+                .build();
     }
 
     public String extractUsername(String token) {

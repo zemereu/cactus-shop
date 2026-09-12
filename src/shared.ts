@@ -13,9 +13,8 @@ const BANK_TRANSFER_INFO = {
 
 const ORDER_STATUSES = ["Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"];
 
-// Cheia din localStorage pentru tokenul de CLIENT — distinctă de 'jwtToken'
-// (folosit de admin.ts pentru login-ul de admin), ca să nu se amestece cele două.
-const CUSTOMER_JWT_KEY = "customerJwtToken";
+// Tokenurile JWT sunt acum în HttpOnly cookies — nu mai stocăm nimic
+// legat de autentificare în localStorage.
 const CUSTOMER_NAME_KEY = "customerName";
 const CART_STORAGE_KEY = "shoppingCart";
 
@@ -26,9 +25,21 @@ const PRODUCT_TYPES = ["Plantă", "Semințe"];
 // dinamic din admin, sub una din aceste 2 categorii.
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
 
-// Adresa backend-ului. VERIFICĂ acest domeniu — trebuie să fie EXACT
-// domeniul public din Railway (Settings → Networking).
-const API_BASE = 'https://cactus-shop-production.up.railway.app';
+// Gol — request-urile merg prin proxy-ul Netlify (same origin),
+// care le redirecționează către Railway. Asta permite cookie-uri
+// first-party (HttpOnly, Secure, SameSite=Lax).
+const API_BASE = '';
+
+// Fetch cu credentials incluse — browserul trimite automat cookie-ul JWT.
+function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+    return fetch(url, {
+        ...options,
+        credentials: 'include',
+        headers: {
+            ...options.headers
+        }
+    });
+}
 
 // --- Interfețe comune (folosite de index.ts, admin.ts, etc.) ---
 interface Cactus {

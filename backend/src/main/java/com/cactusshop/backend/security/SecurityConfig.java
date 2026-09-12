@@ -27,12 +27,15 @@ public class SecurityConfig {
                     config.setAllowedOrigins(List.of("https://cactshop.netlify.app"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
                         // --- Public ---
                         .requestMatchers("/api/auth/login").permitAll() // login admin
+                        .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/customers/register", "/api/customers/login").permitAll() // cont client
+                        .requestMatchers("/api/customers/logout").permitAll()
                         .requestMatchers("/api/customers/me", "/api/customers/me/address").hasRole("CUSTOMER") // propriul cont
                         .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cacti/all").hasRole("ADMIN")

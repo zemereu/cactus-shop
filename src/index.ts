@@ -28,7 +28,7 @@ function saveCartToStorage() {
 let shoppingCart: Cactus[] = loadCartFromStorage();
 
 // PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml, API_BASE, CART_STORAGE_KEY,
-// CUSTOMER_JWT_KEY, CUSTOMER_NAME_KEY vin din shared.ts
+// CUSTOMER_NAME_KEY, authFetch vin din shared.ts
 
 // 1. Fetch de la Backend (Filtrare aplicată pe server, cu paginare)
 async function fetchCacti() {
@@ -101,9 +101,9 @@ if (accountDropdown) {
 // Delogare din dropdown
 const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
 if (dropdownLogoutBtn) {
-    dropdownLogoutBtn.addEventListener('click', (event) => {
+    dropdownLogoutBtn.addEventListener('click', async (event) => {
         event.preventDefault();
-        localStorage.removeItem(CUSTOMER_JWT_KEY);
+        await authFetch(`${API_BASE}/api/customers/logout`, { method: 'POST' });
         localStorage.removeItem(CUSTOMER_NAME_KEY);
         window.location.reload();
     });

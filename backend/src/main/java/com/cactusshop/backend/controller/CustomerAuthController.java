@@ -11,6 +11,7 @@ import com.cactusshop.backend.security.LoginRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -53,7 +54,9 @@ public class CustomerAuthController {
         customerRepository.save(customer);
 
         String token = jwtUtil.generateToken(email, "CUSTOMER");
-        return ResponseEntity.ok(Map.of("token", token, "name", customer.getName()));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
+                .body(Map.of("name", customer.getName()));
     }
 
     @PostMapping("/login")
@@ -77,7 +80,16 @@ public class CustomerAuthController {
 
         rateLimiter.recordSuccess(clientIp);
         String token = jwtUtil.generateToken(email, "CUSTOMER");
-        return ResponseEntity.ok(Map.of("token", token, "name", customer.getName()));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
+                .body(Map.of("name", customer.getName()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtUtil.createLogoutCookie().toString())
+                .body(Map.of("message", "Deconectat"));
     }
 
     private String extractClientIp(HttpServletRequest request) {

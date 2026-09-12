@@ -5,6 +5,7 @@ import com.cactusshop.backend.security.LoginRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -55,11 +56,20 @@ public class AuthController {
         if (usernameMatches && passwordMatches) {
             rateLimiter.recordSuccess(clientIp);
             String token = jwtUtil.generateToken(username, "ADMIN");
-            return ResponseEntity.ok(Map.of("token", token));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
+                    .body(Map.of("message", "Login reusit"));
         } else {
             rateLimiter.recordFailure(clientIp);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Date incorecte");
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtUtil.createLogoutCookie().toString())
+                .body(Map.of("message", "Deconectat"));
     }
 
     private String extractClientIp(HttpServletRequest request) {
