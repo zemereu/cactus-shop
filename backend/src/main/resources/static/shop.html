@@ -27,20 +27,8 @@
                style="width: 100%; box-sizing: border-box; padding: 10px; border: 2px solid #2f694b; border-radius: 5px; font-size: 16px; background-color: transparent; color: #333;">
     </div>
 
-    <!-- Dreapta: Buton Cont (cu dropdown dacă e logat) + Butonul și Fereastra Coșului -->
+    <!-- Dreapta: Coș + Cont (cu dropdown) -->
     <div style="display: flex; align-items: center; gap: 10px; justify-self: end;">
-        <div style="position: relative;">
-            <a href="cont.html" id="account-link" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block;">
-                👤 Cont
-            </a>
-
-            <div id="account-dropdown" style="display: none; position: absolute; top: 55px; right: 0; width: 200px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px; text-align: left;">
-                <a href="verifica-comanda.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">📦 Vezi comenzi</a>
-                <a href="cont.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">⚙️ Detalii cont</a>
-                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;">🚪 Delogare</a>
-            </div>
-        </div>
-
         <div style="position: relative;">
             <div id="cart-button" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap;">
                 🛒 Coș: <span id="cart-count">0</span>
@@ -68,8 +56,19 @@
                     </button>
                 </div>
 
-                <!-- Afișat după plasarea comenzii: nr. comandă + detalii plată -->
                 <div id="order-confirmation" style="display: none; margin-top: 15px; border-top: 1px solid #2f694b; padding-top: 15px; font-size: 0.9em;"></div>
+            </div>
+        </div>
+
+        <div style="position: relative;">
+            <a href="cont.html" id="account-link" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block;">
+                👤 Cont
+            </a>
+
+            <div id="account-dropdown" style="display: none; position: absolute; top: 55px; right: 0; width: 200px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px; text-align: left;">
+                <a href="verifica-comanda.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">📦 Vezi comenzi</a>
+                <a href="cont.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">⚙️ Detalii cont</a>
+                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;">🚪 Delogare</a>
             </div>
         </div>
     </div>
@@ -87,7 +86,7 @@
 <div id="cacti-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>
 <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
 
-<script src="../../../../../dist/shared.js"></script>
-<script src="../../../../../dist/index.js"></script>
+<script src="dist/shared.js"></script>
+<script src="dist/index.js"></script>
 </body>
 </html>
