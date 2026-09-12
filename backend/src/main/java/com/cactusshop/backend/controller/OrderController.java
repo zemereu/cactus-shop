@@ -29,7 +29,6 @@ public class OrderController {
     @Autowired
     private CactusRepository cactusRepository;
 
-    // Statusurile valide — orice altceva trimis de admin e respins
     private static final Set<String> VALID_STATUSES = Set.of(
             "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"
     );
@@ -38,7 +37,7 @@ public class OrderController {
     public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request) {
 
         List<Cactus> purchasedCacti = new ArrayList<>();
-        for (Long id : request.getCactusIds()) {
+        for (Long id : request.cactusIds()) {
             Cactus cactus = cactusRepository.findById(id).orElse(null);
             if (cactus == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -51,19 +50,17 @@ public class OrderController {
         String itemsSummary = purchasedCacti.stream().map(Cactus::getName).collect(Collectors.joining(", "));
 
         Order order = new Order();
-        order.setCustomerName(request.getCustomerName().trim());
-        order.setEmail(request.getEmail().trim());
-        order.setAddress(request.getAddress().trim());
+        order.setCustomerName(request.customerName().trim());
+        order.setEmail(request.email().trim());
+        order.setAddress(request.address().trim());
         order.setTotalPrice(realTotal);
         order.setPurchasedItems(itemsSummary);
-        order.setStatus("Neplătită"); // orice comandă nouă pornește neplătită, indiferent ce ar trimite clientul
+        order.setStatus("Neplătită");
 
         Order saved = orderRepository.save(order);
         return ResponseEntity.ok(saved);
     }
 
-    // Verificare PUBLICĂ a statusului unei comenzi — necesită id + email,
-    // ca să nu poată oricine ghici id-uri secvențiale și vedea comenzi străine.
     @GetMapping("/lookup")
     public ResponseEntity<?> lookupOrder(
             @RequestParam Long orderId,
@@ -72,8 +69,6 @@ public class OrderController {
         Order order = orderRepository.findById(orderId).orElse(null);
 
         if (order == null || order.getEmail() == null || !order.getEmail().equalsIgnoreCase(email.trim())) {
-            // Același mesaj indiferent dacă id-ul nu există sau emailul nu se potrivește,
-            // ca să nu oferim indicii cuiva care încearcă id-uri la întâmplare.
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Nu am găsit nicio comandă cu aceste date.");
         }
@@ -83,12 +78,10 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    // Actualizare status — necesită autentificare admin (protejat deja
-    // implicit prin SecurityConfig, orice altceva decât GET /lookup și POST necesită JWT)
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(@PathVariable Long id, @Valid @RequestBody OrderStatusUpdateDTO request) {
 
-        if (!VALID_STATUSES.contains(request.getStatus())) {
+        if (!VALID_STATUSES.contains(request.status())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Status invalid. Valorile acceptate: " + VALID_STATUSES);
         }
@@ -98,7 +91,7 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comanda nu a fost găsită.");
         }
 
-        order.setStatus(request.getStatus());
+        order.setStatus(request.status());
         Order saved = orderRepository.save(order);
         return ResponseEntity.ok(saved);
     }

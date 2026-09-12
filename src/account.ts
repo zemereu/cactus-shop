@@ -1,5 +1,30 @@
 // API_BASE, CUSTOMER_JWT_KEY, CUSTOMER_NAME_KEY vin din shared.ts
 
+interface CustomerProfile {
+    name: string;
+    email: string;
+    address: string;
+}
+
+// Reținem de unde a venit clientul (ex: shop.html), ca să-l trimitem
+// automat înapoi acolo după login/înregistrare reușite, în loc să-l
+// lăsăm blocat pe pagina de cont.
+const REDIRECT_FALLBACK = "shop.html";
+function getRedirectTarget(): string {
+    const referrer = document.referrer;
+    if (referrer && !referrer.includes('cont.html')) {
+        try {
+            const referrerUrl = new URL(referrer);
+            if (referrerUrl.origin === window.location.origin) {
+                return referrer;
+            }
+        } catch {
+            // referrer invalid, ignorăm
+        }
+    }
+    return REDIRECT_FALLBACK;
+}
+
 // --- Comutare între tab-uri Login / Înregistrare ---
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
@@ -22,21 +47,45 @@ function activateTab(tab: 'login' | 'register') {
 if (tabLogin) tabLogin.addEventListener('click', () => activateTab('login'));
 if (tabRegister) tabRegister.addEventListener('click', () => activateTab('register'));
 
-// --- Verifică dacă e deja logat, la încărcarea paginii ---
-function checkLoggedInState() {
+// --- Dacă e deja logat la încărcarea paginii, arată panoul de cont cu datele reale ---
+async function checkLoggedInState() {
     const token = localStorage.getItem(CUSTOMER_JWT_KEY);
-    const name = localStorage.getItem(CUSTOMER_NAME_KEY);
+    if (!token) return;
 
     const loggedInPanel = document.getElementById('logged-in-panel');
     const loggedInName = document.getElementById('logged-in-name');
     const tabsContainer = tabLogin?.parentElement;
 
-    if (token && name && loggedInPanel && loggedInName) {
+    try {
+        const response = await fetch(`${API_BASE}/api/customers/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            // Token expirat sau invalid — curățăm și lăsăm formularul de login
+            localStorage.removeItem(CUSTOMER_JWT_KEY);
+            localStorage.removeItem(CUSTOMER_NAME_KEY);
+            return;
+        }
+
+        const profile: CustomerProfile = await response.json();
+
         if (loginPanel) loginPanel.style.display = 'none';
         if (registerPanel) registerPanel.style.display = 'none';
         if (tabsContainer) tabsContainer.style.display = 'none';
-        loggedInPanel.style.display = 'block';
-        loggedInName.innerText = name;
+        if (loggedInPanel) loggedInPanel.style.display = 'block';
+        if (loggedInName) loggedInName.innerText = profile.name;
+
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const profileAddress = document.getElementById('profile-address') as HTMLInputElement;
+
+        if (profileName) profileName.innerText = profile.name;
+        if (profileEmail) profileEmail.innerText = profile.email;
+        if (profileAddress) profileAddress.value = profile.address;
+
+    } catch (error) {
+        console.error("Eroare la încărcarea contului:", error);
     }
 }
 checkLoggedInState();
@@ -70,7 +119,9 @@ if (loginSubmitBtn) {
             const data = await response.json();
             localStorage.setItem(CUSTOMER_JWT_KEY, data.token);
             localStorage.setItem(CUSTOMER_NAME_KEY, data.name);
-            checkLoggedInState();
+
+            // Ne întoarcem automat de unde a venit clientul, nu rămânem pe cont.html
+            window.location.href = getRedirectTarget();
         } catch (error) {
             console.error(error);
             if (errorEl) { errorEl.innerText = "Nu am putut contacta serverul."; errorEl.style.display = 'block'; }
@@ -113,10 +164,44 @@ if (registerSubmitBtn) {
             const data = await response.json();
             localStorage.setItem(CUSTOMER_JWT_KEY, data.token);
             localStorage.setItem(CUSTOMER_NAME_KEY, data.name);
-            checkLoggedInState();
+
+            window.location.href = getRedirectTarget();
         } catch (error) {
             console.error(error);
             if (errorEl) { errorEl.innerText = "Nu am putut contacta serverul."; errorEl.style.display = 'block'; }
+        }
+    });
+}
+
+// --- Salvare adresă (din panoul de cont, când ești deja logat) ---
+const saveAddressBtn = document.getElementById('save-address-btn');
+if (saveAddressBtn) {
+    saveAddressBtn.addEventListener('click', async () => {
+        const token = localStorage.getItem(CUSTOMER_JWT_KEY);
+        const addressInput = document.getElementById('profile-address') as HTMLInputElement;
+        const messageEl = document.getElementById('profile-message');
+        if (!token || !addressInput || !messageEl) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/api/customers/me`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ address: addressInput.value.trim() })
+            });
+
+            messageEl.style.display = 'block';
+            if (response.ok) {
+                messageEl.style.color = '#2f694b';
+                messageEl.innerText = "Adresa a fost salvată.";
+            } else {
+                messageEl.style.color = '#d32f2f';
+                messageEl.innerText = "Nu am putut salva adresa.";
+            }
+        } catch (error) {
+            console.error(error);
+            messageEl.style.display = 'block';
+            messageEl.style.color = '#d32f2f';
+            messageEl.innerText = "Eroare de conexiune.";
         }
     });
 }
@@ -127,6 +212,6 @@ if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem(CUSTOMER_JWT_KEY);
         localStorage.removeItem(CUSTOMER_NAME_KEY);
-        window.location.reload();
+        window.location.href = REDIRECT_FALLBACK;
     });
 }

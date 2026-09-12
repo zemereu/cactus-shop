@@ -3,46 +3,12 @@ package com.cactusshop.backend.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
-public class CactusRequestDTO {
-
-    @NotBlank(message = "Numele produsului este obligatoriu.")
-    private String name;
-
-    @Positive(message = "Prețul trebuie să fie mai mare decât 0.")
-    private double price;
-
-    @NotBlank(message = "Tipul de produs (Plantă/Semințe) este obligatoriu.")
-    private String productType;
-
-    @NotBlank(message = "Categoria principală (Cactuși/Suculente) este obligatorie.")
-    private String mainCategory;
-
-    @NotBlank(message = "Genul (subcategoria) este obligatoriu.")
-    private String category;
-
-    private String description;
-    private String imageUrl;
-
-    public CactusRequestDTO() {}
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
-
-    public String getProductType() { return productType; }
-    public void setProductType(String productType) { this.productType = productType; }
-
-    public String getMainCategory() { return mainCategory; }
-    public void setMainCategory(String mainCategory) { this.mainCategory = mainCategory; }
-
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-}
+public record CactusRequestDTO(
+        @NotBlank(message = "Numele produsului este obligatoriu.") String name,
+        @Positive(message = "Prețul trebuie să fie mai mare decât 0.") double price,
+        @NotBlank(message = "Tipul de produs (Plantă/Semințe) este obligatoriu.") String productType,
+        @NotBlank(message = "Categoria principală (Cactuși/Suculente) este obligatorie.") String mainCategory,
+        @NotBlank(message = "Genul (subcategoria) este obligatoriu.") String category,
+        String description,
+        String imageUrl
+) {}

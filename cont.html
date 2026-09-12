@@ -50,9 +50,22 @@
     </div>
 
     <!-- Afișat când ești deja logat -->
-    <div id="logged-in-panel" style="display: none; text-align: center;">
-        <p style="color: #2f694b; font-size: 1.1em;">Bun venit, <strong id="logged-in-name"></strong>!</p>
-        <button id="logout-btn" style="width: 100%; background-color: #d32f2f; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+    <div id="logged-in-panel" style="display: none;">
+        <p style="color: #2f694b; font-size: 1.1em; text-align: center;">Bun venit, <strong id="logged-in-name"></strong>!</p>
+
+        <div style="background: #fdf2b8; border-radius: 6px; padding: 15px; margin-top: 15px;">
+            <p style="margin: 0 0 8px 0;"><strong>Nume:</strong> <span id="profile-name"></span></p>
+            <p style="margin: 0 0 15px 0;"><strong>Email:</strong> <span id="profile-email"></span></p>
+
+            <label style="font-weight: bold; color: #2f694b;">Adresă de livrare</label>
+            <input type="text" id="profile-address" style="width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px;">
+            <button id="save-address-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                Salvează adresa
+            </button>
+            <p id="profile-message" style="margin-top: 8px; display: none;"></p>
+        </div>
+
+        <button id="logout-btn" style="width: 100%; background-color: #d32f2f; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px;">
             Deconectare
         </button>
     </div>
