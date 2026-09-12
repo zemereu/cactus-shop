@@ -147,8 +147,11 @@ async function fetchAdminCacti() {
         let htmlContent = "";
         for (let cactus of cacti) {
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
+            const cardStyle = cactus.active
+                ? 'background:#fdf2b8; padding:10px; border:1px solid #2f694b; border-radius:6px; text-align:center;'
+                : 'background:#e0e0e0; padding:10px; border:1px solid #999; border-radius:6px; text-align:center; opacity:0.7;';
             htmlContent += `
-                <div style="background: ${cactus.active ? '#fdf2b8' : '#e0e0e0'}; padding: 10px; border: 1px solid ${cactus.active ? '#2f694b' : '#999'}; border-radius: 6px; text-align: center; ${cactus.active ? '' : 'opacity: 0.7;'}">
+                <div style="${cardStyle}">
                     ${cactus.active ? '' : '<p style="margin: 0 0 5px 0; color: #d32f2f; font-weight: bold; font-size: 0.8em;">❌ DEZACTIVAT</p>'}
                     <img src="${escapeHtml(validImage)}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;">
                     <h4 style="margin: 10px 0 5px 0; color: #2f694b;">${escapeHtml(cactus.name)}</h4>
