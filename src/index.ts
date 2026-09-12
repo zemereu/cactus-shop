@@ -54,15 +54,60 @@ async function fetchCacti() {
     }
 }
 
-// Actualizează link-ul "Cont" din header cu numele clientului, dacă e logat
+// Actualizează link-ul "Cont" din header: dacă e logat, arată numele și
+// transformă click-ul într-un dropdown (Vezi comenzi / Detalii cont / Delogare)
+// în loc să navigheze direct spre cont.html.
 function updateAccountLink() {
-    const accountLink = document.getElementById('account-link');
+    const accountLink = document.getElementById('account-link') as HTMLAnchorElement | null;
+    const dropdown = document.getElementById('account-dropdown');
     if (!accountLink) return;
 
     const name = localStorage.getItem(CUSTOMER_NAME_KEY);
-    accountLink.innerText = name ? `👤 ${name}` : `👤 Cont`;
+    const isLoggedIn = !!name;
+
+    accountLink.innerText = isLoggedIn ? `👤 ${name}` : `👤 Cont`;
+
+    if (isLoggedIn) {
+        // Logat: click deschide/închide dropdown-ul, nu mai navighează direct
+        accountLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+    }
+    // Delogat: link-ul rămâne <a href="cont.html">, comportamentul implicit e corect
 }
 updateAccountLink();
+
+// Închide dropdown-ul de cont la click oriunde altundeva pe pagină
+const accountDropdown = document.getElementById('account-dropdown');
+if (accountDropdown) {
+    window.addEventListener('click', (event) => {
+        if (accountDropdown.style.display === 'block') {
+            const target = event.target as Node;
+            const accountLinkEl = document.getElementById('account-link');
+            if (!accountDropdown.contains(target) && target !== accountLinkEl) {
+                accountDropdown.style.display = 'none';
+            }
+        }
+    });
+    accountDropdown.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+}
+
+// Delogare din dropdown
+const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
+if (dropdownLogoutBtn) {
+    dropdownLogoutBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        localStorage.removeItem(CUSTOMER_JWT_KEY);
+        localStorage.removeItem(CUSTOMER_NAME_KEY);
+        window.location.reload();
+    });
+}
 
 // 2. UI Coș & Notificări
 function updateCartUI() {

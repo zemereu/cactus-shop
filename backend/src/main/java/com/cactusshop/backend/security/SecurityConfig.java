@@ -39,10 +39,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // comandă guest
                         .requestMatchers(HttpMethod.GET, "/api/orders/lookup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/general").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/product/**").permitAll()
 
                         // --- Doar CUSTOMER ---
                         .requestMatchers(HttpMethod.GET, "/api/customers/me").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.PUT, "/api/customers/me").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.POST, "/api/reviews").hasRole("CUSTOMER")
 
                         // --- Doar ADMIN ---
                         .requestMatchers(HttpMethod.POST, "/api/cacti").hasRole("ADMIN")
@@ -52,6 +55,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/orders/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/pending").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/reviews/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasRole("ADMIN")
 
                         // --- Orice altceva (viitoare endpoint-uri de client) — doar autentificat, orice rol ---
                         .anyRequest().authenticated()
