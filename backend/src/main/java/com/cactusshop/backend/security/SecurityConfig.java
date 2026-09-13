@@ -8,6 +8,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -19,9 +22,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(List.of("https://cactshop.netlify.app"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
                 .authorizeHttpRequests(auth -> auth
                         // --- Public ---
-                        .requestMatchers("/", "/*.html", "/dist/**", "/images/**").permitAll()
                         .requestMatchers("/api/auth/login").permitAll() // login admin
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/customers/register", "/api/customers/login").permitAll() // cont client
@@ -34,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/general").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/product/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
 
                         // --- Doar CUSTOMER ---
                         .requestMatchers(HttpMethod.GET, "/api/customers/me").hasRole("CUSTOMER")
@@ -42,6 +53,7 @@ public class SecurityConfig {
 
                         // --- Doar ADMIN ---
                         .requestMatchers(HttpMethod.POST, "/api/cacti").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/images/upload").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/cacti/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/cacti/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")

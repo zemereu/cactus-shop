@@ -4,99 +4,226 @@
     <meta charset="UTF-8">
     <title>Admin - Cactus Shop</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 20px;">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 20px; }
 
-<h1 style="text-align: center; color: #2f694b;">Panou de Administrare 🔐</h1>
+        /* Tab-uri navigare */
+        .admin-tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 3px solid #2f694b; }
+        .admin-tab {
+            padding: 12px 24px; background: #e8e0c0; border: none; font-family: 'Poppins', sans-serif;
+            font-weight: bold; color: #666; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 0.95em;
+            transition: all 0.2s;
+        }
+        .admin-tab:hover { background: #d4cc9e; }
+        .admin-tab.active { background: #2f694b; color: #fdf2b8; }
+        .tab-content { display: none; padding: 25px 0; }
+        .tab-content.active { display: block; }
+
+        /* Badge-uri contor */
+        .tab-badge {
+            background: #FF9800; color: white; border-radius: 50%; padding: 2px 7px;
+            font-size: 0.75em; margin-left: 6px; vertical-align: middle;
+        }
+
+        /* Inputuri și butoane */
+        .admin-input {
+            padding: 10px 12px; border: 1px solid #2f694b; border-radius: 6px;
+            font-family: 'Poppins', sans-serif; font-size: 0.9em; background: white;
+        }
+        .admin-input:focus { outline: none; border-color: #FF9800; box-shadow: 0 0 0 2px rgba(255,152,0,0.2); }
+        .admin-btn {
+            padding: 10px 18px; border: none; border-radius: 6px; font-family: 'Poppins', sans-serif;
+            font-weight: bold; cursor: pointer; font-size: 0.9em; transition: transform 0.1s, opacity 0.2s;
+        }
+        .admin-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-primary { background: #2f694b; color: #fdf2b8; }
+        .btn-danger { background: #d32f2f; color: white; }
+        .btn-warning { background: #FF9800; color: white; }
+        .btn-success { background: #2f694b; color: white; }
+        .btn-dark { background: #7f0000; color: white; font-size: 0.8em; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8em; }
+
+        /* Card produse */
+        .product-card {
+            background: #fdf2b8; padding: 12px; border: 1px solid #2f694b; border-radius: 8px;
+            text-align: center; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .product-card.inactive { background: #e0e0e0; border-color: #999; opacity: 0.7; }
+        .product-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; }
+
+        /* Toolbar căutare/filtre */
+        .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .toolbar .search-input { flex-grow: 1; min-width: 200px; }
+
+        /* Statistici rapide */
+        .stats-row { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat-card {
+            flex: 1 1 150px; background: white; padding: 15px; border-radius: 8px;
+            text-align: center; border-left: 4px solid #2f694b;
+        }
+        .stat-card .stat-number { font-size: 1.8em; font-weight: 900; color: #2f694b; }
+        .stat-card .stat-label { font-size: 0.85em; color: #666; }
+
+        /* Tabel comenzi */
+        .orders-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        .orders-table th { background: #2f694b; color: #fdf2b8; padding: 12px; text-align: left; }
+        .orders-table td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        .orders-table tr:hover td { background: #f5f5f0; }
+
+        /* Recenzii pending */
+        .review-card { background: #fdf2b8; padding: 15px; border: 1px solid #2f694b; border-radius: 8px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align: center; color: #2f694b; margin-bottom: 5px;">Panou de Administrare 🔐</h1>
 <div style="text-align: center; margin-bottom: 20px;">
-    <a href="shop.html" style="color: #2f694b; text-decoration: none; font-weight: bold; border-bottom: 2px solid #2f694b;">⬅ Întoarce-te la Magazin</a>
+    <a href="index.html" style="color: #2f694b; text-decoration: none; font-weight: bold; border-bottom: 2px solid #2f694b;">⬅ Înapoi la site</a>
 </div>
 
-<!-- Secțiunea de Login -->
+<!-- Login -->
 <div id="login-container" style="max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; border: 2px solid #2f694b;">
     <h3 style="color: #2f694b;">Autentificare Admin</h3>
-    <input type="text" id="admin-user" placeholder="Nume utilizator" style="width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #2f694b; border-radius: 4px;">
-    <input type="password" id="admin-pass" placeholder="Parolă" style="width: 90%; padding: 10px; margin-bottom: 20px; border: 1px solid #2f694b; border-radius: 4px;">
-    <button id="login-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%;">
-        Login
-    </button>
+    <input type="text" id="admin-user" placeholder="Nume utilizator" class="admin-input" style="width: 90%; margin-bottom: 15px;">
+    <input type="password" id="admin-pass" placeholder="Parolă" class="admin-input" style="width: 90%; margin-bottom: 20px;">
+    <button id="login-btn" class="admin-btn btn-primary" style="width: 100%;">Login</button>
 </div>
 
-<!-- Panoul de administrare propriu-zis -->
-<div id="admin-panel" style="display: none; max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b;">
+<!-- Panoul principal -->
+<div id="admin-panel" style="display: none; max-width: 1100px; margin: 0 auto;">
 
-    <!-- 1. Gestiune Categorii -->
-    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📂 Gestiune Categorii</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-        <select id="new-category-main" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
-            <option value="Cactuși">Cactuși</option>
-            <option value="Suculente">Suculente</option>
-        </select>
-        <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
-        <button id="add-category-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
-            + Adaugă Subcategorie
-        </button>
-    </div>
-    <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; margin-bottom: 40px;"></div>
-
-    <!-- 2. Adăugare Produs -->
-    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">➕ Adaugă Produs Nou</h3>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;">
-        <input type="text" id="new-cactus-name" placeholder="Nume produs" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px;">
-        <input type="number" id="new-cactus-price" placeholder="Preț (RON)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 100px;">
-        <input type="number" id="new-cactus-stock" placeholder="Stoc" min="0" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 80px;">
-
-        <select id="new-cactus-product-type" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
-            <option value="Plantă">Plantă</option>
-            <option value="Semințe">Semințe</option>
-        </select>
-
-        <select id="new-cactus-main-category" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;">
-            <option value="Cactuși">Cactuși</option>
-            <option value="Suculente">Suculente</option>
-        </select>
-
-        <!-- Aici subcategoriile (genul) vor fi încărcate automat din TypeScript, filtrate după categoria principală de mai sus -->
-        <select id="new-cactus-category" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; background: white; color: #333;"></select>
-
-        <input type="text" id="new-cactus-desc" placeholder="Descriere" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; flex-grow: 1;">
-        <input type="text" id="new-cactus-image" placeholder="Link imagine (URL)" style="padding: 8px; border: 1px solid #2f694b; border-radius: 4px; width: 100%;">
-        <button id="add-new-cactus-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
-            Salvează Produs
-        </button>
+    <!-- Statistici rapide -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number" id="stat-products">—</div>
+            <div class="stat-label">Produse active</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #FF9800;">
+            <div class="stat-number" id="stat-orders" style="color: #FF9800;">—</div>
+            <div class="stat-label">Comenzi</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #d32f2f;">
+            <div class="stat-number" id="stat-out-of-stock" style="color: #d32f2f;">—</div>
+            <div class="stat-label">Fără stoc</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #FF9800;">
+            <div class="stat-number" id="stat-reviews" style="color: #FF9800;">—</div>
+            <div class="stat-label">Recenzii pending</div>
+        </div>
     </div>
 
-    <!-- 3. Ștergere Produse -->
-    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📋 Gestiune Produse</h3>
-    <div id="admin-cacti-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px;"></div>
-
-    <!-- 4. Vizualizare Comenzi -->
-    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b;">📦 Comenzi Primite</h3>
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: white;">
-            <thead>
-            <tr style="background-color: #2f694b; color: #fdf2b8;">
-                <th style="padding: 12px; border: 1px solid #ddd;">ID</th>
-                <th style="padding: 12px; border: 1px solid #ddd;">Nume Client / Email</th>
-                <th style="padding: 12px; border: 1px solid #ddd;">Adresă Livrare</th>
-                <th style="padding: 12px; border: 1px solid #ddd;">Produse Cumpărate</th>
-                <th style="padding: 12px; border: 1px solid #ddd;">Total (RON)</th>
-                <th style="padding: 12px; border: 1px solid #ddd;">Status</th>
-            </tr>
-            </thead>
-            <tbody id="admin-orders-list"></tbody>
-        </table>
+    <!-- Tab-uri -->
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="tab-products">📋 Produse</button>
+        <button class="admin-tab" data-tab="tab-add">➕ Adaugă</button>
+        <button class="admin-tab" data-tab="tab-categories">📂 Categorii</button>
+        <button class="admin-tab" data-tab="tab-orders">📦 Comenzi</button>
+        <button class="admin-tab" data-tab="tab-reviews">⭐ Recenzii <span id="reviews-badge" class="tab-badge" style="display:none;">0</span></button>
     </div>
 
-    <!-- 5. Moderare Recenzii -->
-    <h3 style="border-bottom: 2px solid #2f694b; padding-bottom: 10px; color: #2f694b; margin-top: 40px;">⭐ Recenzii în așteptare</h3>
-    <div id="admin-reviews-list" style="margin-bottom: 40px;"></div>
+    <div style="background: white; padding: 25px; border-radius: 0 0 8px 8px; border: 2px solid #2f694b; border-top: none;">
 
+        <!-- TAB: Produse -->
+        <div id="tab-products" class="tab-content active">
+            <div class="toolbar">
+                <input type="text" id="admin-search" placeholder="Caută produs..." class="admin-input search-input">
+                <select id="admin-filter-status" class="admin-input">
+                    <option value="all">Toate</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Dezactivate</option>
+                    <option value="nostock">Fără stoc</option>
+                </select>
+                <span id="products-count" style="color: #666; font-size: 0.9em;"></span>
+            </div>
+            <div id="admin-cacti-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;"></div>
+        </div>
+
+        <!-- TAB: Adaugă produs -->
+        <div id="tab-add" class="tab-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 700px;">
+                <input type="text" id="new-cactus-name" placeholder="Nume produs" class="admin-input" style="grid-column: 1 / -1;">
+                <input type="number" id="new-cactus-price" placeholder="Preț (RON)" class="admin-input">
+                <input type="number" id="new-cactus-stock" placeholder="Stoc" min="0" class="admin-input">
+                <select id="new-cactus-product-type" class="admin-input">
+                    <option value="Plantă">Plantă</option>
+                    <option value="Semințe">Semințe</option>
+                </select>
+                <select id="new-cactus-main-category" class="admin-input">
+                    <option value="Cactuși">Cactuși</option>
+                    <option value="Suculente">Suculente</option>
+                </select>
+                <select id="new-cactus-category" class="admin-input" style="grid-column: 1 / -1;"></select>
+                <input type="text" id="new-cactus-desc" placeholder="Descriere" class="admin-input" style="grid-column: 1 / -1;">
+                <div style="grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="new-cactus-image" placeholder="Link imagine (URL)" class="admin-input" style="flex-grow: 1;">
+                    <span style="color: #666;">sau</span>
+                    <input type="file" id="new-cactus-file" accept="image/*" class="admin-input">
+                </div>
+                <button id="add-new-cactus-btn" class="admin-btn btn-primary" style="grid-column: 1 / -1;">
+                    💾 Salvează Produs
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB: Categorii -->
+        <div id="tab-categories" class="tab-content">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <select id="new-category-main" class="admin-input">
+                    <option value="Cactuși">Cactuși</option>
+                    <option value="Suculente">Suculente</option>
+                </select>
+                <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" class="admin-input" style="flex-grow: 1;">
+                <button id="add-category-btn" class="admin-btn btn-primary">+ Adaugă</button>
+            </div>
+            <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        </div>
+
+        <!-- TAB: Comenzi -->
+        <div id="tab-orders" class="tab-content">
+            <div class="toolbar">
+                <input type="text" id="admin-order-search" placeholder="Caută după nume, email..." class="admin-input search-input">
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="orders-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Client</th>
+                        <th>Adresă</th>
+                        <th>Produse</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="admin-orders-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: Recenzii -->
+        <div id="tab-reviews" class="tab-content">
+            <div id="admin-reviews-list"></div>
+        </div>
+
+    </div>
 </div>
 
-</div>
+<script src="dist/shared.js"></script>
+<script src="dist/admin.js"></script>
 
-<script src="../../../../../dist/shared.js"></script>
-<script src="../../../../../dist/admin.js"></script>
+<!-- Tab switching + search/filter (inline, nu depinde de admin.ts) -->
+<script>
+    document.querySelectorAll('.admin-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            tab.classList.add('active');
+            var target = document.getElementById(tab.getAttribute('data-tab'));
+            if (target) target.classList.add('active');
+        });
+    });
+</script>
 </body>
 </html>
