@@ -29,27 +29,33 @@ if (loginBtn) {
 }
 
 // --- 2. CATEGORII ---
+function renderCategoryList(containerId: string, categories: Category[]) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (categories.length === 0) { container.innerHTML = '<span style="color:#999; font-style:italic;">Nicio subcategorie.</span>'; return; }
+    container.innerHTML = categories.map(cat => `
+        <span style="background: #2f694b; color: #fdf2b8; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; display: inline-flex; align-items: center; gap: 8px;">
+            ${escapeHtml(cat.name)}
+            <button class="delete-category-btn" data-id="${cat.id}" style="background: none; border: none; color: #fdf2b8; cursor: pointer; font-size: 1.1em; padding: 0;">✕</button>
+        </span>
+    `).join("");
+    container.querySelectorAll('.delete-category-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+            if (confirm("Stergi aceasta subcategorie?")) {
+                await authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' });
+                fetchAdminCategories();
+            }
+        });
+    });
+}
+
 async function fetchAdminCategories() {
     try {
         const response = await authFetch(`${API_BASE}/api/categories`);
         const categories: Category[] = await response.json();
-        const container = document.getElementById('admin-categories-list');
-        if (!container) return;
-        container.innerHTML = categories.map(cat => `
-            <span style="background: #2f694b; color: #fdf2b8; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; display: inline-flex; align-items: center; gap: 8px; margin: 3px;">
-                ${escapeHtml(cat.name)} <em style="opacity: 0.7; font-size: 0.85em;">(${escapeHtml(cat.mainCategory)})</em>
-                <button class="delete-category-btn" data-id="${cat.id}" style="background: none; border: none; color: #fdf2b8; cursor: pointer; font-size: 1.1em; padding: 0;">✕</button>
-            </span>
-        `).join("");
-        document.querySelectorAll('.delete-category-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = (e.target as HTMLButtonElement).getAttribute('data-id');
-                if (confirm("Stergi aceasta subcategorie?")) {
-                    await authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' });
-                    fetchAdminCategories();
-                }
-            });
-        });
+        renderCategoryList('categories-cacti', categories.filter(c => c.mainCategory === 'Cactuși'));
+        renderCategoryList('categories-suculente', categories.filter(c => c.mainCategory === 'Suculente'));
     } catch (error) { console.error("Eroare categorii:", error); }
 }
 
@@ -90,9 +96,11 @@ let pendingReviewsCount: number = 0;
 function updateStats() {
     const active = allCactiCache.filter(c => c.active).length;
     const oos = allCactiCache.filter(c => c.active && c.stock <= 0).length;
+    const activeOrders = allOrdersCache.filter(o => o.status !== 'Livrată').length;
     const el = (id: string) => document.getElementById(id);
     if (el('stat-products')) el('stat-products')!.innerText = String(active);
     if (el('stat-orders')) el('stat-orders')!.innerText = String(allOrdersCache.length);
+    if (el('stat-active-orders')) el('stat-active-orders')!.innerText = String(activeOrders);
     if (el('stat-out-of-stock')) el('stat-out-of-stock')!.innerText = String(oos);
     if (el('stat-reviews')) el('stat-reviews')!.innerText = String(pendingReviewsCount);
     const badge = el('reviews-badge');
@@ -244,21 +252,32 @@ function renderOrderRows(orders: Order[]) {
     }));
 }
 
+function getFilteredOrders(): Order[] {
+    const q = (document.getElementById('admin-order-search') as HTMLInputElement)?.value.toLowerCase() || '';
+    const f = (document.getElementById('admin-order-filter') as HTMLSelectElement)?.value || 'active';
+    return allOrdersCache.filter(o => {
+        const matchQ = o.customerName.toLowerCase().includes(q) || o.email.toLowerCase().includes(q) || o.purchasedItems.toLowerCase().includes(q) || String(o.id).includes(q);
+        let matchF = true;
+        if (f === 'active') matchF = o.status !== 'Livrată';
+        else if (f === 'archived') matchF = o.status === 'Livrată';
+        return matchQ && matchF;
+    });
+}
+
 async function fetchAdminOrders() {
     try {
         const r = await authFetch(`${API_BASE}/api/orders`);
         if (!r.ok) throw new Error('Neautorizat');
         allOrdersCache = await r.json();
-        renderOrderRows(allOrdersCache);
+        renderOrderRows(getFilteredOrders());
         updateStats();
     } catch (e) { console.error("Eroare comenzi:", e); }
 }
 
 const orderSearch = document.getElementById('admin-order-search');
-if (orderSearch) orderSearch.addEventListener('input', () => {
-    const q = (orderSearch as HTMLInputElement).value.toLowerCase();
-    renderOrderRows(allOrdersCache.filter(o => o.customerName.toLowerCase().includes(q) || o.email.toLowerCase().includes(q) || o.purchasedItems.toLowerCase().includes(q) || String(o.id).includes(q)));
-});
+const orderFilter = document.getElementById('admin-order-filter');
+if (orderSearch) orderSearch.addEventListener('input', () => renderOrderRows(getFilteredOrders()));
+if (orderFilter) orderFilter.addEventListener('change', () => renderOrderRows(getFilteredOrders()));
 
 // --- 5. RECENZII ---
 interface PendingReview { id:number; customerName:string; customerEmail:string; cactusId:number|null; rating:number; comment:string; createdAt:string; }

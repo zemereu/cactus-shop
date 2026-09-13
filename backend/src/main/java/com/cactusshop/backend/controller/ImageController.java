@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequestMapping("/api/images")
 public class ImageController {
 
-    @Value("${UPLOAD_DIR:uploads}")
+    @Value("${UPLOAD_DIR:/tmp/uploads}")
     private String uploadDir;
 
     @PostMapping("/upload")
@@ -30,7 +30,6 @@ public class ImageController {
             return ResponseEntity.badRequest().body("Doar imagini sunt acceptate.");
         }
 
-        // Limita 5MB
         if (file.getSize() > 5 * 1024 * 1024) {
             return ResponseEntity.badRequest().body("Imaginea depaseste 5MB.");
         }
@@ -41,7 +40,6 @@ public class ImageController {
                 Files.createDirectories(uploadPath);
             }
 
-            // Nume unic ca sa nu se suprascrie
             String originalName = file.getOriginalFilename();
             String extension = "";
             if (originalName != null && originalName.contains(".")) {
@@ -50,7 +48,7 @@ public class ImageController {
             String fileName = UUID.randomUUID() + extension;
 
             Path filePath = uploadPath.resolve(fileName);
-            file.transferTo(filePath.toFile());
+            Files.copy(file.getInputStream(), filePath);
 
             String imageUrl = "/api/images/" + fileName;
             return ResponseEntity.ok(Map.of("imageUrl", imageUrl));

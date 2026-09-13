@@ -102,7 +102,11 @@
         </div>
         <div class="stat-card" style="border-left-color: #FF9800;">
             <div class="stat-number" id="stat-orders" style="color: #FF9800;">—</div>
-            <div class="stat-label">Comenzi</div>
+            <div class="stat-label">Comenzi total</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #e65100;">
+            <div class="stat-number" id="stat-active-orders" style="color: #e65100;">—</div>
+            <div class="stat-label">Comenzi active</div>
         </div>
         <div class="stat-card" style="border-left-color: #d32f2f;">
             <div class="stat-number" id="stat-out-of-stock" style="color: #d32f2f;">—</div>
@@ -177,13 +181,21 @@
                 <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" class="admin-input" style="flex-grow: 1;">
                 <button id="add-category-btn" class="admin-btn btn-primary">+ Adaugă</button>
             </div>
-            <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            <h4 style="color: #2f694b; margin: 20px 0 10px;">🌵 Cactuși</h4>
+            <div id="categories-cacti" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;"></div>
+            <h4 style="color: #2f694b; margin: 20px 0 10px;">🌿 Suculente</h4>
+            <div id="categories-suculente" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
         </div>
 
         <!-- TAB: Comenzi -->
         <div id="tab-orders" class="tab-content">
             <div class="toolbar">
                 <input type="text" id="admin-order-search" placeholder="Caută după nume, email..." class="admin-input search-input">
+                <select id="admin-order-filter" class="admin-input">
+                    <option value="active">Comenzi active</option>
+                    <option value="archived">Arhivă (livrate)</option>
+                    <option value="all">Toate</option>
+                </select>
             </div>
             <div style="overflow-x: auto;">
                 <table class="orders-table">
