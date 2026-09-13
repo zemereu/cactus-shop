@@ -29,11 +29,15 @@ if (loginBtn) {
 }
 
 // --- 2. CATEGORII ---
-function renderCategoryList(containerId: string, categories: Category[]) {
-    const container = document.getElementById(containerId);
+let allCategoriesCache: Category[] = [];
+
+function renderFilteredCategories() {
+    const main = (document.getElementById('new-category-main') as HTMLSelectElement)?.value || 'Cactuși';
+    const filtered = allCategoriesCache.filter(c => c.mainCategory === main);
+    const container = document.getElementById('admin-categories-list');
     if (!container) return;
-    if (categories.length === 0) { container.innerHTML = '<span style="color:#999; font-style:italic;">Nicio subcategorie.</span>'; return; }
-    container.innerHTML = categories.map(cat => `
+    if (filtered.length === 0) { container.innerHTML = '<span style="color:#999; font-style:italic;">Nicio subcategorie.</span>'; return; }
+    container.innerHTML = filtered.map(cat => `
         <span style="background: #2f694b; color: #fdf2b8; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; display: inline-flex; align-items: center; gap: 8px;">
             ${escapeHtml(cat.name)}
             <button class="delete-category-btn" data-id="${cat.id}" style="background: none; border: none; color: #fdf2b8; cursor: pointer; font-size: 1.1em; padding: 0;">✕</button>
@@ -53,11 +57,13 @@ function renderCategoryList(containerId: string, categories: Category[]) {
 async function fetchAdminCategories() {
     try {
         const response = await authFetch(`${API_BASE}/api/categories`);
-        const categories: Category[] = await response.json();
-        renderCategoryList('categories-cacti', categories.filter(c => c.mainCategory === 'Cactuși'));
-        renderCategoryList('categories-suculente', categories.filter(c => c.mainCategory === 'Suculente'));
+        allCategoriesCache = await response.json();
+        renderFilteredCategories();
     } catch (error) { console.error("Eroare categorii:", error); }
 }
+
+const categoryMainSelect = document.getElementById('new-category-main');
+if (categoryMainSelect) categoryMainSelect.addEventListener('change', renderFilteredCategories);
 
 const addCategoryBtn = document.getElementById('add-category-btn');
 if (addCategoryBtn) {

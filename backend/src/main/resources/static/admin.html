@@ -173,18 +173,15 @@
 
         <!-- TAB: Categorii -->
         <div id="tab-categories" class="tab-content">
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
                 <select id="new-category-main" class="admin-input">
-                    <option value="Cactuși">Cactuși</option>
-                    <option value="Suculente">Suculente</option>
+                    <option value="Cactuși">🌵 Cactuși</option>
+                    <option value="Suculente">🌿 Suculente</option>
                 </select>
                 <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" class="admin-input" style="flex-grow: 1;">
                 <button id="add-category-btn" class="admin-btn btn-primary">+ Adaugă</button>
             </div>
-            <h4 style="color: #2f694b; margin: 20px 0 10px;">🌵 Cactuși</h4>
-            <div id="categories-cacti" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;"></div>
-            <h4 style="color: #2f694b; margin: 20px 0 10px;">🌿 Suculente</h4>
-            <div id="categories-suculente" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
         </div>
 
         <!-- TAB: Comenzi -->
