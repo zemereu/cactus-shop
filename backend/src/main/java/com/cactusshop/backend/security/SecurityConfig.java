@@ -31,6 +31,9 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
+                        // --- Fisiere statice (frontend) ---
+                        .requestMatchers("/", "/*.html", "/dist/**", "/images/**").permitAll()
+
                         // --- Public ---
                         .requestMatchers("/api/auth/login").permitAll() // login admin
                         .requestMatchers("/api/auth/logout").permitAll()
