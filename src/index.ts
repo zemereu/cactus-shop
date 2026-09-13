@@ -33,15 +33,15 @@ let shoppingCart: Cactus[] = loadCartFromStorage();
 // 1. Fetch de la Backend (Filtrare aplicată pe server, cu paginare)
 async function fetchCacti() {
     try {
-        const url = new URL(`${API_BASE}/api/cacti`);
-        url.searchParams.append('productType', selectedProductType);
-        url.searchParams.append('mainCategory', selectedMainCategory);
-        url.searchParams.append('category', selectedSubCategory);
-        url.searchParams.append('search', searchQuery);
-        url.searchParams.append('page', currentPage.toString());
-        url.searchParams.append('size', PAGE_SIZE.toString());
+        const params = new URLSearchParams();
+        params.append('productType', selectedProductType);
+        params.append('mainCategory', selectedMainCategory);
+        params.append('category', selectedSubCategory);
+        params.append('search', searchQuery);
+        params.append('page', currentPage.toString());
+        params.append('size', PAGE_SIZE.toString());
 
-        const response = await fetch(url.toString());
+        const response = await fetch(`${API_BASE}/api/cacti?${params.toString()}`);
         if (!response.ok) throw new Error('Eroare conectare server!');
 
         const data = await response.json();

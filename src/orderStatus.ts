@@ -21,12 +21,12 @@ function statusColor(status: string): string {
 const lookupBtn = document.getElementById('lookup-btn');
 if (lookupBtn) {
     lookupBtn.addEventListener('click', async () => {
-        const orderIdInput = (document.getElementById('lookup-order-id') as HTMLInputElement).value.trim();
+        const orderTokenInput = (document.getElementById('lookup-order-token') as HTMLInputElement).value.trim();
         const emailInput = (document.getElementById('lookup-email') as HTMLInputElement).value.trim();
         const resultDiv = document.getElementById('lookup-result');
         if (!resultDiv) return;
 
-        if (!orderIdInput || !emailInput) {
+        if (!orderTokenInput || !emailInput) {
             resultDiv.innerHTML = `<p style="color: #d32f2f;">Completează ambele câmpuri.</p>`;
             return;
         }
@@ -34,11 +34,11 @@ if (lookupBtn) {
         resultDiv.innerHTML = `<p style="color: #555;">Se verifică...</p>`;
 
         try {
-            const url = new URL(`${API_BASE}/api/orders/lookup`);
-            url.searchParams.append('orderId', orderIdInput);
-            url.searchParams.append('email', emailInput);
+            const params = new URLSearchParams();
+            params.append('orderToken', orderTokenInput);
+            params.append('email', emailInput);
 
-            const response = await fetch(url.toString());
+            const response = await fetch(`${API_BASE}/api/orders/lookup?${params.toString()}`);
 
             if (!response.ok) {
                 resultDiv.innerHTML = `<p style="color: #d32f2f;">Nu am găsit nicio comandă cu aceste date. Verifică numărul comenzii și emailul.</p>`;
