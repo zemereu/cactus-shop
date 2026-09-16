@@ -20,7 +20,7 @@ async function loadLandingReviews() {
         const topReviews = reviews.slice(0, 3);
         container.innerHTML = topReviews.map((r: any) => `
             <div style="flex: 1 1 300px; background-color: #fdf2b8; padding: 30px; border-radius: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
-                <div style="color: #FF9800; font-size: 1.5em; margin-bottom: 15px;">${'⭐'.repeat(r.rating)}</div>
+                <div style="color: #FF9800; font-size: 1.5em; margin-bottom: 15px;">${'<i class="fa-solid fa-star" style="color: #FF9800;"></i>'.repeat(r.rating)}</div>
                 <p style="font-style: italic; color: #333; line-height: 1.6; margin-bottom: 25px;">
                     "${escapeHtml(r.comment)}"
                 </p>

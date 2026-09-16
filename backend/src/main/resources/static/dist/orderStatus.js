@@ -22,21 +22,21 @@ function statusColor(status) {
 const lookupBtn = document.getElementById('lookup-btn');
 if (lookupBtn) {
     lookupBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
-        const orderIdInput = document.getElementById('lookup-order-id').value.trim();
+        const orderTokenInput = document.getElementById('lookup-order-token').value.trim();
         const emailInput = document.getElementById('lookup-email').value.trim();
         const resultDiv = document.getElementById('lookup-result');
         if (!resultDiv)
             return;
-        if (!orderIdInput || !emailInput) {
+        if (!orderTokenInput || !emailInput) {
             resultDiv.innerHTML = `<p style="color: #d32f2f;">Completează ambele câmpuri.</p>`;
             return;
         }
         resultDiv.innerHTML = `<p style="color: #555;">Se verifică...</p>`;
         try {
-            const url = new URL(`${API_BASE}/api/orders/lookup`);
-            url.searchParams.append('orderId', orderIdInput);
-            url.searchParams.append('email', emailInput);
-            const response = yield fetch(url.toString());
+            const params = new URLSearchParams();
+            params.append('orderToken', orderTokenInput);
+            params.append('email', emailInput);
+            const response = yield fetch(`${API_BASE}/api/orders/lookup?${params.toString()}`);
             if (!response.ok) {
                 resultDiv.innerHTML = `<p style="color: #d32f2f;">Nu am găsit nicio comandă cu aceste date. Verifică numărul comenzii și emailul.</p>`;
                 return;

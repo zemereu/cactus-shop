@@ -85,7 +85,9 @@ function escapeHtml(unsafe: string | null | undefined): string {
 }
 
 function starsDisplay(rating: number): string {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    const full = '<i class="fa-solid fa-star" style="color: #FF9800;"></i>';
+    const empty = '<i class="fa-regular fa-star" style="color: #ccc;"></i>';
+    return full.repeat(rating) + empty.repeat(5 - rating);
 }
 
 // Inițializează dropdown-ul de cont — folosit pe orice pagină care are
@@ -99,7 +101,7 @@ function initAccountDropdown() {
     const customerName = localStorage.getItem(CUSTOMER_NAME_KEY);
 
     if (customerName) {
-        accountLink.innerText = `👤 ${customerName}`;
+        accountLink.innerText = `<i class="fa-solid fa-user" style="margin-right: 4px;"></i> ${customerName}`;
         accountLink.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();

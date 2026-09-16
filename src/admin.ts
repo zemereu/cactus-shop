@@ -154,11 +154,11 @@ function renderAdminCacti(cacti: Cactus[]) {
                 <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}" style="width:100%;">Salveaza</button>
             </div>
             <div style="display:flex; gap:4px; margin-top:8px;">
-                <button class="edit-cactus-btn admin-btn btn-warning btn-sm" data-id="${c.id}" style="flex:1;">✏️</button>
+                <button class="edit-cactus-btn admin-btn btn-warning btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-pen"></i></button>
                 ${c.active
-            ? `<button class="delete-cactus-btn admin-btn btn-danger btn-sm" data-id="${c.id}" style="flex:1;">🗑️</button>`
-            : `<button class="reactivate-cactus-btn admin-btn btn-success btn-sm" data-id="${c.id}" style="flex:1;">✅</button>
-                       <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;">⛔</button>`}
+            ? `<button class="delete-cactus-btn admin-btn btn-danger btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-trash"></i></button>`
+            : `<button class="reactivate-cactus-btn admin-btn btn-success btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-rotate-left"></i></button>
+                       <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
         </div>`;
     }).join("");
@@ -306,8 +306,8 @@ async function fetchPendingReviews() {
                 </div>
                 <p style="margin:10px 0; color:#333; font-style:italic;">"${escapeHtml(rv.comment)}"</p>
                 <div style="display:flex; gap:8px;">
-                    <button class="approve-review-btn admin-btn btn-success btn-sm" data-id="${rv.id}">✅ Aproba</button>
-                    <button class="reject-review-btn admin-btn btn-danger btn-sm" data-id="${rv.id}">❌ Respinge</button>
+                    <button class="approve-review-btn admin-btn btn-success btn-sm" data-id="${rv.id}"><i class="fa-solid fa-check"></i> Aproba</button>
+                    <button class="reject-review-btn admin-btn btn-danger btn-sm" data-id="${rv.id}"><i class="fa-solid fa-xmark"></i> Respinge</button>
                 </div>
             </div>`).join("");
         container.querySelectorAll('.approve-review-btn').forEach(b => b.addEventListener('click', async (e) => {

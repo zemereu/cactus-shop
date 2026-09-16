@@ -261,7 +261,7 @@ function renderCacti() {
                     <div>
                         <img src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
                         ${categoryTag}
-                        <h2 style="color: #2f694b; margin-top: 10px;">🌵 ${escapeHtml(cactus.name)}</h2>
+                        <h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
                         <p style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
                             ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
@@ -293,12 +293,12 @@ function renderCacti() {
             if (cactusToAdd) {
                 const alreadyInCart = shoppingCart.filter(c => c.id === cactusId).length;
                 if (alreadyInCart >= cactusToAdd.stock) {
-                    showToast(`⚠️ Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
+                    showToast(`<i class="fa-solid fa-triangle-exclamation" style="color: #FF9800;"></i> Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
                     return;
                 }
                 shoppingCart.push(cactusToAdd);
                 updateCartUI();
-                showToast(`✅ ${cactusToAdd.name} a fost adăugat în coș!`);
+                showToast(`<i class="fa-solid fa-check" style="color: #2f694b;"></i> ${cactusToAdd.name} a fost adăugat în coș!`);
             }
         });
     });
@@ -326,7 +326,7 @@ function renderCartItems() {
 
         htmlContent += `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 5px;">
-                <span>🌵 ${escapeHtml(item.name)}</span>
+                <span><i class="fa-solid fa-leaf" style="margin-right: 4px;"></i>${escapeHtml(item.name)}</span>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <strong>${item.price} RON</strong>
                     <button class="remove-from-cart-btn" data-index="${i}" style="background-color: #d32f2f; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.9em; font-weight: bold;" title="Elimină produsul">
@@ -452,7 +452,7 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             if (confirmationDiv) {
                 confirmationDiv.style.display = 'block';
                 confirmationDiv.innerHTML = `
-                    <p style="color: #2f694b; font-weight: bold;">🎉 Comanda a fost plasată!</p>
+                    <p style="color: #2f694b; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Comanda a fost plasată!</p>
                     <p><strong>Codul comenzii:</strong> <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-size: 0.85em; word-break: break-all;">${escapeHtml(savedOrder.orderToken)}</code></p>
                     <p>Notează acest cod — ai nevoie de el ca să verifici statusul mai târziu.</p>
                     <p style="margin-top: 10px;"><strong>Total de plată: ${savedOrder.totalPrice} RON</strong></p>
