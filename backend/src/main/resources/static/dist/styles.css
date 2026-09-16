@@ -1,16 +1,81 @@
-/* === CACTUS SHOP — HOVER & TRANSITIONS === */
+/* ======================================================
+   CACTUS SHOP — HOVER, TRANSITIONS & CONSISTENCY
+   ====================================================== */
 
-/* Tranziții globale */
-a, button, input, select, textarea { transition: all 0.2s ease; }
+/* Tranziții globale pe tot ce e interactiv */
+a, button, input, select, textarea,
+.hover-card, .product-card, .stat-card, .review-card,
+.admin-tab, .header-btn, .account-tab {
+    transition: all 0.2s ease;
+}
 
-/* Input focus — galben */
+/* === INPUT FOCUS — galben pe tot site-ul === */
 input:focus, select:focus, textarea:focus {
     outline: none !important;
     border-color: #FF9800 !important;
     box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.25) !important;
 }
 
-/* Header butoane */
+/* === BUTOANE — hover galben consistent === */
+
+/* Orice buton verde (#2f694b) → hover portocaliu */
+button[style*="background-color: #2f694b"]:hover,
+button[style*="background:#2f694b"]:hover,
+.admin-btn.btn-primary:hover,
+.admin-btn.btn-success:hover {
+    background-color: #FF9800 !important;
+    color: white !important;
+    transform: scale(1.03);
+}
+
+/* Buton portocaliu (#FF9800) → hover galben */
+button[style*="background-color: #FF9800"]:hover,
+.admin-btn.btn-warning:hover {
+    background-color: #ffc107 !important;
+    transform: scale(1.03);
+}
+
+/* Buton roșu → hover mai deschis */
+button[style*="background-color: #d32f2f"]:hover,
+.admin-btn.btn-danger:hover {
+    background-color: #f44336 !important;
+    transform: scale(1.03);
+}
+
+/* Buton dark → hover */
+.admin-btn.btn-dark:hover {
+    opacity: 0.85;
+    transform: scale(1.03);
+}
+
+/* Login/Form butoane */
+#login-btn:hover,
+#login-submit-btn:hover,
+#register-submit-btn:hover,
+#save-address-btn:hover,
+#lookup-btn:hover,
+#submit-order-btn:hover,
+#add-category-btn:hover,
+#add-new-cactus-btn:hover,
+#checkout-btn:hover {
+    background-color: #FF9800 !important;
+    color: white !important;
+    transform: scale(1.02);
+}
+
+/* Logout buton → hover roșu aprins */
+#logout-btn:hover {
+    background-color: #f44336 !important;
+    transform: scale(1.02);
+}
+
+/* Add to cart (shop) */
+.add-to-cart-btn:hover {
+    background-color: #FF9800 !important;
+    color: white !important;
+}
+
+/* === HEADER BUTOANE === */
 .header-btn:hover {
     background-color: #2f694b !important;
     color: #fdf2b8 !important;
@@ -18,91 +83,130 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
 }
 
-/* Dropdown link-uri */
-.dropdown-link:hover {
+/* === DROPDOWN === */
+.dropdown-link:hover,
+#account-dropdown a:hover {
     background: rgba(255, 152, 0, 0.15) !important;
     color: #FF9800 !important;
 }
 
-/* CTA butoane */
+/* === CTA (landing hero) === */
 .cta-button.primary:hover {
     background-color: #e68a00 !important;
     transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5) !important;
 }
 
-/* Trust badges */
-.hover-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+/* === TRUST BADGES (landing) === */
 .hover-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 24px rgba(255, 152, 0, 0.15) !important;
     border-bottom-color: #FF9800 !important;
 }
 
-/* Product cards (admin) */
-.product-card { transition: transform 0.2s, box-shadow 0.2s; }
+/* === PRODUCT CARDS (admin) === */
 .product-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 16px rgba(255, 152, 0, 0.2) !important;
     border-color: #FF9800 !important;
 }
 
-/* Admin butoane */
-.admin-btn { transition: transform 0.1s, opacity 0.2s; }
-.admin-btn:hover { opacity: 0.9; transform: scale(1.03); }
-.admin-btn.btn-primary:hover { background-color: #FF9800 !important; color: #fff !important; }
-.admin-btn.btn-success:hover { background-color: #FF9800 !important; }
-.admin-btn.btn-warning:hover { background-color: #ffc107 !important; }
+/* === SHOP PRODUCT CARDS === */
+#cacti-list > div:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 152, 0, 0.15) !important;
+    border-color: #FF9800 !important;
+}
 
-/* Admin tab-uri */
-.admin-tab { transition: all 0.2s; }
-.admin-tab:hover { background: #ffc107 !important; color: #333 !important; }
-.admin-tab.active:hover { background: #2f694b !important; color: #fdf2b8 !important; }
+/* === ADMIN TABS === */
+.admin-tab:hover {
+    background: #ffc107 !important;
+    color: #333 !important;
+}
+.admin-tab.active:hover {
+    background: #2f694b !important;
+    color: #fdf2b8 !important;
+}
 
-/* Stat cards */
-.stat-card { transition: all 0.2s; }
-.stat-card:hover { box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2); transform: translateY(-2px); }
+/* === STAT CARDS === */
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+    transform: translateY(-2px);
+}
 
-/* Orders table row */
-.orders-table tr:hover td { background: rgba(255, 152, 0, 0.08) !important; }
+/* === ORDERS TABLE ROWS === */
+.orders-table tr:hover td {
+    background: rgba(255, 152, 0, 0.08) !important;
+}
 
-/* Review cards */
-.review-card { transition: all 0.2s; }
-.review-card:hover { border-color: #FF9800 !important; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15); }
+/* === REVIEW CARDS === */
+.review-card:hover {
+    border-color: #FF9800 !important;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
 
-/* Category badges */
-#admin-categories-list span { transition: all 0.2s; }
-#admin-categories-list span:hover { background: #FF9800 !important; transform: scale(1.05); }
+/* === CATEGORY BADGES (admin) === */
+#admin-categories-list span:hover {
+    background: #FF9800 !important;
+    transform: scale(1.05);
+}
 
-/* Sidebar categorii (shop) */
+/* === SIDEBAR CATEGORIES (shop) === */
 #sidebar-categories-list button:hover {
     background: rgba(255, 152, 0, 0.15) !important;
     color: #FF9800 !important;
     border-color: #FF9800 !important;
 }
 
-/* Paginare */
+/* === PAGINATION === */
 .page-btn:hover:not(:disabled) {
-    background: #FF9800 !important; color: white !important; border-color: #FF9800 !important;
+    background: #FF9800 !important;
+    color: white !important;
+    border-color: #FF9800 !important;
 }
 
-/* Add to cart (shop) */
-.add-to-cart-btn:hover { background-color: #FF9800 !important; }
+/* === ACCOUNT TABS (cont.html) === */
+.account-tab:hover {
+    color: #FF9800 !important;
+}
 
-/* Form buttons */
-.form-btn:hover { background-color: #FF9800 !important; color: white !important; }
+/* === LINK-URI — hover galben subtil === */
+a[style*="color: #2f694b"]:hover {
+    color: #FF9800 !important;
+}
 
-/* Account tabs */
-.account-tab:hover { color: #FF9800 !important; }
+/* Back links */
+a[style*="border-bottom: 2px solid #2f694b"]:hover,
+a[style*="border-bottom: 1px solid #2f694b"]:hover {
+    color: #FF9800 !important;
+    border-bottom-color: #FF9800 !important;
+}
 
-/* Toast animation */
+/* === RECENZII — stele hover === */
+.star:hover {
+    color: #FF9800 !important;
+}
+
+/* === CART ITEMS — hover === */
+#cart-items-container > div:hover {
+    background: rgba(255, 152, 0, 0.08);
+    border-radius: 4px;
+}
+
+/* === TOAST ANIMATION === */
 @keyframes slideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
 
-/* Scrollbar */
+/* === SCROLLBAR === */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #fdf2b8; }
 ::-webkit-scrollbar-thumb { background: #2f694b; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #FF9800; }
+
+/* === SELECTION COLOR === */
+::selection {
+    background: rgba(255, 152, 0, 0.3);
+    color: #333;
+}
