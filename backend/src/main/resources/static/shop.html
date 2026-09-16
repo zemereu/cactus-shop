@@ -15,7 +15,7 @@
     <!-- Stânga: Buton Meniu + Logo + Titlu -->
     <div style="display: flex; align-items: center; gap: 15px;">
         <button id="menu-btn" style="background: none; border: none; font-size: 24px; color: #2f694b; cursor: pointer; padding: 0;">
-            ☰
+            <i class="fa-solid fa-bars"></i>
         </button>
         <a href="index.html" style="display: flex; align-items: center; gap: 15px; text-decoration: none;">
             <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 60px; width: auto; object-fit: contain;">
@@ -33,7 +33,7 @@
     <div style="display: flex; align-items: center; gap: 10px; justify-self: end;">
         <div style="position: relative;">
             <div id="cart-button" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap;">
-                🛒 Coș: <span id="cart-count">0</span>
+                <i class="fa-solid fa-cart-shopping"></i> Coș: <span id="cart-count">0</span>
             </div>
 
             <div id="cart-modal" style="display: none; position: absolute; top: 55px; right: 0; width: 320px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 15px; text-align: left;">
@@ -46,7 +46,7 @@
                 </div>
 
                 <button id="checkout-btn" style="width: 100%; margin-top: 15px; background-color: #FF9800; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                    💳 Mergi la Casă
+                    <i class="fa-solid fa-credit-card"></i> Mergi la Casă
                 </button>
 
                 <div id="checkout-form" style="display: none; margin-top: 15px; border-top: 1px solid #2f694b; padding-top: 15px;">
@@ -54,7 +54,7 @@
                     <input type="email" id="customer-email" placeholder="Adresa ta de email" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; background-color: transparent;">
                     <input type="text" id="customer-address" placeholder="Adresa de livrare" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; background-color: transparent;">
                     <button id="submit-order-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                        Trimite Comanda 🚀
+                        <i class="fa-solid fa-paper-plane"></i> Trimite Comanda
                     </button>
                 </div>
 
@@ -64,13 +64,13 @@
 
         <div style="position: relative;">
             <a href="cont.html" id="account-link" style="font-size: 16px; padding: 10px 20px; background-color: transparent; border: 2px solid #2f694b; border-radius: 8px; font-weight: bold; color: #2f694b; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block;">
-                👤 Cont
+                <i class="fa-solid fa-user"></i> Cont
             </a>
 
             <div id="account-dropdown" style="display: none; position: absolute; top: 55px; right: 0; width: 200px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px; text-align: left;">
-                <a href="verifica-comanda.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">📦 Vezi comenzi</a>
-                <a href="cont.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;">⚙️ Detalii cont</a>
-                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;">🚪 Delogare</a>
+                <a href="verifica-comanda.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-box"></i> Vezi comenzi</a>
+                <a href="cont.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-gear"></i> Detalii cont</a>
+                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-right-from-bracket"></i> Delogare</a>
             </div>
         </div>
     </div>
