@@ -1,0 +1,151 @@
+/* === CACTUS SHOP — STILURI COMUNE === */
+
+/* Butoane verzi → hover galben */
+.admin-btn.btn-primary:hover,
+.btn-primary-hover:hover {
+    background-color: #FF9800 !important;
+    color: #fff !important;
+    transform: scale(1.03);
+}
+
+/* Butoane portocalii → hover galben deschis */
+.admin-btn.btn-warning:hover,
+.btn-warning-hover:hover {
+    background-color: #ffc107 !important;
+    transform: scale(1.03);
+}
+
+/* Butoane roșii → hover roșu aprins */
+.admin-btn.btn-danger:hover,
+.admin-btn.btn-dark:hover {
+    opacity: 0.85;
+    transform: scale(1.03);
+}
+
+/* Link-uri generale — underline galben la hover */
+a:hover {
+    color: #FF9800 !important;
+    transition: color 0.2s;
+}
+
+/* Header butoane — border + text galben la hover */
+.header-btn:hover {
+    background-color: #2f694b !important;
+    color: #fdf2b8 !important;
+    border-color: #FF9800 !important;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+}
+
+/* Input-uri — focus galben */
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #FF9800 !important;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.25) !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Butoane generice (fără clasă specifică) — hover galben subtil */
+button:hover {
+    transition: all 0.2s ease;
+}
+
+/* Dropdown link-uri — hover galben */
+.dropdown-link:hover {
+    background: rgba(255, 152, 0, 0.15) !important;
+    color: #FF9800 !important;
+}
+
+/* Product cards — hover ridicare + umbra galbenă */
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.2) !important;
+    border-color: #FF9800 !important;
+}
+
+/* Trust badge cards */
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(255, 152, 0, 0.15) !important;
+    border-bottom-color: #FF9800 !important;
+}
+
+/* Tabel comenzi — hover rând */
+.orders-table tr:hover td {
+    background: rgba(255, 152, 0, 0.08) !important;
+}
+
+/* Review cards — hover */
+.review-card:hover {
+    border-color: #FF9800 !important;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
+
+/* Admin tab-uri — hover galben */
+.admin-tab:hover {
+    background: #ffc107 !important;
+    color: #333 !important;
+}
+.admin-tab.active:hover {
+    background: #2f694b !important;
+    color: #fdf2b8 !important;
+}
+
+/* Stat cards — hover */
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.2s;
+}
+
+/* Category badge-uri — hover */
+#admin-categories-list span:hover,
+#categories-cacti span:hover,
+#categories-suculente span:hover {
+    background: #FF9800 !important;
+    transform: scale(1.05);
+    transition: all 0.2s;
+}
+
+/* Sidebar categorii (shop) */
+#sidebar-categories-list button:hover {
+    background: rgba(255, 152, 0, 0.15) !important;
+    color: #FF9800 !important;
+    border-color: #FF9800 !important;
+}
+
+/* CTA button — efect pulsare subtilă */
+.cta-button.primary {
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s;
+}
+.cta-button.primary:hover {
+    background-color: #e68a00 !important;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5) !important;
+}
+
+/* Paginare butoane */
+.page-btn:hover:not(:disabled) {
+    background: #FF9800 !important;
+    color: white !important;
+    border-color: #FF9800 !important;
+}
+
+/* Toast notificări */
+.toast-notification {
+    animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Scrollbar stilizat */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #fdf2b8; }
+::-webkit-scrollbar-thumb { background: #2f694b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #FF9800; }
+
+/* Tranziții globale smooth */
+a, button, input, select, .product-card, .hover-card, .stat-card, .review-card, .admin-tab {
+    transition: all 0.2s ease;
+}
