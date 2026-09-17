@@ -48,6 +48,9 @@ async function checkLoggedInState() {
     const loggedInName = document.getElementById('logged-in-name');
     const tabsContainer = tabLogin?.parentElement;
 
+    // Dacă nu există customerName în localStorage, nu suntem logați — skip API call
+    if (!localStorage.getItem(CUSTOMER_NAME_KEY)) return;
+
     try {
         const response = await authFetch(`${API_BASE}/api/customers/me`);
 
