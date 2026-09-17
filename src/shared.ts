@@ -109,6 +109,10 @@ function initAccountDropdown() {
                 dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
             }
         });
+
+        // Ascunde butonul "Verifică Comanda" din header când ești logat
+        const verificaBtn = document.getElementById('header-verifica-btn');
+        if (verificaBtn) verificaBtn.style.display = 'none';
     }
 
     if (dropdown) {

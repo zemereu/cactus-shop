@@ -210,3 +210,10 @@ a[style*="border-bottom: 1px solid #2f694b"]:hover {
     background: rgba(255, 152, 0, 0.3);
     color: #333;
 }
+
+/* Reviews section link */
+.reviews-section a:hover,
+a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
+    color: #FF9800 !important;
+    border-bottom-color: #FF9800 !important;
+}

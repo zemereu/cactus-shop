@@ -15,7 +15,7 @@ import java.util.Date;
 public class JwtUtil {
 
     private final SecretKey key;
-    private final long expirationMs = 3600000; // Valabil 1 oră
+    private final long expirationMs = 7 * 24 * 3600000; // 7 zile
 
     public JwtUtil(@Value("${JWT_SECRET}") String secret) {
         // Cheia trebuie să aibă minim 32 de caractere (256 biți) pentru HS256
