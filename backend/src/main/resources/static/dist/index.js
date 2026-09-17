@@ -77,7 +77,7 @@ function showToast(message) {
     if (!container)
         return;
     const toast = document.createElement('div');
-    toast.innerText = message;
+    toast.innerHTML = message;
     toast.style.backgroundColor = "#2f694b"; // Noul verde
     toast.style.color = "#fdf2b8"; // Noul crem pentru text
     toast.style.padding = "15px 25px";

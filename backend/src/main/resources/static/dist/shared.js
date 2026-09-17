@@ -65,7 +65,7 @@ function initAccountDropdown() {
         return;
     const customerName = localStorage.getItem(CUSTOMER_NAME_KEY);
     if (customerName) {
-        accountLink.innerText = `<i class="fa-solid fa-user" style="margin-right: 4px;"></i> ${customerName}`;
+        accountLink.innerHTML = `<i class="fa-solid fa-user" style="margin-right: 4px;"></i> ${customerName}`;
         accountLink.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
