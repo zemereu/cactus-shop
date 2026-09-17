@@ -99,4 +99,11 @@ public class OrderService {
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
+
+    public List<OrderStatusResponseDTO> getOrdersByEmail(String email) {
+        List<Order> orders = orderRepository.findByEmailIgnoreCaseOrderByIdDesc(email);
+        return orders.stream().map(o -> new OrderStatusResponseDTO(
+                o.getId(), o.getOrderToken(), o.getStatus(), o.getPurchasedItems(), o.getTotalPrice()
+        )).collect(Collectors.toList());
+    }
 }

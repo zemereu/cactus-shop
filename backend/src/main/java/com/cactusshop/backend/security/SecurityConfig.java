@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/cacti/all").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // comandă guest
                         .requestMatchers(HttpMethod.GET, "/api/orders/lookup").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/general").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/product/**").permitAll()

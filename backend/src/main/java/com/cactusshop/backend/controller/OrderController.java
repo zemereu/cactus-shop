@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,16 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @GetMapping("/my")
+    public ResponseEntity<?> getMyOrders(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Trebuie sa fii logat.");
+        }
+        String email = authentication.getName();
+        List<OrderStatusResponseDTO> orders = orderService.getOrdersByEmail(email);
+        return ResponseEntity.ok(orders);
+    }
 
     @PostMapping
     public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request) {
