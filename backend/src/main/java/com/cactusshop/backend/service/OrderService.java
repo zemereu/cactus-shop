@@ -27,15 +27,18 @@ public class OrderService {
             "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"
     );
 
+    // authenticatedEmail e null pentru comenzi guest (neautentificat).
+    // Dacă e prezent (client logat), IGNORĂM emailul trimis din formular
+    // și folosim emailul real al contului — altfel un typo sau un email
+    // diferit tastat la checkout ar rupe legătura cu "Comenzile mele",
+    // exact bug-ul raportat.
     @Transactional
-    public Order placeOrder(OrderRequestDTO request) {
-        // Contorizează câte bucăți din fiecare produs
+    public Order placeOrder(OrderRequestDTO request, String authenticatedEmail) {
         Map<Long, Integer> quantityMap = new LinkedHashMap<>();
         for (Long id : request.cactusIds()) {
             quantityMap.merge(id, 1, Integer::sum);
         }
 
-        // Validează existența și scade stocul atomic
         List<String> itemNames = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
@@ -61,7 +64,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setCustomerName(request.customerName().trim());
-        order.setEmail(request.email().trim());
+        order.setEmail(authenticatedEmail != null ? authenticatedEmail : request.email().trim());
         order.setAddress(request.address().trim());
         order.setTotalPrice(total);
         order.setPurchasedItems(String.join(", ", itemNames));

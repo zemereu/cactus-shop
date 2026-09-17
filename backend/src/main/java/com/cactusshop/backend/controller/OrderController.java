@@ -32,9 +32,19 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request) {
+    public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request, Authentication authentication) {
         try {
-            Order saved = orderService.placeOrder(request);
+            // /api/orders e permitAll (comenzi guest permise), deci Spring Security
+            // populează Authentication cu un token ANONIM pentru cei nelogați —
+            // nu rămâne null. Verificăm explicit rolul CUSTOMER, altfel am fi
+            // folosit "anonymousUser" ca email pentru toate comenzile guest.
+            String authenticatedEmail = null;
+            if (authentication != null && authentication.isAuthenticated()
+                    && authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+                authenticatedEmail = authentication.getName();
+            }
+            Order saved = orderService.placeOrder(request, authenticatedEmail);
             return ResponseEntity.ok(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

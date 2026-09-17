@@ -57,6 +57,41 @@ async function fetchCacti() {
 // Cont dropdown — vine din shared.ts
 initAccountDropdown();
 
+// Dacă ești logat, pre-completează emailul din formularul de checkout cu
+// emailul real al contului și îl blochează la editare — altfel un email
+// diferit tastat acolo rupea legătura comenzii cu "Comenzile mele".
+interface CheckoutProfile {
+    name: string;
+    email: string;
+    address: string;
+}
+async function prefillCheckoutFromAccount() {
+    const name = localStorage.getItem(CUSTOMER_NAME_KEY);
+    if (!name) return; // nu e logat, formularul rămâne liber pentru guest
+
+    try {
+        const response = await authFetch(`${API_BASE}/api/customers/me`);
+        if (!response.ok) return;
+
+        const profile: CheckoutProfile = await response.json();
+        const emailInput = document.getElementById('customer-email') as HTMLInputElement;
+        const nameInput = document.getElementById('customer-name') as HTMLInputElement;
+        const addressInput = document.getElementById('customer-address') as HTMLInputElement;
+
+        if (emailInput) {
+            emailInput.value = profile.email;
+            emailInput.disabled = true;
+            emailInput.style.backgroundColor = '#eee';
+            emailInput.title = "Comanda se leagă automat de contul tău";
+        }
+        if (nameInput && !nameInput.value) nameInput.value = profile.name;
+        if (addressInput && !addressInput.value) addressInput.value = profile.address;
+    } catch (error) {
+        console.error("Eroare la pre-completarea checkout-ului:", error);
+    }
+}
+prefillCheckoutFromAccount();
+
 // 2. UI Coș & Notificări
 function updateCartUI() {
     const cartCountElement = document.getElementById('cart-count');
