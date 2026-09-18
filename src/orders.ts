@@ -42,6 +42,16 @@ async function loadOrderHistory() {
     const ordersList = document.getElementById('orders-list');
     if (!loggedIn || !notLogged || !ordersList) return;
 
+    // Verifică dacă suntem logați (fără a face request inutil)
+    if (!localStorage.getItem(CUSTOMER_NAME_KEY)) {
+        notLogged.style.display = 'block';
+        loggedIn.style.display = 'none';
+        return;
+    }
+
+    loggedIn.style.display = 'block';
+    ordersList.innerHTML = `<div style="text-align: center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5em; color: #2f694b;"></i><p style="color: #666; margin-top: 8px;">Se încarcă comenzile...</p></div>`;
+
     try {
         const response = await authFetch(`${API_BASE}/api/orders/my`);
         if (!response.ok) {

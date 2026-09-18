@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,8 @@ public class OrderService {
             "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"
     );
 
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
     // authenticatedEmail e null pentru comenzi guest (neautentificat).
     // Dacă e prezent (client logat), IGNORĂM emailul trimis din formular
     // și folosim emailul real al contului — altfel un typo sau un email
@@ -42,13 +45,20 @@ public class OrderService {
         List<String> itemNames = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
+        // Un singur query în loc de N findById-uri
+        Map<Long, Cactus> cactiMap = new HashMap<>();
+        for (Cactus c : cactusRepository.findAllById(quantityMap.keySet())) {
+            cactiMap.put(c.getId(), c);
+        }
+
         for (Map.Entry<Long, Integer> entry : quantityMap.entrySet()) {
             Long id = entry.getKey();
             int qty = entry.getValue();
 
-            Cactus cactus = cactusRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Produs invalid sau inexistent (id: " + id + ")."));
+            Cactus cactus = cactiMap.get(id);
+            if (cactus == null) {
+                throw new IllegalArgumentException("Produs invalid sau inexistent (id: " + id + ").");
+            }
 
             int updated = cactusRepository.decrementStock(id, qty);
             if (updated == 0) {
@@ -83,7 +93,8 @@ public class OrderService {
 
         return new OrderStatusResponseDTO(
                 order.getId(), order.getOrderToken(), order.getStatus(),
-                order.getPurchasedItems(), order.getTotalPrice());
+                order.getPurchasedItems(), order.getTotalPrice(),
+                order.getCreatedAt() != null ? order.getCreatedAt().format(DATE_FORMAT) : "");
     }
 
     public Order updateStatus(Long id, String status) {
@@ -106,7 +117,8 @@ public class OrderService {
     public List<OrderStatusResponseDTO> getOrdersByEmail(String email) {
         List<Order> orders = orderRepository.findByEmailIgnoreCaseOrderByIdDesc(email);
         return orders.stream().map(o -> new OrderStatusResponseDTO(
-                o.getId(), o.getOrderToken(), o.getStatus(), o.getPurchasedItems(), o.getTotalPrice()
+                o.getId(), o.getOrderToken(), o.getStatus(), o.getPurchasedItems(), o.getTotalPrice(),
+                o.getCreatedAt() != null ? o.getCreatedAt().format(DATE_FORMAT) : ""
         )).collect(Collectors.toList());
     }
 }

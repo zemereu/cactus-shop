@@ -26,6 +26,8 @@ async function loadReviews() {
     const listEl = document.getElementById('reviews-list');
     if (!listEl) return;
 
+    listEl.innerHTML = `<div style="text-align: center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5em; color: #2f694b;"></i><p style="color: #666; margin-top: 8px;">Se încarcă recenziile...</p></div>`;
+
     const endpoint = cactusId
         ? `${API_BASE}/api/reviews/product/${cactusId}`
         : `${API_BASE}/api/reviews/general`;
@@ -49,7 +51,7 @@ async function loadReviews() {
         `).join("");
     } catch (error) {
         console.error(error);
-        listEl.innerHTML = `<p style="color: #d32f2f;">Nu am putut încărca recenziile.</p>`;
+        listEl.innerHTML = `<p style="color: #d32f2f; text-align: center;"><i class="fa-solid fa-triangle-exclamation"></i> Nu am putut încărca recenziile.</p>`;
     }
 }
 loadReviews();

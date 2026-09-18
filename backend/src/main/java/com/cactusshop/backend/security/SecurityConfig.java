@@ -28,7 +28,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/customers/register", "/api/customers/login").permitAll() // cont client
                         .requestMatchers("/api/customers/logout").permitAll()
-                        .requestMatchers("/api/customers/me", "/api/customers/me/address").hasRole("CUSTOMER") // propriul cont
                         .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cacti/all").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // comandă guest

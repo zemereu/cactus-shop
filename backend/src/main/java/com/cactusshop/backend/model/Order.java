@@ -2,10 +2,13 @@ package com.cactusshop.backend.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_order_email", columnList = "email")
+})
 public class Order {
 
     @Id
@@ -28,6 +31,7 @@ public class Order {
 
     // "Neplătită" | "Plătită - în pregătire" | "Expediată" | "Livrată"
     private String status = "Neplătită";
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Order() {}
 
@@ -53,4 +57,6 @@ public class Order {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

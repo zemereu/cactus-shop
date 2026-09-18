@@ -32,6 +32,14 @@ let shoppingCart: Cactus[] = loadCartFromStorage();
 
 // 1. Fetch de la Backend (Filtrare aplicată pe server, cu paginare)
 async function fetchCacti() {
+    const container = document.getElementById('cacti-list');
+    if (container) {
+        container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2em; color: #2f694b;"></i>
+            <p style="color: #666; margin-top: 10px;">Se încarcă produsele...</p>
+        </div>`;
+    }
+
     try {
         const params = new URLSearchParams();
         params.append('productType', selectedProductType);
@@ -51,6 +59,15 @@ async function fetchCacti() {
         renderPagination();
     } catch (error) {
         console.error("Eroare:", error);
+        if (container) {
+            container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 2em; color: #d32f2f;"></i>
+                <p style="color: #d32f2f; margin-top: 10px;">Nu am putut încărca produsele.</p>
+                <button onclick="fetchCacti()" style="margin-top: 10px; padding: 8px 20px; background: #2f694b; color: #fdf2b8; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    <i class="fa-solid fa-rotate-right"></i> Încearcă din nou
+                </button>
+            </div>`;
+        }
     }
 }
 
@@ -523,11 +540,13 @@ function renderPagination() {
 
 // 9. Căutare (Apelează Java automat)
 const searchBar = document.getElementById('search-bar') as HTMLInputElement;
+let searchTimeout: ReturnType<typeof setTimeout>;
 if (searchBar) {
     searchBar.addEventListener('input', (event) => {
         searchQuery = (event.target as HTMLInputElement).value.toLowerCase();
         currentPage = 0;
-        fetchCacti();
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => fetchCacti(), 300);
     });
 }
 
