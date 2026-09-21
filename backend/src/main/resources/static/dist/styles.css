@@ -518,3 +518,133 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         min-width: max-content !important;
     }
 }
+
+/* ======================================================
+   MOBILE — INPUT ZOOM FIX & TOUCH TARGETS
+   ====================================================== */
+@media (max-width: 768px) {
+
+    /* iOS Safari mărește automat pagina la focus pe orice input cu
+       font-size sub 16px — niciun input din site nu avea font-size
+       setat explicit, deci fiecare tap pe un câmp (login, checkout,
+       admin, căutare) declanșa acest zoom enervant. Fix global. */
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+
+    /* Butonul "✕" de ștergere categorie (admin) — avea padding: 0,
+       prea mic pentru un deget. Mărim zona de tap fără să mărim vizual
+       simbolul, prin padding în plus. */
+    .delete-category-btn {
+        padding: 8px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Butonul "✕" de ștergere din coș — avea doar 2px padding vertical */
+    .remove-from-cart-btn {
+        padding: 8px 12px !important;
+        min-height: 32px !important;
+    }
+}
+
+/* ======================================================
+   MOD AFIȘARE PRODUSE — grilă normală / compactă / listă
+   ====================================================== */
+
+/* Hover pe butoanele de mod (starea "activă" se aplică direct din JS) */
+.view-toggle-btn:hover {
+    background-color: #2f694b !important;
+    color: #fdf2b8 !important;
+}
+
+/* === GRILĂ COMPACTĂ — mai multe produse pe rând === */
+body.view-compact #cacti-list {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 12px !important;
+}
+body.view-compact .cactus-card {
+    padding: 8px !important;
+}
+body.view-compact .cactus-image {
+    height: 100px !important;
+    margin-bottom: 6px !important;
+}
+body.view-compact .cactus-desc {
+    display: none !important;
+}
+body.view-compact .cactus-details h2 {
+    font-size: 0.95em !important;
+    margin-top: 4px !important;
+}
+body.view-compact .cactus-details p {
+    font-size: 0.8em !important;
+    margin: 2px 0 !important;
+}
+body.view-compact .cactus-card button {
+    padding: 6px !important;
+    font-size: 0.85em !important;
+    margin-top: 8px !important;
+}
+
+/* === LISTĂ — un produs pe rând, orizontal === */
+body.view-list #cacti-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+body.view-list .cactus-card {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 15px !important;
+    padding: 10px !important;
+}
+body.view-list .cactus-image {
+    width: 90px !important;
+    height: 90px !important;
+    flex-shrink: 0;
+    margin-bottom: 0 !important;
+}
+body.view-list .cactus-details {
+    flex: 1;
+    min-width: 0;
+}
+body.view-list .cactus-desc {
+    display: none !important;
+}
+body.view-list .cactus-details h2 {
+    font-size: 1.1em !important;
+    margin: 0 !important;
+}
+body.view-list .cactus-details p {
+    margin: 2px 0 !important;
+}
+body.view-list .cactus-card button {
+    width: auto !important;
+    margin-top: 0 !important;
+    flex-shrink: 0;
+    padding: 10px 20px !important;
+    white-space: nowrap;
+}
+
+/* Pe mobil, chiar și în modul "compact", ținem doar 2 pe rând —
+   sub 160px per card devine ilizibil pe un telefon îngust */
+@media (max-width: 768px) {
+    body.view-compact #cacti-list {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    body.view-list .cactus-image {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    body.view-list .cactus-details h2 {
+        font-size: 0.95em !important;
+    }
+    body.view-list .cactus-card button {
+        padding: 8px 12px !important;
+        font-size: 0.85em !important;
+    }
+}

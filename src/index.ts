@@ -259,6 +259,31 @@ if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
 fetchAndRenderCategories();
 
 // 4. Randare Produse (Fără filtrare locală, bazat direct pe server)
+// --- Comutare mod afișare (grilă / compact / listă) ---
+type ViewMode = 'grid' | 'compact' | 'list';
+const VIEW_MODE_KEY = 'cactusViewMode';
+let viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || 'grid';
+
+function applyViewMode() {
+    document.body.classList.remove('view-grid', 'view-compact', 'view-list');
+    document.body.classList.add(`view-${viewMode}`);
+
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        const isActive = btn.getAttribute('data-view') === viewMode;
+        (btn as HTMLElement).style.backgroundColor = isActive ? '#2f694b' : 'transparent';
+        (btn as HTMLElement).style.color = isActive ? '#fdf2b8' : '#2f694b';
+    });
+}
+
+document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        viewMode = btn.getAttribute('data-view') as ViewMode;
+        localStorage.setItem(VIEW_MODE_KEY, viewMode);
+        applyViewMode();
+    });
+});
+applyViewMode();
+
 function renderCacti() {
     const container = document.getElementById('cacti-list');
     if (!container) return;
@@ -274,16 +299,16 @@ function renderCacti() {
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
 
             htmlContent += `
-                <div style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent;">
-                    <div>
-                        <img src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent;">
+                    <img class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                    <div class="cactus-details">
                         ${categoryTag}
                         <h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
-                        <p style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
+                        <p class="cactus-stock" style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
                             ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
                         </p>
-                        <p><em>${escapeHtml(cactus.description)}</em></p>
+                        <p class="cactus-desc"><em>${escapeHtml(cactus.description)}</em></p>
                     </div>
                     ${cactus.stock > 0
                 ? `<button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
