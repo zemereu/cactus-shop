@@ -1,6 +1,14 @@
 // Interfetele Cactus, Order, Category + constantele vin din shared.ts
 // authFetch, escapeHtml, starsDisplay vin din shared.ts
 
+function adminToast(message: string) {
+    const toast = document.createElement('div');
+    toast.innerHTML = message;
+    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
 // --- 1. LOGIN ---
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
@@ -47,7 +55,7 @@ function renderFilteredCategories() {
         btn.addEventListener('click', async (e) => {
             const id = (e.target as HTMLButtonElement).getAttribute('data-id');
             if (confirm("Stergi aceasta subcategorie?")) {
-                await authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' });
+                await authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' }); adminToast('Categorie stearsa');
                 fetchAdminCategories();
             }
         });
@@ -77,6 +85,7 @@ if (addCategoryBtn) {
         });
         (document.getElementById('new-category-name') as HTMLInputElement).value = "";
         fetchAdminCategories();
+        adminToast('Categorie adaugata');
     });
 }
 
@@ -174,21 +183,21 @@ function renderAdminCacti(cacti: Cactus[]) {
         if (!p) return;
         const u = { name: (p.querySelector('.edit-name') as HTMLInputElement).value.trim(), price: Number((p.querySelector('.edit-price') as HTMLInputElement).value), stock: Number((p.querySelector('.edit-stock') as HTMLInputElement).value)||0, description: (p.querySelector('.edit-desc') as HTMLInputElement).value.trim(), imageUrl: (p.querySelector('.edit-image') as HTMLInputElement).value.trim(), productType: (p.querySelector('.edit-product-type') as HTMLInputElement).value, mainCategory: (p.querySelector('.edit-main-category') as HTMLInputElement).value, category: (p.querySelector('.edit-category') as HTMLInputElement).value };
         const r = await authFetch(`${API_BASE}/api/cacti/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(u) });
-        if (r.ok) fetchAdminCacti(); else alert("Eroare la salvare.");
+        if (r.ok) { fetchAdminCacti(); adminToast('Produs actualizat'); } else alert("Eroare la salvare.");
     }));
     container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLButtonElement).getAttribute('data-id');
-        if (confirm("Dezactivezi acest produs?")) { await authFetch(`${API_BASE}/api/cacti/${id}`, {method:'DELETE'}); fetchAdminCacti(); }
+        if (confirm("Dezactivezi acest produs?")) { await authFetch(`${API_BASE}/api/cacti/${id}`, {method:'DELETE'}); fetchAdminCacti(); adminToast('Produs dezactivat'); }
     }));
     container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLButtonElement).getAttribute('data-id');
-        await authFetch(`${API_BASE}/api/cacti/${id}/reactivate`, {method:'PUT'}); fetchAdminCacti();
+        await authFetch(`${API_BASE}/api/cacti/${id}/reactivate`, {method:'PUT'}); fetchAdminCacti(); adminToast('Produs reactivat');
     }));
     container.querySelectorAll('.hard-delete-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLButtonElement).getAttribute('data-id');
         if (!confirm("ATENTIE: Stergere definitiva?")) return;
         if (!confirm("Absolut sigur? Ireversibil.")) return;
-        await authFetch(`${API_BASE}/api/cacti/${id}/permanent`, {method:'DELETE'}); fetchAdminCacti();
+        await authFetch(`${API_BASE}/api/cacti/${id}/permanent`, {method:'DELETE'}); fetchAdminCacti(); adminToast('Produs sters definitiv');
     }));
 }
 
@@ -232,6 +241,7 @@ if (addCactusBtn) {
         ['new-cactus-name','new-cactus-price','new-cactus-desc','new-cactus-image','new-cactus-stock'].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
         if (fileInput) fileInput.value = "";
         fetchAdminCacti();
+        adminToast('Produs adaugat');
     });
 }
 
@@ -254,7 +264,7 @@ function renderOrderRows(orders: Order[]) {
     tb.querySelectorAll('.order-status-select').forEach(s => s.addEventListener('change', async (e) => {
         const t = e.target as HTMLSelectElement;
         const r = await authFetch(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:t.value}) });
-        if (!r.ok) { alert("Eroare status."); fetchAdminOrders(); }
+        if (r.ok) { adminToast('Status actualizat'); } else { alert("Eroare status."); fetchAdminOrders(); }
     }));
 }
 
@@ -314,7 +324,7 @@ async function fetchPendingReviews() {
             await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLButtonElement).getAttribute('data-id')}/approve`, {method:'PUT'}); fetchPendingReviews();
         }));
         container.querySelectorAll('.reject-review-btn').forEach(b => b.addEventListener('click', async (e) => {
-            if (confirm("Respingi recenzia?")) { await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLButtonElement).getAttribute('data-id')}`, {method:'DELETE'}); fetchPendingReviews(); }
+            if (confirm("Respingi recenzia?")) { await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLButtonElement).getAttribute('data-id')}`, {method:'DELETE'}); fetchPendingReviews(); adminToast('Recenzie respinsa'); }
         }));
     } catch (e) { console.error("Eroare recenzii:", e); }
 }

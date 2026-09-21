@@ -430,9 +430,34 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             return;
         }
 
-        // NU mai trimitem totalPrice sau purchasedItems calculate în browser —
-        // serverul nu are încredere în ele. Trimitem doar ID-urile produselor
-        // din coș; serverul calculează totalul real din baza de date.
+        // Refresh stoc înainte de submit — verifică dacă produsele din coș sunt încă disponibile
+        try {
+            const freshResponse = await fetch(`${API_BASE}/api/cacti?size=1000`);
+            if (freshResponse.ok) {
+                const freshData = await freshResponse.json();
+                const freshCacti: Cactus[] = freshData.content || freshData;
+                const freshMap = new Map<number, Cactus>();
+                freshCacti.forEach((c: Cactus) => freshMap.set(c.id, c));
+
+                const cartCounts = new Map<number, number>();
+                shoppingCart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
+
+                const problems: string[] = [];
+                cartCounts.forEach((qty, id) => {
+                    const fresh = freshMap.get(id);
+                    if (!fresh) problems.push(`Produsul #${id} nu mai este disponibil.`);
+                    else if (fresh.stock < qty) problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
+                });
+
+                if (problems.length > 0) {
+                    alert("Stocul s-a schimbat:\n\n" + problems.join("\n") + "\n\nActualizează coșul.");
+                    cactiForSale = freshCacti;
+                    renderCacti();
+                    return;
+                }
+            }
+        } catch (e) { /* continuă cu submit-ul, backend-ul verifică oricum */ }
+
         const cactusIds = shoppingCart.map(item => item.id);
 
         const newOrder = {

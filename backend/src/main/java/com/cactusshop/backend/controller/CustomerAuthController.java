@@ -33,14 +33,24 @@ public class CustomerAuthController {
     private LoginRateLimiter rateLimiter;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody CustomerRegisterDTO request) {
+    public ResponseEntity<?> register(@Valid @RequestBody CustomerRegisterDTO request, HttpServletRequest httpRequest) {
+        String clientIp = extractClientIp(httpRequest);
+
+        if (rateLimiter.isBlocked(clientIp)) {
+            long minutes = rateLimiter.minutesRemaining(clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Prea multe incercari. Incearca din nou peste " + minutes + " minute.");
+        }
+
         try {
             Customer customer = customerService.register(request);
+            rateLimiter.recordSuccess(clientIp);
             String token = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER");
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
                     .body(Map.of("name", customer.getName()));
         } catch (IllegalStateException e) {
+            rateLimiter.recordFailure(clientIp);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
