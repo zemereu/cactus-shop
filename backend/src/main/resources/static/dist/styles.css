@@ -217,3 +217,304 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
     color: #FF9800 !important;
     border-bottom-color: #FF9800 !important;
 }
+/* ======================================================
+   RESPONSIVE — MOBILE FIRST
+   ====================================================== */
+
+/* === GENERAL MOBILE (< 768px) === */
+@media (max-width: 768px) {
+
+    /* Header — stack vertical */
+    header[style*="grid-template-columns"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        padding: 15px !important;
+        text-align: center;
+    }
+
+    /* Header right buttons — wrap */
+    header div[style*="justify-self: end"] {
+        justify-self: center !important;
+        flex-wrap: wrap;
+        justify-content: center !important;
+    }
+
+    /* Site title smaller */
+    h1[style*="font-size: 2.2em"],
+    h1[style*="font-size: 1.8em"] {
+        font-size: 1.4em !important;
+    }
+
+    /* Logo smaller */
+    img[style*="height: 75px"] { height: 50px !important; }
+    img[style*="height: 60px"] { height: 45px !important; }
+
+    /* Header buttons smaller */
+    .header-btn {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+    }
+
+    /* Hero section */
+    section[style*="padding: 60px"] { padding: 25px 15px !important; }
+    div[style*="padding: 50px"] { padding: 20px !important; }
+    h2[style*="font-size: 3.2em"] { font-size: 1.8em !important; }
+    p[style*="font-size: 1.2em"] { font-size: 1em !important; }
+    img[style*="height: 400px"] { height: 200px !important; }
+
+    /* Hero box — stack */
+    div[style*="flex: 1 1 400px"] { padding-right: 0 !important; }
+
+    /* Trust badges — stack */
+    section[style*="margin: 0 auto 80px"] { margin-bottom: 40px !important; }
+    div[style*="flex: 1 1 300px"] { flex: 1 1 100% !important; }
+
+    /* About section */
+    section[style*="padding: 80px"] { padding: 40px 15px !important; }
+    div[style*="flex: 1 1 400px"] { flex: 1 1 100% !important; }
+    img[style*="height: 300px"] { height: 200px !important; }
+    h2[style*="font-size: 2.8em"] { font-size: 1.6em !important; }
+
+    /* Reviews section */
+    div[style*="flex: 1 1 300px"][style*="border-radius: 16px"] { flex: 1 1 100% !important; }
+
+    /* Shop — product grid to 1 column */
+    #cacti-list {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+
+    /* Shop header — stack */
+    div[style*="width: 400px"] { width: 100% !important; }
+
+    /* Sidebar */
+    div[style*="width: 250px"][style*="position: fixed"] { width: 80% !important; }
+
+    /* Cart modal — full width */
+    div[style*="width: 320px"][style*="position: absolute"] {
+        width: 280px !important;
+        right: -50px !important;
+    }
+
+    /* Admin — product grid to 2 columns */
+    #admin-cacti-list { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* Admin tabs — wrap and smaller */
+    .admin-tabs { flex-wrap: wrap !important; }
+    .admin-tab {
+        padding: 8px 12px !important;
+        font-size: 0.8em !important;
+        flex: 1 1 auto !important;
+    }
+
+    /* Stats row — 2 per row */
+    .stats-row { gap: 8px !important; }
+    .stat-card {
+        flex: 1 1 45% !important;
+        padding: 10px !important;
+    }
+    .stat-card .stat-number { font-size: 1.4em !important; }
+
+    /* Orders table — scroll horizontal */
+    .orders-table { font-size: 0.8em; }
+    .orders-table th, .orders-table td { padding: 6px 8px !important; }
+
+    /* Admin panel container */
+    div[style*="max-width: 1100px"] { padding: 0 10px !important; }
+    div[style*="padding: 25px"][style*="border-radius: 0"] { padding: 15px !important; }
+
+    /* Form containers — full width */
+    div[style*="max-width: 440px"],
+    div[style*="max-width: 420px"],
+    div[style*="max-width: 500px"],
+    div[style*="max-width: 700px"] {
+        max-width: 100% !important;
+        padding: 15px !important;
+    }
+
+    /* Admin add form — single column */
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Dropdown menu */
+    .dropdown-menu,
+    div[style*="width: 200px"][style*="position: absolute"] {
+        width: 180px !important;
+    }
+
+    /* Footer */
+    footer { padding: 20px 15px !important; font-size: 0.85em; }
+
+    /* Pagination */
+    #pagination-container { flex-wrap: wrap !important; }
+
+    /* CTA button */
+    .cta-button { padding: 12px 20px !important; font-size: 1em !important; }
+
+    /* Toast - full width */
+    #toast-container { left: 15px !important; right: 15px !important; }
+}
+
+/* === SMALL PHONES (< 480px) === */
+@media (max-width: 480px) {
+
+    /* Admin products — 1 column */
+    #admin-cacti-list { grid-template-columns: 1fr !important; }
+
+    /* Stats — 1 per row */
+    .stat-card { flex: 1 1 100% !important; }
+
+    /* Even smaller text */
+    body { font-size: 14px; }
+
+    /* Header buttons stack */
+    header div[style*="display: flex"][style*="gap: 15px"] {
+        gap: 6px !important;
+    }
+
+    /* Account dropdown — wider */
+    .dropdown-menu,
+    div[style*="width: 200px"][style*="position: absolute"],
+    div[style*="width: 180px"] {
+        width: 250px !important;
+        right: 0 !important;
+    }
+
+    /* Cart modal */
+    div[style*="width: 320px"][style*="position: absolute"],
+    div[style*="width: 280px"] {
+        width: calc(100vw - 30px) !important;
+        right: -15px !important;
+    }
+
+    /* Review card in landing */
+    div[style*="padding: 30px"][style*="border-radius: 16px"] {
+        padding: 15px !important;
+    }
+}
+
+/* === TABLET (768px - 1024px) === */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+    /* Shop grid — 2 columns */
+    #cacti-list { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* Admin grid — 3 columns */
+    #admin-cacti-list { grid-template-columns: repeat(3, 1fr) !important; }
+
+    /* Hero padding */
+    div[style*="padding: 50px"] { padding: 30px !important; }
+    h2[style*="font-size: 3.2em"] { font-size: 2.2em !important; }
+}
+
+/* === RESPONSIVE: pagini specifice === */
+@media (max-width: 768px) {
+
+    /* CONT — card mai mic pe mobil */
+    div[style*="max-width: 440px"] > div[style*="padding: 35px"] {
+        padding: 20px !important;
+    }
+
+    /* COMENZI — tab-uri mai mici */
+    #tab-history, #tab-lookup {
+        font-size: 0.85em !important;
+        padding: 8px !important;
+    }
+
+    /* COMENZI — order cards (generate din TS) */
+    #orders-list > div {
+        padding: 15px !important;
+    }
+    #orders-list > div div[style*="display: flex"] {
+        flex-direction: column !important;
+        gap: 5px !important;
+    }
+
+    /* RECENZII — form padding */
+    div[style*="max-width: 700px"] {
+        padding: 0 10px !important;
+    }
+
+    /* TERMENI — padding */
+    main[style*="max-width: 800px"] {
+        padding: 20px 15px !important;
+    }
+
+    /* Shop header — search full width */
+    header[style*="gap: 20px"] {
+        flex-wrap: wrap !important;
+    }
+    header div[style*="width: 400px"] {
+        width: 100% !important;
+        order: 3;
+    }
+
+    /* Shop — menu button + logo row */
+    header > div[style*="display: flex"][style*="gap: 15px"]:first-child {
+        gap: 8px !important;
+    }
+
+    /* Admin login container */
+    div[style*="max-width: 400px"][style*="margin: 50px"] {
+        margin: 20px auto !important;
+        padding: 20px !important;
+    }
+
+    /* Admin toolbar */
+    .toolbar {
+        flex-direction: column !important;
+    }
+    .toolbar .search-input {
+        width: 100% !important;
+        min-width: auto !important;
+    }
+
+    /* Admin order table — scrollable */
+    div[style*="overflow-x: auto"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* General — no horizontal overflow */
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Footer links — stack */
+    footer div[style*="display: flex"] {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* CONT — tab buttons smaller */
+    .account-tab, #tab-login, #tab-register {
+        font-size: 0.8em !important;
+        padding: 8px 4px !important;
+    }
+
+    /* COMENZI — lookup form tighter */
+    div[style*="background: white"][style*="padding: 30px"] {
+        padding: 15px !important;
+    }
+
+    /* Shop header buttons — smaller */
+    div[style*="font-size: 16px"][style*="padding: 10px 20px"] {
+        font-size: 13px !important;
+        padding: 8px 10px !important;
+    }
+
+    /* Admin tabs — scroll horizontal */
+    .admin-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .admin-tab {
+        white-space: nowrap !important;
+        min-width: max-content !important;
+    }
+}
