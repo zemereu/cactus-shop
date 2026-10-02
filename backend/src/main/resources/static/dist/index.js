@@ -39,6 +39,13 @@ let shoppingCart = loadCartFromStorage();
 // 1. Fetch de la Backend (Filtrare aplicată pe server, cu paginare)
 function fetchCacti() {
     return __awaiter(this, void 0, void 0, function* () {
+        const container = document.getElementById('cacti-list');
+        if (container) {
+            container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2em; color: #2f694b;"></i>
+            <p style="color: #666; margin-top: 10px;">Se încarcă produsele...</p>
+        </div>`;
+        }
         try {
             const params = new URLSearchParams();
             params.append('productType', selectedProductType);
@@ -58,6 +65,15 @@ function fetchCacti() {
         }
         catch (error) {
             console.error("Eroare:", error);
+            if (container) {
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 2em; color: #d32f2f;"></i>
+                <p style="color: #d32f2f; margin-top: 10px;">Nu am putut încărca produsele.</p>
+                <button onclick="fetchCacti()" style="margin-top: 10px; padding: 8px 20px; background: #2f694b; color: #fdf2b8; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    <i class="fa-solid fa-rotate-right"></i> Încearcă din nou
+                </button>
+            </div>`;
+            }
         }
     });
 }
@@ -230,7 +246,25 @@ if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
 }
 // Adaugă apelul în zona de inițializare de la finalul fișierului
 fetchAndRenderCategories();
-// 4. Randare Produse (Fără filtrare locală, bazat direct pe server)
+const VIEW_MODE_KEY = 'cactusViewMode';
+let viewMode = localStorage.getItem(VIEW_MODE_KEY) || 'grid';
+function applyViewMode() {
+    document.body.classList.remove('view-grid', 'view-compact', 'view-list');
+    document.body.classList.add(`view-${viewMode}`);
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        const isActive = btn.getAttribute('data-view') === viewMode;
+        btn.style.backgroundColor = isActive ? '#2f694b' : 'transparent';
+        btn.style.color = isActive ? '#fdf2b8' : '#2f694b';
+    });
+}
+document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        viewMode = btn.getAttribute('data-view');
+        localStorage.setItem(VIEW_MODE_KEY, viewMode);
+        applyViewMode();
+    });
+});
+applyViewMode();
 function renderCacti() {
     const container = document.getElementById('cacti-list');
     if (!container)
@@ -245,16 +279,16 @@ function renderCacti() {
             const categoryTag = `<span style="border: 1px solid #2f694b; color: #2f694b; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${escapeHtml(cactus.category)}</span>`;
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
             htmlContent += `
-                <div style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent;">
-                    <div>
-                        <img src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent;">
+                    <img class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                    <div class="cactus-details">
                         ${categoryTag}
                         <h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
-                        <p style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
+                        <p class="cactus-stock" style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
                             ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
                         </p>
-                        <p><em>${escapeHtml(cactus.description)}</em></p>
+                        <p class="cactus-desc"><em>${escapeHtml(cactus.description)}</em></p>
                     </div>
                     ${cactus.stock > 0
                 ? `<button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
@@ -378,9 +412,33 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             alert("Te rog să completezi numele, emailul și adresa de livrare!");
             return;
         }
-        // NU mai trimitem totalPrice sau purchasedItems calculate în browser —
-        // serverul nu are încredere în ele. Trimitem doar ID-urile produselor
-        // din coș; serverul calculează totalul real din baza de date.
+        // Refresh stoc înainte de submit — verifică dacă produsele din coș sunt încă disponibile
+        try {
+            const freshResponse = yield fetch(`${API_BASE}/api/cacti?size=1000`);
+            if (freshResponse.ok) {
+                const freshData = yield freshResponse.json();
+                const freshCacti = freshData.content || freshData;
+                const freshMap = new Map();
+                freshCacti.forEach((c) => freshMap.set(c.id, c));
+                const cartCounts = new Map();
+                shoppingCart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
+                const problems = [];
+                cartCounts.forEach((qty, id) => {
+                    const fresh = freshMap.get(id);
+                    if (!fresh)
+                        problems.push(`Produsul #${id} nu mai este disponibil.`);
+                    else if (fresh.stock < qty)
+                        problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
+                });
+                if (problems.length > 0) {
+                    alert("Stocul s-a schimbat:\n\n" + problems.join("\n") + "\n\nActualizează coșul.");
+                    cactiForSale = freshCacti;
+                    renderCacti();
+                    return;
+                }
+            }
+        }
+        catch (e) { /* continuă cu submit-ul, backend-ul verifică oricum */ }
         const cactusIds = shoppingCart.map(item => item.id);
         const newOrder = {
             customerName: nameInput,
@@ -422,7 +480,7 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
                         <p style="margin: 8px 0 0 0; font-style: italic;">Menționează codul comenzii la detalii transfer.</p>
                     </div>
                     <p style="margin-top: 10px;">Comanda ta va apărea ca „plătită" după ce confirmăm transferul.
-                       Poți verifica oricând statusul pe pagina <a href="verifica-comanda.html" style="color: #2f694b; font-weight: bold;">Verifică Comanda</a>.</p>
+                       Poți verifica oricând statusul pe pagina <a href="comenzi.html" style="color: #2f694b; font-weight: bold;">Verifică Comanda</a>.</p>
                 `;
             }
             checkoutBtn.style.display = 'block';
@@ -473,11 +531,13 @@ function renderPagination() {
 }
 // 9. Căutare (Apelează Java automat)
 const searchBar = document.getElementById('search-bar');
+let searchTimeout;
 if (searchBar) {
     searchBar.addEventListener('input', (event) => {
         searchQuery = event.target.value.toLowerCase();
         currentPage = 0;
-        fetchCacti();
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => fetchCacti(), 300);
     });
 }
 // 9. Inițializare
