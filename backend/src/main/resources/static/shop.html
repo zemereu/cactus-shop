@@ -80,28 +80,38 @@
 
 <!-- Sidebar-ul Ascuns pentru Categorii -->
 <div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
-<div id="sidebar" style="position: fixed; top: 0; left: -300px; width: 250px; height: 100%; background-color: #fdf2b8; border-right: 2px solid #2f694b; z-index: 1000; transition: left 0.3s ease; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); overflow-y: auto;">
+<div id="sidebar" style="position: fixed; top: 0; left: -300px; width: 250px; height: 100%; background-color: #fdf2b8; border-right: 2px solid #2f694b; z-index: 1000; transition: left 0.3s ease; padding: 20px; padding-bottom: 80px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); overflow-y: auto;">
     <button id="close-sidebar-btn" style="background: none; border: none; font-size: 20px; color: #d32f2f; cursor: pointer; float: right; font-weight: bold;">X</button>
     <h2 style="color: #2f694b; border-bottom: 2px solid #2f694b; padding-bottom: 10px;">Categorii</h2>
     <div id="sidebar-categories-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
 </div>
 
-<!-- Comutare mod afișare -->
-<div id="view-toggle" style="display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 15px;">
-    <button class="view-toggle-btn" data-view="grid" title="Grilă normală" style="background: transparent; border: 2px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px;">
-        <i class="fa-solid fa-table-cells-large"></i>
-    </button>
-    <button class="view-toggle-btn" data-view="compact" title="Grilă compactă" style="background: transparent; border: 2px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px;">
-        <i class="fa-solid fa-grip"></i>
-    </button>
-    <button class="view-toggle-btn" data-view="list" title="Listă" style="background: transparent; border: 2px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px;">
-        <i class="fa-solid fa-list"></i>
-    </button>
+<!-- Sortare + View toggles + Grila -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="color: #2f694b; font-weight: bold; font-size: 0.9em;"><i class="fa-solid fa-arrow-down-wide-short"></i> Sortare:</label>
+        <select id="sort-select" style="padding: 8px 12px; border: 2px solid #2f694b; border-radius: 6px; font-family: 'Poppins', sans-serif; color: #2f694b; background: transparent; cursor: pointer;">
+            <option value="name-asc">Nume A-Z</option>
+            <option value="name-desc">Nume Z-A</option>
+            <option value="price-asc">Preț crescător</option>
+            <option value="price-desc">Preț descrescător</option>
+            <option value="stock-desc">Stoc disponibil</option>
+            <option value="favorites">❤ Doar favorite</option>
+        </select>
+    </div>
+    <div id="view-toggles" style="display: flex; gap: 5px;"></div>
 </div>
-
-<!-- Grila de cactuși și Notificările -->
+<div id="products-count" style="color: #666; font-size: 0.85em; margin-bottom: 10px;"></div>
 <div id="cacti-list" style="display: grid; gap: 20px;"></div>
 <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<!-- Zoom Modal -->
+<div id="zoom-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; cursor:pointer; align-items:center; justify-content:center;">
+    <img id="zoom-img" src="" alt="Zoom" style="max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+    <button id="zoom-close" style="position:absolute; top:20px; right:20px; background:white; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2em; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.3);">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
 
 <script src="dist/shared.js"></script>
 <script src="dist/index.js"></script>

@@ -656,3 +656,8 @@ body.view-list .cactus-card button {
         font-size: 0.85em !important;
     }
 }
+/* === WISHLIST BUTTON === */
+.wishlist-btn:hover {
+    transform: scale(1.2) !important;
+    color: #d32f2f !important;
+}

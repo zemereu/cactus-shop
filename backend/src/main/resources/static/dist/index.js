@@ -19,6 +19,25 @@ let searchQuery = "";
 let currentPage = 0;
 let totalPages = 0;
 const PAGE_SIZE = 12;
+// --- Wishlist (favorite) ---
+const WISHLIST_KEY = 'wishlist';
+let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+function toggleWishlist(id) {
+    const idx = wishlist.indexOf(id);
+    if (idx === -1) {
+        wishlist.push(id);
+        showToast('<i class="fa-solid fa-heart" style="color: #d32f2f;"></i> Adăugat la favorite');
+    }
+    else {
+        wishlist.splice(idx, 1);
+        showToast('<i class="fa-regular fa-heart"></i> Eliminat din favorite');
+    }
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+    renderCacti();
+}
+function isWishlisted(id) {
+    return wishlist.includes(id);
+}
 // Coșul se încarcă din localStorage la pornire, ca să nu dispară
 // când navighezi pe altă pagină (ex: cont.html) și te întorci.
 function loadCartFromStorage() {
@@ -248,6 +267,19 @@ if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
 fetchAndRenderCategories();
 const VIEW_MODE_KEY = 'cactusViewMode';
 let viewMode = localStorage.getItem(VIEW_MODE_KEY) || 'grid';
+// Generează butoanele de view toggle în #view-toggles
+const viewTogglesContainer = document.getElementById('view-toggles');
+if (viewTogglesContainer) {
+    const views = [
+        { key: 'grid', icon: 'fa-table-cells-large', title: 'Grilă normală' },
+        { key: 'compact', icon: 'fa-grip', title: 'Grilă compactă' },
+        { key: 'list', icon: 'fa-list', title: 'Listă' }
+    ];
+    viewTogglesContainer.innerHTML = views.map(v => `
+        <button class="view-toggle-btn" data-view="${v.key}" title="${v.title}" style="background: transparent; border: 2px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px;">
+            <i class="fa-solid ${v.icon}"></i>
+        </button>`).join('');
+}
 function applyViewMode() {
     document.body.classList.remove('view-grid', 'view-compact', 'view-list');
     document.body.classList.add(`view-${viewMode}`);
@@ -265,21 +297,68 @@ document.querySelectorAll('.view-toggle-btn').forEach(btn => {
     });
 });
 applyViewMode();
+// --- Sortare produse ---
+let currentSort = 'name-asc';
+function sortCacti(cacti) {
+    let sorted = [...cacti];
+    if (currentSort === 'favorites') {
+        sorted = sorted.filter(c => isWishlisted(c.id));
+    }
+    switch (currentSort) {
+        case 'name-asc':
+        case 'favorites':
+            sorted.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'name-desc':
+            sorted.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+        case 'price-asc':
+            sorted.sort((a, b) => a.price - b.price);
+            break;
+        case 'price-desc':
+            sorted.sort((a, b) => b.price - a.price);
+            break;
+        case 'stock-desc':
+            sorted.sort((a, b) => b.stock - a.stock);
+            break;
+    }
+    return sorted;
+}
+const sortSelect = document.getElementById('sort-select');
+if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+        currentSort = sortSelect.value;
+        renderCacti();
+    });
+}
 function renderCacti() {
     const container = document.getElementById('cacti-list');
     if (!container)
         return;
+    const countEl = document.getElementById('products-count');
     let htmlContent = "";
     if (cactiForSale.length === 0) {
+        if (countEl)
+            countEl.innerText = '';
         htmlContent = `<p style="grid-column: span 3; color: red; font-size: 1.2em;">Nu am găsit niciun cactus conform căutării.</p>`;
     }
     else {
-        for (let cactus of cactiForSale) {
+        const sorted = sortCacti(cactiForSale);
+        if (countEl) {
+            const showing = sorted.length;
+            const pageInfo = totalPages > 1 ? ` (pagina ${currentPage + 1} din ${totalPages})` : '';
+            countEl.innerText = `${showing} produse afișate${pageInfo}`;
+        }
+        for (let cactus of sorted) {
             // Categoria acum are bordură verde și text verde, fără fundal plin
             const categoryTag = `<span style="border: 1px solid #2f694b; color: #2f694b; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${escapeHtml(cactus.category)}</span>`;
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
+            const hearted = isWishlisted(cactus.id);
             htmlContent += `
-                <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent;">
+                <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent; position: relative;">
+                    <button class="wishlist-btn" data-id="${cactus.id}" style="position: absolute; top: 10px; right: 10px; background: white; border: none; cursor: pointer; font-size: 1.3em; padding: 6px 8px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; color: ${hearted ? '#d32f2f' : '#ccc'};">
+                        <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
+                    </button>
                     <img class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
                     <div class="cactus-details">
                         ${categoryTag}
@@ -302,6 +381,27 @@ function renderCacti() {
         }
     }
     container.innerHTML = htmlContent;
+    // Zoom pe imagine
+    document.querySelectorAll('.cactus-image').forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => {
+            const modal = document.getElementById('zoom-modal');
+            const zoomImg = document.getElementById('zoom-img');
+            if (modal && zoomImg) {
+                zoomImg.src = img.src;
+                modal.style.display = 'flex';
+            }
+        });
+    });
+    // Wishlist buttons
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            var _a;
+            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            if (id)
+                toggleWishlist(id);
+        });
+    });
     const addButtons = document.querySelectorAll('.add-to-cart-btn');
     addButtons.forEach(button => {
         button.addEventListener('click', (event) => {
@@ -540,6 +640,25 @@ if (searchBar) {
         searchTimeout = setTimeout(() => fetchCacti(), 300);
     });
 }
-// 9. Inițializare
+// 9. Zoom modal close
+const zoomModal = document.getElementById('zoom-modal');
+const zoomClose = document.getElementById('zoom-close');
+if (zoomModal) {
+    zoomModal.addEventListener('click', (e) => {
+        if (e.target === zoomModal)
+            zoomModal.style.display = 'none';
+    });
+}
+if (zoomClose) {
+    zoomClose.addEventListener('click', () => {
+        if (zoomModal)
+            zoomModal.style.display = 'none';
+    });
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && zoomModal)
+        zoomModal.style.display = 'none';
+});
+// 10. Inițializare
 fetchCacti();
 updateCartUI();
