@@ -111,6 +111,14 @@ button[style*="background-color: #d32f2f"]:hover,
     border-color: #FF9800 !important;
 }
 
+/* === SHOP PRODUCT GRID === */
+#cacti-list {
+    grid-template-columns: repeat(3, 1fr);
+}
+body.view-grid #cacti-list {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 /* === SHOP PRODUCT CARDS === */
 #cacti-list > div:hover {
     transform: translateY(-3px);
