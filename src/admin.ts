@@ -1,13 +1,8 @@
 // Interfetele Cactus, Order, Category + constantele vin din shared.ts
 // authFetch, escapeHtml, starsDisplay vin din shared.ts
 
-function adminToast(message: string) {
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
-}
+// showToast vine din shared.ts — folosim adminToast ca alias
+function adminToast(msg: string) { showToast(msg); }
 
 // --- 1. LOGIN ---
 const loginBtn = document.getElementById('login-btn');

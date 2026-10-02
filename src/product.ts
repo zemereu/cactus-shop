@@ -3,21 +3,10 @@
 const produsParams = new URLSearchParams(window.location.search);
 const productId = produsParams.get('id');
 
-const WISHLIST_KEY_P = 'wishlist';
-let produsWishlist: number[] = JSON.parse(localStorage.getItem(WISHLIST_KEY_P) || '[]');
+// showToast, wishlist, toggleWishlist, isWishlisted, escapeHtml, starsDisplay, CART_STORAGE_KEY vin din shared.ts
 
 interface ProdCactus { id: number; name: string; price: number; stock: number; description: string; imageUrl: string; category: string; mainCategory: string; productType: string; active: boolean; }
 interface ProdReview { id: number; customerName: string; rating: number; comment: string; createdAt: string; }
-
-function produsShowToast(message: string) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = 'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2);';
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
-}
 
 // --- Coș ---
 function produsLoadCart(): ProdCactus[] {
@@ -31,11 +20,14 @@ async function loadProduct() {
     if (!productId) { showError(); return; }
 
     try {
-        const response = await fetch(`${API_BASE}/api/cacti?size=1000`);
-        if (!response.ok) throw new Error();
-        const data = await response.json();
-        const allProducts: ProdCactus[] = data.content || data;
-        const product = allProducts.find(p => p.id === Number(productId));
+        const response = await fetch(`${API_BASE}/api/cacti/${productId}`);
+        if (!response.ok) { showError(); return; }
+        const product: ProdCactus = await response.json();
+
+        // Fetch all for similar products (lightweight — just this category)
+        const allResponse = await fetch(`${API_BASE}/api/cacti?mainCategory=${encodeURIComponent(product.mainCategory)}&category=${encodeURIComponent(product.category)}&size=50`);
+        const allData = await allResponse.json();
+        const allProducts: ProdCactus[] = allData.content || allData;
 
         if (!product) { showError(); return; }
 
@@ -66,12 +58,12 @@ async function loadProduct() {
                 const cart = produsLoadCart();
                 const inCart = cart.filter(c => c.id === product.id).length;
                 if (inCart >= product.stock) {
-                    produsShowToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc insuficient!');
+                    showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc insuficient!');
                     return;
                 }
                 cart.push(product);
                 produsSaveCart(cart);
-                produsShowToast('<i class="fa-solid fa-check" style="color:#2f694b;"></i> Adăugat în coș!');
+                showToast('<i class="fa-solid fa-check" style="color:#2f694b;"></i> Adăugat în coș!');
             });
         }
 
@@ -79,9 +71,7 @@ async function loadProduct() {
         const wishBtn = document.getElementById('product-wishlist')!;
         updateWishBtn(wishBtn, product.id);
         wishBtn.addEventListener('click', () => {
-            const idx = produsWishlist.indexOf(product.id);
-            if (idx === -1) { produsWishlist.push(product.id); } else { produsWishlist.splice(idx, 1); }
-            localStorage.setItem(WISHLIST_KEY_P, JSON.stringify(produsWishlist));
+            toggleWishlist(product.id);
             updateWishBtn(wishBtn, product.id);
         });
 
@@ -99,6 +89,14 @@ async function loadProduct() {
         // Similar products (same category, exclude current)
         const similar = allProducts.filter(p => p.id !== product.id && p.category === product.category && p.active).slice(0, 4);
         renderSimilar(similar);
+
+        // Recently viewed — salvează în localStorage
+        const RECENT_KEY = 'recentlyViewed';
+        let recent: number[] = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+        recent = recent.filter(id => id !== product.id);
+        recent.unshift(product.id);
+        if (recent.length > 8) recent = recent.slice(0, 8);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
 
         // Breadcrumbs
         document.getElementById('product-content')!.insertAdjacentHTML('afterbegin', `
@@ -121,7 +119,7 @@ async function loadProduct() {
 }
 
 function updateWishBtn(btn: HTMLElement, id: number) {
-    const liked = produsWishlist.includes(id);
+    const liked = wishlist.includes(id);
     btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart" style="color: ${liked ? '#d32f2f' : '#666'};"></i>`;
 }
 

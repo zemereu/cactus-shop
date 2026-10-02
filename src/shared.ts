@@ -138,3 +138,38 @@ function initAccountDropdown() {
         });
     }
 }
+// --- Toast global ---
+function showToast(message: string) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = 'position:fixed; top:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:10px;';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.innerHTML = message;
+    toast.style.cssText = 'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
+// --- Wishlist global ---
+const WISHLIST_KEY = 'wishlist';
+let wishlist: number[] = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+
+function toggleWishlist(id: number) {
+    const idx = wishlist.indexOf(id);
+    if (idx === -1) {
+        wishlist.push(id);
+        showToast('<i class="fa-solid fa-heart" style="color: #d32f2f;"></i> Adăugat la favorite');
+    } else {
+        wishlist.splice(idx, 1);
+        showToast('<i class="fa-regular fa-heart"></i> Eliminat din favorite');
+    }
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+}
+
+function isWishlisted(id: number): boolean {
+    return wishlist.includes(id);
+}

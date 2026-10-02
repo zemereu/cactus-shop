@@ -10,13 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-function adminToast(message) {
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
-}
+// showToast vine din shared.ts — folosim adminToast ca alias
+function adminToast(msg) { showToast(msg); }
 // --- 1. LOGIN ---
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {

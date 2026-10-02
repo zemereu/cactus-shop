@@ -19,25 +19,7 @@ let searchQuery = "";
 let currentPage = 0;
 let totalPages = 0;
 const PAGE_SIZE = 12;
-// --- Wishlist (favorite) ---
-const WISHLIST_KEY = 'wishlist';
-let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
-function toggleWishlist(id) {
-    const idx = wishlist.indexOf(id);
-    if (idx === -1) {
-        wishlist.push(id);
-        showToast('<i class="fa-solid fa-heart" style="color: #d32f2f;"></i> Adăugat la favorite');
-    }
-    else {
-        wishlist.splice(idx, 1);
-        showToast('<i class="fa-regular fa-heart"></i> Eliminat din favorite');
-    }
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
-    renderCacti();
-}
-function isWishlisted(id) {
-    return wishlist.includes(id);
-}
+// showToast, wishlist, toggleWishlist, isWishlisted vin din shared.ts
 // Coșul se încarcă din localStorage la pornire, ca să nu dispară
 // când navighezi pe altă pagină (ex: cont.html) și te întorci.
 function loadCartFromStorage() {
@@ -121,27 +103,7 @@ function updateCartUI() {
     saveCartToStorage();
     renderCartItems();
 }
-function showToast(message) {
-    const container = document.getElementById('toast-container');
-    if (!container)
-        return;
-    const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.backgroundColor = "#2f694b"; // Noul verde
-    toast.style.color = "#fdf2b8"; // Noul crem pentru text
-    toast.style.padding = "15px 25px";
-    toast.style.borderRadius = "8px";
-    toast.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
-    toast.style.fontWeight = "bold";
-    toast.style.transform = "translateX(120%)";
-    toast.style.transition = "transform 0.4s ease-in-out";
-    container.appendChild(toast);
-    setTimeout(() => toast.style.transform = "translateX(0)", 10);
-    setTimeout(() => {
-        toast.style.transform = "translateX(120%)";
-        setTimeout(() => toast.remove(), 400);
-    }, 3000);
-}
+// showToast vine din shared.ts
 // 3. Randare Sidebar — toggle Plante/Semințe sus, apoi Cactuși/Suculente expandabile cu genurile lor
 function fetchAndRenderCategories() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -398,7 +360,19 @@ function renderCacti() {
         }
     }
     container.innerHTML = htmlContent;
-    // Zoom pe buton separat
+    // Zoom pe imagine
+    document.querySelectorAll('.cactus-image').forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => {
+            const modal = document.getElementById('zoom-modal');
+            const zoomImg = document.getElementById('zoom-img');
+            if (modal && zoomImg) {
+                zoomImg.src = img.src;
+                modal.style.display = 'flex';
+            }
+        });
+    });
+    // Zoom buttons
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             var _a;
@@ -448,41 +422,80 @@ function renderCartItems() {
     if (!cartItemsContainer || !cartTotalElement)
         return;
     if (shoppingCart.length === 0) {
-        cartItemsContainer.innerHTML = '<p style="color: gray; font-style: italic;">Coșul este gol.</p>';
+        cartItemsContainer.innerHTML = '<div style="text-align:center; padding:15px;"><i class="fa-solid fa-cart-shopping" style="font-size:2em; color:#ccc;"></i><p style="color:#999; margin-top:8px;">Coșul e gol. Explorează <a href="shop.html" style="color:#2f694b; font-weight:bold;">magazinul</a>!</p></div>';
         cartTotalElement.innerText = "0";
         return;
     }
+    // Grupare pe produs (id → {item, qty})
+    const grouped = new Map();
+    shoppingCart.forEach(item => {
+        const existing = grouped.get(item.id);
+        if (existing)
+            existing.qty++;
+        else
+            grouped.set(item.id, { item, qty: 1 });
+    });
     let htmlContent = "";
     let totalPrice = 0;
-    // Folosim un index (i) pentru a ști exact ce rând ștergem
-    for (let i = 0; i < shoppingCart.length; i++) {
-        let item = shoppingCart[i];
+    grouped.forEach(({ item, qty }) => {
+        const lineTotal = item.price * qty;
+        totalPrice += lineTotal;
         htmlContent += `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 5px;">
-                <span><i class="fa-solid fa-leaf" style="margin-right: 4px;"></i>${escapeHtml(item.name)}</span>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <strong>${item.price} RON</strong>
-                    <button class="remove-from-cart-btn" data-index="${i}" style="background-color: #d32f2f; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.9em; font-weight: bold;" title="Elimină produsul">
-                        X
-                    </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
+                <div style="flex: 1; min-width: 0;">
+                    <i class="fa-solid fa-leaf" style="color: #2f694b; margin-right: 4px;"></i>
+                    <span style="font-weight: 600;">${escapeHtml(item.name)}</span>
                 </div>
-            </div>
-        `;
-        totalPrice += item.price;
-    }
+                <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                    <button class="cart-minus-btn" data-id="${item.id}" style="width:26px; height:26px; border:1px solid #2f694b; background:transparent; border-radius:4px; cursor:pointer; color:#2f694b; font-weight:bold; font-size:1em;">−</button>
+                    <span style="min-width:20px; text-align:center; font-weight:bold;">${qty}</span>
+                    <button class="cart-plus-btn" data-id="${item.id}" style="width:26px; height:26px; border:1px solid #2f694b; background:transparent; border-radius:4px; cursor:pointer; color:#2f694b; font-weight:bold; font-size:1em;">+</button>
+                    <strong style="min-width:55px; text-align:right;">${lineTotal.toFixed(2)}</strong>
+                    <button class="cart-remove-btn" data-id="${item.id}" style="background:#d32f2f; color:white; border:none; border-radius:4px; padding:2px 6px; cursor:pointer; font-size:0.8em;" title="Elimină tot"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>`;
+    });
     cartItemsContainer.innerHTML = htmlContent;
-    cartTotalElement.innerText = totalPrice.toString();
-    // Activăm butoanele "X" pentru a elimina produsele
-    const removeButtons = document.querySelectorAll('.remove-from-cart-btn');
-    removeButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            // Oprim propagarea click-ului ca să nu se închidă coșul accidental
-            event.stopPropagation();
-            const btn = event.target;
-            const indexToRemove = Number(btn.getAttribute('data-index'));
-            // Ștergem fix 1 element de la poziția respectivă din memorie
-            shoppingCart.splice(indexToRemove, 1);
-            // Re-desenăm coșul și actualizăm contorul
+    cartTotalElement.innerText = totalPrice.toFixed(2);
+    // − buton: scoate 1 bucată
+    cartItemsContainer.querySelectorAll('.cart-minus-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            var _a;
+            e.stopPropagation();
+            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            const idx = shoppingCart.findIndex(c => c.id === id);
+            if (idx !== -1) {
+                shoppingCart.splice(idx, 1);
+                updateCartUI();
+            }
+        });
+    });
+    // + buton: adaugă 1 bucată (dacă stocul permite)
+    cartItemsContainer.querySelectorAll('.cart-plus-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            var _a;
+            e.stopPropagation();
+            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            const item = shoppingCart.find(c => c.id === id);
+            if (!item)
+                return;
+            const currentQty = shoppingCart.filter(c => c.id === id).length;
+            const stockItem = cactiForSale.find(c => c.id === id);
+            if (stockItem && currentQty >= stockItem.stock) {
+                showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc maxim atins');
+                return;
+            }
+            shoppingCart.push(item);
+            updateCartUI();
+        });
+    });
+    // Trash: elimină toate bucățile
+    cartItemsContainer.querySelectorAll('.cart-remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            var _a;
+            e.stopPropagation();
+            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            shoppingCart = shoppingCart.filter(c => c.id !== id);
             updateCartUI();
         });
     });
@@ -532,30 +545,24 @@ if (checkoutBtn && checkoutForm && submitOrderBtn) {
             alert("Te rog să completezi numele, emailul și adresa de livrare!");
             return;
         }
-        // Refresh stoc înainte de submit — verifică dacă produsele din coș sunt încă disponibile
+        // Refresh stoc înainte de submit — verifică doar produsele din coș
         try {
-            const freshResponse = yield fetch(`${API_BASE}/api/cacti?size=1000`);
-            if (freshResponse.ok) {
-                const freshData = yield freshResponse.json();
-                const freshCacti = freshData.content || freshData;
-                const freshMap = new Map();
-                freshCacti.forEach((c) => freshMap.set(c.id, c));
-                const cartCounts = new Map();
-                shoppingCart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
-                const problems = [];
-                cartCounts.forEach((qty, id) => {
-                    const fresh = freshMap.get(id);
-                    if (!fresh)
-                        problems.push(`Produsul #${id} nu mai este disponibil.`);
-                    else if (fresh.stock < qty)
-                        problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
-                });
-                if (problems.length > 0) {
-                    alert("Stocul s-a schimbat:\n\n" + problems.join("\n") + "\n\nActualizează coșul.");
-                    cactiForSale = freshCacti;
-                    renderCacti();
-                    return;
+            const cartCounts = new Map();
+            shoppingCart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
+            const problems = [];
+            for (const [id, qty] of cartCounts) {
+                const r = yield fetch(`${API_BASE}/api/cacti/${id}`);
+                if (!r.ok) {
+                    problems.push(`Produsul #${id} nu mai este disponibil.`);
+                    continue;
                 }
+                const fresh = yield r.json();
+                if (fresh.stock < qty)
+                    problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
+            }
+            if (problems.length > 0) {
+                alert("Stocul s-a schimbat:\n\n" + problems.join("\n") + "\n\nActualizează coșul.");
+                return;
             }
         }
         catch (e) { /* continuă cu submit-ul, backend-ul verifică oricum */ }
@@ -672,7 +679,37 @@ const priceMaxInput = document.getElementById('price-max');
             priceTimeout = setTimeout(() => fetchCacti(), 500);
         });
 });
-// 10. Zoom modal close
+// 10. Recently viewed
+function renderRecentlyViewed() {
+    const container = document.getElementById('recent-products');
+    const wrapper = document.getElementById('recently-viewed');
+    if (!container || !wrapper)
+        return;
+    const recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+    if (recent.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+    // Fetch doar produsele recente
+    Promise.all(recent.slice(0, 4).map(id => fetch(`${API_BASE}/api/cacti/${id}`).then(r => r.ok ? r.json() : null))).then(products => {
+        const valid = products.filter(Boolean);
+        if (valid.length === 0) {
+            wrapper.style.display = 'none';
+            return;
+        }
+        wrapper.style.display = 'block';
+        container.innerHTML = valid.map((p) => {
+            const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
+            return `<a href="produs.html?id=${p.id}" style="flex: 0 0 140px; text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:8px; text-align:center;">
+                <img src="${escapeHtml(img)}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
+                <p style="color:#2f694b; font-weight:bold; margin:6px 0 2px; font-size:0.8em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</p>
+                <p style="color:#d32f2f; font-weight:bold; margin:0; font-size:0.85em;">${p.price} RON</p>
+            </a>`;
+        }).join('');
+    });
+}
+renderRecentlyViewed();
+// 11. Zoom modal close
 const zoomModal = document.getElementById('zoom-modal');
 const zoomClose = document.getElementById('zoom-close');
 if (zoomModal) {

@@ -37,6 +37,14 @@ public class CactusController {
         return cactusService.getActiveCacti(productType, mainCategory, category, search, priceMin, priceMax, pageable);
     }
 
+    // Public — un singur produs activ, după ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Cactus> getCactusById(@PathVariable Long id) {
+        return cactusService.getActiveById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // Admin — toate produsele (inclusiv inactive)
     @GetMapping("/all")
     public List<Cactus> getAllCacti() {

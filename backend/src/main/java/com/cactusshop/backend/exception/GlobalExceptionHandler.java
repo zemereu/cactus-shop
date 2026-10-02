@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {
         // Logăm eroarea completă pe server, pentru debugging — dar NU o trimitem clientului.
-        System.err.println("Eroare necontrolată: " + ex);
+        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Eroare necontrolată", ex);
         ex.printStackTrace();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

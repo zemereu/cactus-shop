@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 import java.util.List;
 
 @Service
@@ -17,6 +19,10 @@ public class CactusService {
     private CactusRepository cactusRepository;
 
     // Produse active — pentru magazin (clienți), cu paginare
+    public Optional<Cactus> getActiveById(Long id) {
+        return cactusRepository.findById(id).filter(Cactus::isActive);
+    }
+
     public Page<Cactus> getActiveCacti(String productType, String mainCategory, String category, String search, java.math.BigDecimal priceMin, java.math.BigDecimal priceMax, Pageable pageable) {
         Page<Cactus> result;
 
