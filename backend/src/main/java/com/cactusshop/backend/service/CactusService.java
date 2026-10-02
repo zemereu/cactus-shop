@@ -17,18 +17,29 @@ public class CactusService {
     private CactusRepository cactusRepository;
 
     // Produse active — pentru magazin (clienți), cu paginare
-    public Page<Cactus> getActiveCacti(String productType, String mainCategory, String category, String search, Pageable pageable) {
+    public Page<Cactus> getActiveCacti(String productType, String mainCategory, String category, String search, java.math.BigDecimal priceMin, java.math.BigDecimal priceMax, Pageable pageable) {
+        Page<Cactus> result;
+
         if (productType == null || productType.isBlank() || mainCategory == null || mainCategory.isBlank()) {
-            return cactusRepository.findByActiveTrueAndNameContainingIgnoreCase(search, pageable);
-        }
-
-        if (category.equals("Toți")) {
-            return cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndNameContainingIgnoreCase(
+            result = cactusRepository.findByActiveTrueAndNameContainingIgnoreCase(search, pageable);
+        } else if (category.equals("Toți")) {
+            result = cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndNameContainingIgnoreCase(
                     productType, mainCategory, search, pageable);
+        } else {
+            result = cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
+                    productType, mainCategory, category, search, pageable);
         }
 
-        return cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
-                productType, mainCategory, category, search, pageable);
+        // Filtrare preț client-side pe pagina curentă
+        if (priceMin != null || priceMax != null) {
+            var filtered = result.getContent().stream()
+                    .filter(c -> priceMin == null || c.getPrice().compareTo(priceMin) >= 0)
+                    .filter(c -> priceMax == null || c.getPrice().compareTo(priceMax) <= 0)
+                    .toList();
+            return new org.springframework.data.domain.PageImpl<>(filtered, pageable, filtered.size());
+        }
+
+        return result;
     }
 
     // Toate produsele — pentru admin

@@ -67,6 +67,10 @@ async function fetchCacti() {
         params.append('mainCategory', selectedMainCategory);
         params.append('category', selectedSubCategory);
         params.append('search', searchQuery);
+        const priceMin = (document.getElementById('price-min') as HTMLInputElement)?.value;
+        const priceMax = (document.getElementById('price-max') as HTMLInputElement)?.value;
+        if (priceMin) params.append('priceMin', priceMin);
+        if (priceMax) params.append('priceMax', priceMax);
         params.append('page', currentPage.toString());
         params.append('size', PAGE_SIZE.toString());
 
@@ -100,6 +104,13 @@ function updateCartUI() {
     const cartCountElement = document.getElementById('cart-count');
     if (cartCountElement) {
         cartCountElement.innerText = shoppingCart.length.toString();
+    }
+    // Bounce pe butonul de coș
+    const cartBtn = document.getElementById('cart-button');
+    if (cartBtn) {
+        cartBtn.style.transform = 'scale(1.15)';
+        cartBtn.style.transition = 'transform 0.15s ease';
+        setTimeout(() => { cartBtn.style.transform = 'scale(1)'; }, 200);
     }
     saveCartToStorage();
     renderCartItems();
@@ -373,10 +384,10 @@ function renderCacti() {
                     <button class="wishlist-btn" data-id="${cactus.id}" style="position: absolute; top: 10px; right: 10px; background: white; border: none; cursor: pointer; font-size: 1.3em; padding: 6px 8px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; color: ${hearted ? '#d32f2f' : '#ccc'};">
                         <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
                     </button>
-                    <img class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                    <a href="produs.html?id=${cactus.id}"><img class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
                     <div class="cactus-details">
                         ${categoryTag}
-                        <h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2>
+                        <a href="produs.html?id=${cactus.id}" style="text-decoration:none;"><h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2></a>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
                         <p class="cactus-stock" style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
                             ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
@@ -694,7 +705,19 @@ if (searchBar) {
     });
 }
 
-// 9. Zoom modal close
+// 9. Filtru preț
+let priceTimeout: ReturnType<typeof setTimeout>;
+const priceMinInput = document.getElementById('price-min');
+const priceMaxInput = document.getElementById('price-max');
+[priceMinInput, priceMaxInput].forEach(input => {
+    if (input) input.addEventListener('input', () => {
+        currentPage = 0;
+        clearTimeout(priceTimeout);
+        priceTimeout = setTimeout(() => fetchCacti(), 500);
+    });
+});
+
+// 10. Zoom modal close
 const zoomModal = document.getElementById('zoom-modal');
 const zoomClose = document.getElementById('zoom-close');
 if (zoomModal) {

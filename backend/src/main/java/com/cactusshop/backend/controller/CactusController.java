@@ -28,11 +28,13 @@ public class CactusController {
             @RequestParam(required = false) String mainCategory,
             @RequestParam(required = false, defaultValue = "Toți") String category,
             @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(required = false) java.math.BigDecimal priceMin,
+            @RequestParam(required = false) java.math.BigDecimal priceMax,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return cactusService.getActiveCacti(productType, mainCategory, category, search, pageable);
+        return cactusService.getActiveCacti(productType, mainCategory, category, search, priceMin, priceMax, pageable);
     }
 
     // Admin — toate produsele (inclusiv inactive)
