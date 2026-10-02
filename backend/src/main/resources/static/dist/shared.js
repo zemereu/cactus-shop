@@ -25,7 +25,7 @@ const ORDER_STATUSES = ["Neplătită", "Plătită - în pregătire", "Expediată
 const CUSTOMER_NAME_KEY = "customerName";
 const CART_STORAGE_KEY = "shoppingCart";
 // Nivelul de sus: tipul de produs — orizontal, se aplică peste orice gen.
-const PRODUCT_TYPES = ["Plantă", "Semințe"];
+const PRODUCT_TYPES = ["Plante", "Semințe"];
 // Nivelul din mijloc, fix. Genurile (nivelul de jos) sunt adăugate
 // dinamic din admin, sub una din aceste 2 categorii.
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
@@ -73,6 +73,10 @@ function initAccountDropdown() {
                 dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
             }
         });
+        // Ascunde butonul "Verifică Comanda" din header când ești logat
+        const verificaBtn = document.getElementById('header-verifica-btn');
+        if (verificaBtn)
+            verificaBtn.style.display = 'none';
     }
     if (dropdown) {
         window.addEventListener('click', (event) => {

@@ -38,7 +38,7 @@ function loadLandingReviews() {
         }
         catch (error) {
             console.error("Eroare la încărcarea recenziilor:", error);
-            container.innerHTML = `<p style="color: #fdf2b8;">Nu am putut încărca recenziile.</p>`;
+            container.innerHTML = `<p style="color: #fdf2b8;"><i class="fa-solid fa-triangle-exclamation"></i> Nu am putut încărca recenziile.</p>`;
         }
     });
 }

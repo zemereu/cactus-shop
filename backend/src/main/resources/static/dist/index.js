@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 let cactiForSale = [];
 let allCategories = [];
-let selectedProductType = "Plantă";
+let selectedProductType = "Plante";
 let selectedMainCategory = "Cactuși";
 let selectedSubCategory = "Toți";
 let expandedMainCategory = "Cactuși"; // care secțiune e deschisă în sidebar
@@ -109,7 +109,7 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
-// 3. Randare Sidebar — toggle Plantă/Semințe sus, apoi Cactuși/Suculente expandabile cu genurile lor
+// 3. Randare Sidebar — toggle Plante/Semințe sus, apoi Cactuși/Suculente expandabile cu genurile lor
 function fetchAndRenderCategories() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -143,7 +143,7 @@ function renderSidebar() {
     for (const main of MAIN_CATEGORIES) {
         const isMainActive = selectedMainCategory === main;
         const isExpanded = expandedMainCategory === main;
-        const subcats = allCategories.filter(c => c.mainCategory === main);
+        const subcats = allCategories.filter(c => c.mainCategory === main).sort((a, b) => a.name.localeCompare(b.name));
         // Butonul categoriei principale (click = selectează + expandează/restrânge)
         html += `
             <button class="main-cat-btn" data-main="${escapeHtml(main)}"
@@ -186,10 +186,10 @@ function renderSidebar() {
         }
     }
     container.innerHTML = html;
-    // Click pe Plantă/Semințe -> schimbă tipul de produs, păstrează gen/categorie selectate
+    // Click pe Plante/Semințe -> schimbă tipul de produs, păstrează gen/categorie selectate
     document.querySelectorAll('.product-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            selectedProductType = e.currentTarget.getAttribute('data-type') || "Plantă";
+            selectedProductType = e.currentTarget.getAttribute('data-type') || "Plante";
             currentPage = 0;
             renderSidebar();
             fetchCacti();

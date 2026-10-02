@@ -49,6 +49,9 @@ function checkLoggedInState() {
         const loggedInPanel = document.getElementById('logged-in-panel');
         const loggedInName = document.getElementById('logged-in-name');
         const tabsContainer = tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement;
+        // Dacă nu există customerName în localStorage, nu suntem logați — skip API call
+        if (!localStorage.getItem(CUSTOMER_NAME_KEY))
+            return;
         try {
             const response = yield authFetch(`${API_BASE}/api/customers/me`);
             if (!response.ok) {

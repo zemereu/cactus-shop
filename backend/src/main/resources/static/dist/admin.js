@@ -10,6 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+function adminToast(message) {
+    const toast = document.createElement('div');
+    toast.innerHTML = message;
+    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
 // --- 1. LOGIN ---
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
@@ -43,7 +50,7 @@ let allCategoriesCache = [];
 function renderFilteredCategories() {
     var _a;
     const main = ((_a = document.getElementById('new-category-main')) === null || _a === void 0 ? void 0 : _a.value) || 'Cactuși';
-    const filtered = allCategoriesCache.filter(c => c.mainCategory === main);
+    const filtered = allCategoriesCache.filter(c => c.mainCategory === main).sort((a, b) => a.name.localeCompare(b.name));
     const container = document.getElementById('admin-categories-list');
     if (!container)
         return;
@@ -59,9 +66,11 @@ function renderFilteredCategories() {
     `).join("");
     container.querySelectorAll('.delete-category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-            const id = e.target.getAttribute('data-id');
+            var _a;
+            const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
             if (confirm("Stergi aceasta subcategorie?")) {
                 yield authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' });
+                adminToast('Categorie stearsa');
                 fetchAdminCategories();
             }
         }));
@@ -97,6 +106,7 @@ if (addCategoryBtn) {
         });
         document.getElementById('new-category-name').value = "";
         fetchAdminCategories();
+        adminToast('Categorie adaugata');
     }));
 }
 // Sincronizeaza subcategoriile cu categoria principala selectata
@@ -108,7 +118,7 @@ if (mainCatSelect) {
             const response = yield authFetch(`${API_BASE}/api/categories?mainCategory=${encodeURIComponent(main)}`);
             const categories = yield response.json();
             const subSelect = document.getElementById('new-cactus-category');
-            subSelect.innerHTML = categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
+            subSelect.innerHTML = categories.sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
         });
     }
     mainCatSelect.addEventListener('change', refreshSubcategories);
@@ -196,43 +206,53 @@ function renderAdminCacti(cacti) {
         </div>`;
     }).join("");
     container.querySelectorAll('.edit-cactus-btn').forEach(b => b.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
+        var _a;
+        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`);
         if (p)
             p.style.display = p.style.display === 'none' ? 'block' : 'none';
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        const id = e.target.getAttribute('data-id');
+        var _a;
+        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`);
         if (!p)
             return;
         const u = { name: p.querySelector('.edit-name').value.trim(), price: Number(p.querySelector('.edit-price').value), stock: Number(p.querySelector('.edit-stock').value) || 0, description: p.querySelector('.edit-desc').value.trim(), imageUrl: p.querySelector('.edit-image').value.trim(), productType: p.querySelector('.edit-product-type').value, mainCategory: p.querySelector('.edit-main-category').value, category: p.querySelector('.edit-category').value };
         const r = yield authFetch(`${API_BASE}/api/cacti/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(u) });
-        if (r.ok)
+        if (r.ok) {
             fetchAdminCacti();
+            adminToast('Produs actualizat');
+        }
         else
             alert("Eroare la salvare.");
     })));
     container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        const id = e.target.getAttribute('data-id');
+        var _a;
+        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         if (confirm("Dezactivezi acest produs?")) {
             yield authFetch(`${API_BASE}/api/cacti/${id}`, { method: 'DELETE' });
             fetchAdminCacti();
+            adminToast('Produs dezactivat');
         }
     })));
     container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        const id = e.target.getAttribute('data-id');
+        var _a;
+        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         yield authFetch(`${API_BASE}/api/cacti/${id}/reactivate`, { method: 'PUT' });
         fetchAdminCacti();
+        adminToast('Produs reactivat');
     })));
     container.querySelectorAll('.hard-delete-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        const id = e.target.getAttribute('data-id');
+        var _a;
+        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         if (!confirm("ATENTIE: Stergere definitiva?"))
             return;
         if (!confirm("Absolut sigur? Ireversibil."))
             return;
         yield authFetch(`${API_BASE}/api/cacti/${id}/permanent`, { method: 'DELETE' });
         fetchAdminCacti();
+        adminToast('Produs sters definitiv');
     })));
 }
 function fetchAdminCacti() {
@@ -288,6 +308,7 @@ if (addCactusBtn) {
         if (fileInput)
             fileInput.value = "";
         fetchAdminCacti();
+        adminToast('Produs adaugat');
     }));
 }
 // --- 4. COMENZI ---
@@ -313,7 +334,10 @@ function renderOrderRows(orders) {
     tb.querySelectorAll('.order-status-select').forEach(s => s.addEventListener('change', (e) => __awaiter(this, void 0, void 0, function* () {
         const t = e.target;
         const r = yield authFetch(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: t.value }) });
-        if (!r.ok) {
+        if (r.ok) {
+            adminToast('Status actualizat');
+        }
+        else {
             alert("Eroare status.");
             fetchAdminOrders();
         }
@@ -382,13 +406,16 @@ function fetchPendingReviews() {
                 </div>
             </div>`).join("");
             container.querySelectorAll('.approve-review-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-                yield authFetch(`${API_BASE}/api/reviews/${e.target.getAttribute('data-id')}/approve`, { method: 'PUT' });
+                var _a;
+                yield authFetch(`${API_BASE}/api/reviews/${(_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id")}/approve`, { method: 'PUT' });
                 fetchPendingReviews();
             })));
             container.querySelectorAll('.reject-review-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
+                var _a;
                 if (confirm("Respingi recenzia?")) {
-                    yield authFetch(`${API_BASE}/api/reviews/${e.target.getAttribute('data-id')}`, { method: 'DELETE' });
+                    yield authFetch(`${API_BASE}/api/reviews/${(_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id")}`, { method: 'DELETE' });
                     fetchPendingReviews();
+                    adminToast('Recenzie respinsa');
                 }
             })));
         }
