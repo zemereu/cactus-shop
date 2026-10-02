@@ -155,7 +155,7 @@
                 <input type="number" id="new-cactus-price" placeholder="Preț (RON)" class="admin-input">
                 <input type="number" id="new-cactus-stock" placeholder="Stoc" min="0" class="admin-input">
                 <select id="new-cactus-product-type" class="admin-input">
-                    <option value="Plantă">Plantă</option>
+                    <option value="Plante">Plante</option>
                     <option value="Semințe">Semințe</option>
                 </select>
                 <select id="new-cactus-main-category" class="admin-input">
@@ -185,7 +185,7 @@
                 <input type="text" id="new-category-name" placeholder="Nume subcategorie (ex: Mammillaria)" class="admin-input" style="flex-grow: 1;">
                 <button id="add-category-btn" class="admin-btn btn-primary">+ Adaugă</button>
             </div>
-            <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            <div id="admin-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 300px; overflow-y: auto; padding: 5px;"></div>
         </div>
 
         <!-- TAB: Comenzi -->

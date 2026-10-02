@@ -18,7 +18,7 @@ public class Cactus {
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
-    // "Plantă" | "Semințe" — nivelul de sus, tip de produs
+    // "Plante" | "Semințe" — nivelul de sus, tip de produs
     private String productType;
 
     // "Cactuși" | "Suculente" — nivelul din mijloc

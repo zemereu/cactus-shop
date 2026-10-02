@@ -9,7 +9,7 @@ public record CactusRequestDTO(
         @NotBlank(message = "Numele produsului este obligatoriu.") String name,
         @NotNull(message = "Prețul este obligatoriu.")
         @Positive(message = "Prețul trebuie să fie mai mare decât 0.") BigDecimal price,
-        @NotBlank(message = "Tipul de produs (Plantă/Semințe) este obligatoriu.") String productType,
+        @NotBlank(message = "Tipul de produs (Plante/Semințe) este obligatoriu.") String productType,
         @NotBlank(message = "Categoria principală (Cactuși/Suculente) este obligatorie.") String mainCategory,
         @NotBlank(message = "Genul (subcategoria) este obligatoriu.") String category,
         String description,

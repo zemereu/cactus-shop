@@ -41,7 +41,7 @@ let allCategoriesCache: Category[] = [];
 
 function renderFilteredCategories() {
     const main = (document.getElementById('new-category-main') as HTMLSelectElement)?.value || 'Cactuși';
-    const filtered = allCategoriesCache.filter(c => c.mainCategory === main);
+    const filtered = allCategoriesCache.filter(c => c.mainCategory === main).sort((a, b) => a.name.localeCompare(b.name));
     const container = document.getElementById('admin-categories-list');
     if (!container) return;
     if (filtered.length === 0) { container.innerHTML = '<span style="color:#999; font-style:italic;">Nicio subcategorie.</span>'; return; }
@@ -53,7 +53,7 @@ function renderFilteredCategories() {
     `).join("");
     container.querySelectorAll('.delete-category-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+            const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (confirm("Stergi aceasta subcategorie?")) {
                 await authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' }); adminToast('Categorie stearsa');
                 fetchAdminCategories();
@@ -97,7 +97,7 @@ if (mainCatSelect) {
         const response = await authFetch(`${API_BASE}/api/categories?mainCategory=${encodeURIComponent(main)}`);
         const categories: Category[] = await response.json();
         const subSelect = document.getElementById('new-cactus-category') as HTMLSelectElement;
-        subSelect.innerHTML = categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
+        subSelect.innerHTML = categories.sort((a: Category, b: Category) => a.name.localeCompare(b.name)).map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
     }
     mainCatSelect.addEventListener('change', refreshSubcategories);
     refreshSubcategories();
@@ -173,12 +173,12 @@ function renderAdminCacti(cacti: Cactus[]) {
     }).join("");
 
     container.querySelectorAll('.edit-cactus-btn').forEach(b => b.addEventListener('click', (e) => {
-        const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', async (e) => {
-        const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (!p) return;
         const u = { name: (p.querySelector('.edit-name') as HTMLInputElement).value.trim(), price: Number((p.querySelector('.edit-price') as HTMLInputElement).value), stock: Number((p.querySelector('.edit-stock') as HTMLInputElement).value)||0, description: (p.querySelector('.edit-desc') as HTMLInputElement).value.trim(), imageUrl: (p.querySelector('.edit-image') as HTMLInputElement).value.trim(), productType: (p.querySelector('.edit-product-type') as HTMLInputElement).value, mainCategory: (p.querySelector('.edit-main-category') as HTMLInputElement).value, category: (p.querySelector('.edit-category') as HTMLInputElement).value };
@@ -186,15 +186,15 @@ function renderAdminCacti(cacti: Cactus[]) {
         if (r.ok) { fetchAdminCacti(); adminToast('Produs actualizat'); } else alert("Eroare la salvare.");
     }));
     container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', async (e) => {
-        const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         if (confirm("Dezactivezi acest produs?")) { await authFetch(`${API_BASE}/api/cacti/${id}`, {method:'DELETE'}); fetchAdminCacti(); adminToast('Produs dezactivat'); }
     }));
     container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', async (e) => {
-        const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         await authFetch(`${API_BASE}/api/cacti/${id}/reactivate`, {method:'PUT'}); fetchAdminCacti(); adminToast('Produs reactivat');
     }));
     container.querySelectorAll('.hard-delete-btn').forEach(b => b.addEventListener('click', async (e) => {
-        const id = (e.target as HTMLButtonElement).getAttribute('data-id');
+        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         if (!confirm("ATENTIE: Stergere definitiva?")) return;
         if (!confirm("Absolut sigur? Ireversibil.")) return;
         await authFetch(`${API_BASE}/api/cacti/${id}/permanent`, {method:'DELETE'}); fetchAdminCacti(); adminToast('Produs sters definitiv');
@@ -321,10 +321,10 @@ async function fetchPendingReviews() {
                 </div>
             </div>`).join("");
         container.querySelectorAll('.approve-review-btn').forEach(b => b.addEventListener('click', async (e) => {
-            await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLButtonElement).getAttribute('data-id')}/approve`, {method:'PUT'}); fetchPendingReviews();
+            await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id")}/approve`, {method:'PUT'}); fetchPendingReviews();
         }));
         container.querySelectorAll('.reject-review-btn').forEach(b => b.addEventListener('click', async (e) => {
-            if (confirm("Respingi recenzia?")) { await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLButtonElement).getAttribute('data-id')}`, {method:'DELETE'}); fetchPendingReviews(); adminToast('Recenzie respinsa'); }
+            if (confirm("Respingi recenzia?")) { await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id")}`, {method:'DELETE'}); fetchPendingReviews(); adminToast('Recenzie respinsa'); }
         }));
     } catch (e) { console.error("Eroare recenzii:", e); }
 }

@@ -2,7 +2,7 @@
 
 let cactiForSale: Cactus[] = [];
 let allCategories: Category[] = [];
-let selectedProductType: string = "Plantă";
+let selectedProductType: string = "Plante";
 let selectedMainCategory: string = "Cactuși";
 let selectedSubCategory: string = "Toți";
 let expandedMainCategory: string = "Cactuși"; // care secțiune e deschisă în sidebar
@@ -107,7 +107,7 @@ function showToast(message: string) {
     }, 3000);
 }
 
-// 3. Randare Sidebar — toggle Plantă/Semințe sus, apoi Cactuși/Suculente expandabile cu genurile lor
+// 3. Randare Sidebar — toggle Plante/Semințe sus, apoi Cactuși/Suculente expandabile cu genurile lor
 async function fetchAndRenderCategories() {
     try {
         const response = await fetch(`${API_BASE}/api/categories`);
@@ -141,7 +141,7 @@ function renderSidebar() {
     for (const main of MAIN_CATEGORIES) {
         const isMainActive = selectedMainCategory === main;
         const isExpanded = expandedMainCategory === main;
-        const subcats = allCategories.filter(c => c.mainCategory === main);
+        const subcats = allCategories.filter(c => c.mainCategory === main).sort((a, b) => a.name.localeCompare(b.name));
 
         // Butonul categoriei principale (click = selectează + expandează/restrânge)
         html += `
@@ -190,10 +190,10 @@ function renderSidebar() {
 
     container.innerHTML = html;
 
-    // Click pe Plantă/Semințe -> schimbă tipul de produs, păstrează gen/categorie selectate
+    // Click pe Plante/Semințe -> schimbă tipul de produs, păstrează gen/categorie selectate
     document.querySelectorAll('.product-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            selectedProductType = (e.currentTarget as HTMLButtonElement).getAttribute('data-type') || "Plantă";
+            selectedProductType = (e.currentTarget as HTMLButtonElement).getAttribute('data-type') || "Plante";
             currentPage = 0;
             renderSidebar();
             fetchCacti();
