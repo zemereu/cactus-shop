@@ -175,7 +175,13 @@ function renderAdminCacti(cacti: Cactus[]) {
     container.querySelectorAll('.edit-cactus-btn').forEach(b => b.addEventListener('click', (e) => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
-        if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        if (!p) return;
+        const opening = p.style.display === 'none';
+        // Închide toate celelalte panouri
+        container.querySelectorAll('.edit-panel').forEach((panel: Element) => {
+            (panel as HTMLElement).style.display = 'none';
+        });
+        if (opening) p.style.display = 'block';
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
