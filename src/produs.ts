@@ -100,6 +100,16 @@ async function loadProduct() {
         const similar = allProducts.filter(p => p.id !== product.id && p.category === product.category && p.active).slice(0, 4);
         renderSimilar(similar);
 
+        // Breadcrumbs
+        document.getElementById('product-content')!.insertAdjacentHTML('afterbegin', `
+            <div class="breadcrumbs">
+                <a href="index.html">Acasă</a><span>›</span>
+                <a href="shop.html">Magazin</a><span>›</span>
+                <a href="shop.html">${escapeHtml(product.mainCategory)}</a><span>›</span>
+                <a href="shop.html">${escapeHtml(product.category)}</a><span>›</span>
+                <strong style="color:#333;">${escapeHtml(product.name)}</strong>
+            </div>`);
+
         // Show content
         document.getElementById('product-loading')!.style.display = 'none';
         document.getElementById('product-content')!.style.display = 'block';

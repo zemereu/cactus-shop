@@ -661,3 +661,20 @@ body.view-list .cactus-card button {
     transform: scale(1.2) !important;
     color: #d32f2f !important;
 }
+/* === SCROLL TO TOP === */
+#scroll-top-btn {
+    display: none; position: fixed; bottom: 25px; right: 25px;
+    width: 45px; height: 45px; background: #2f694b; color: #fdf2b8;
+    border: none; border-radius: 50%; font-size: 1.2em; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 900;
+}
+#scroll-top-btn:hover { background: #FF9800 !important; transform: scale(1.1); }
+
+/* === BREADCRUMBS === */
+.breadcrumbs { padding: 10px 0; font-size: 0.85em; color: #666; }
+.breadcrumbs a { color: #2f694b; text-decoration: none; }
+.breadcrumbs a:hover { color: #FF9800 !important; }
+.breadcrumbs span { color: #999; margin: 0 6px; }
+
+/* === ZOOM BUTTON === */
+.zoom-btn:hover { transform: scale(1.2) !important; color: #FF9800 !important; }

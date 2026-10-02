@@ -384,6 +384,9 @@ function renderCacti() {
                     <button class="wishlist-btn" data-id="${cactus.id}" style="position: absolute; top: 10px; right: 10px; background: white; border: none; cursor: pointer; font-size: 1.3em; padding: 6px 8px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; color: ${hearted ? '#d32f2f' : '#ccc'};">
                         <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
                     </button>
+                    <button class="zoom-btn" data-img="${escapeHtml(validImage)}" style="position: absolute; top: 10px; left: 10px; background: white; border: none; cursor: pointer; font-size: 1.1em; padding: 6px 8px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; color: #2f694b;">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    </button>
                     <a href="produs.html?id=${cactus.id}"><img class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
                     <div class="cactus-details">
                         ${categoryTag}
@@ -419,6 +422,18 @@ function renderCacti() {
                 zoomImg.src = (img as HTMLImageElement).src;
                 modal.style.display = 'flex';
             }
+        });
+    });
+
+    // Zoom buttons
+    document.querySelectorAll('.zoom-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const src = (e.target as HTMLElement).closest('[data-img]')?.getAttribute('data-img');
+            const modal = document.getElementById('zoom-modal');
+            const zoomImg = document.getElementById('zoom-img') as HTMLImageElement;
+            if (modal && zoomImg && src) { zoomImg.src = src; modal.style.display = 'flex'; }
         });
     });
 

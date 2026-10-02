@@ -120,6 +120,8 @@
     </button>
 </div>
 
+<button id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-arrow-up"></i></button>
+<script>window.addEventListener('scroll',()=>{document.getElementById('scroll-top-btn').style.display=window.scrollY>300?'block':'none';});</script>
 <script src="dist/shared.js"></script>
 <script src="dist/index.js"></script>
 </body>
