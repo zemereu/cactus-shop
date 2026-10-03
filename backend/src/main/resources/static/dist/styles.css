@@ -2,6 +2,11 @@
    CACTUS SHOP — HOVER, TRANSITIONS & CONSISTENCY
    ====================================================== */
 
+/* Font global — nu mai trebuie repetat pe fiecare element */
+body, button, input, select, textarea {
+    font-family: 'Poppins', sans-serif;
+}
+
 /* Tranziții globale pe tot ce e interactiv */
 a, button, input, select, textarea,
 .hover-card, .product-card, .stat-card, .review-card,
@@ -656,11 +661,25 @@ body.view-list .cactus-card button {
         font-size: 0.85em !important;
     }
 }
-/* === WISHLIST BUTTON === */
-.wishlist-btn:hover {
-    transform: scale(1.2) !important;
-    color: #d32f2f !important;
+/* === CARD ACTION BUTTONS (wishlist, zoom) === */
+.card-action-btn {
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.85);
+    border: none; border-radius: 6px;
+    cursor: pointer; font-size: 0.85em; color: #999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: all 0.2s ease;
 }
+.cactus-card:hover .card-action-btn { opacity: 1; }
+.card-action-btn:hover {
+    background: white; transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.wishlist-btn:hover { color: #d32f2f !important; }
+.zoom-btn:hover { color: #2f694b !important; }
+/* Wishlist activ = mereu vizibil */
+.wishlist-btn[style*="#d32f2f"] { opacity: 1 !important; }
+
 /* === SCROLL TO TOP === */
 #scroll-top-btn {
     display: none; position: fixed; bottom: 25px; right: 25px;
@@ -675,6 +694,3 @@ body.view-list .cactus-card button {
 .breadcrumbs a { color: #2f694b; text-decoration: none; }
 .breadcrumbs a:hover { color: #FF9800 !important; }
 .breadcrumbs span { color: #999; margin: 0 6px; }
-
-/* === ZOOM BUTTON === */
-.zoom-btn:hover { transform: scale(1.2) !important; color: #FF9800 !important; }

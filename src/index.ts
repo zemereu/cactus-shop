@@ -341,12 +341,14 @@ function renderCacti() {
             const hearted = isWishlisted(cactus.id);
             htmlContent += `
                 <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent; position: relative;">
-                    <button class="wishlist-btn" data-id="${cactus.id}" style="position: absolute; top: 10px; right: 10px; background: white; border: none; cursor: pointer; font-size: 1.3em; padding: 6px 8px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; color: ${hearted ? '#d32f2f' : '#ccc'};">
-                        <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
-                    </button>
-                    <button class="zoom-btn" data-img="${escapeHtml(validImage)}" style="position: absolute; top: 10px; left: 10px; background: white; border: none; cursor: pointer; font-size: 1.1em; padding: 6px 8px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2; color: #2f694b;">
-                        <i class="fa-solid fa-magnifying-glass-plus"></i>
-                    </button>
+                    <div class="card-actions" style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 2;">
+                        <button class="wishlist-btn card-action-btn" data-id="${cactus.id}" style="color: ${hearted ? '#d32f2f' : '#999'};" title="Favorite">
+                            <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
+                        </button>
+                        <button class="zoom-btn card-action-btn" data-img="${escapeHtml(validImage)}" title="Zoom">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
                     <a href="produs.html?id=${cactus.id}"><img loading="lazy" class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
                     <div class="cactus-details">
                         ${categoryTag}
