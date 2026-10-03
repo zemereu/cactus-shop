@@ -526,97 +526,14 @@ if (cartButton && cartModal) {
 }
 // 7. Checkout Process
 const checkoutBtn = document.getElementById('checkout-btn');
-const checkoutForm = document.getElementById('checkout-form');
-const submitOrderBtn = document.getElementById('submit-order-btn');
-if (checkoutBtn && checkoutForm && submitOrderBtn) {
+if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
         if (shoppingCart.length === 0) {
-            alert("Coșul este gol! Adaugă un cactus mai întâi.");
+            showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Coșul este gol!');
             return;
         }
-        checkoutBtn.style.display = 'none';
-        checkoutForm.style.display = 'block';
+        window.location.href = 'checkout.html';
     });
-    submitOrderBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
-        const nameInput = document.getElementById('customer-name').value.trim();
-        const emailInput = document.getElementById('customer-email').value.trim();
-        const addressInput = document.getElementById('customer-address').value.trim();
-        if (!nameInput || !emailInput || !addressInput) {
-            alert("Te rog să completezi numele, emailul și adresa de livrare!");
-            return;
-        }
-        // Refresh stoc înainte de submit — verifică doar produsele din coș
-        try {
-            const cartCounts = new Map();
-            shoppingCart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
-            const problems = [];
-            for (const [id, qty] of cartCounts) {
-                const r = yield fetch(`${API_BASE}/api/cacti/${id}`);
-                if (!r.ok) {
-                    problems.push(`Produsul #${id} nu mai este disponibil.`);
-                    continue;
-                }
-                const fresh = yield r.json();
-                if (fresh.stock < qty)
-                    problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
-            }
-            if (problems.length > 0) {
-                alert("Stocul s-a schimbat:\n\n" + problems.join("\n") + "\n\nActualizează coșul.");
-                return;
-            }
-        }
-        catch (e) { /* continuă cu submit-ul, backend-ul verifică oricum */ }
-        const cactusIds = shoppingCart.map(item => item.id);
-        const newOrder = {
-            customerName: nameInput,
-            email: emailInput,
-            address: addressInput,
-            cactusIds: cactusIds
-        };
-        try {
-            const response = yield fetch(`${API_BASE}/api/orders`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newOrder)
-            });
-            if (!response.ok) {
-                const errorMsg = yield response.text();
-                throw new Error(errorMsg || "Eroare la procesarea comenzii.");
-            }
-            const savedOrder = yield response.json();
-            shoppingCart = [];
-            updateCartUI();
-            document.getElementById('customer-name').value = "";
-            document.getElementById('customer-email').value = "";
-            document.getElementById('customer-address').value = "";
-            checkoutForm.style.display = 'none';
-            // Afișăm confirmarea cu nr. comandă + detaliile de plată prin transfer bancar
-            const confirmationDiv = document.getElementById('order-confirmation');
-            if (confirmationDiv) {
-                confirmationDiv.style.display = 'block';
-                confirmationDiv.innerHTML = `
-                    <p style="color: #2f694b; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Comanda a fost plasată!</p>
-                    <p><strong>Codul comenzii:</strong> <code style="background: #e8f5e9; padding: 2px 6px; border-radius: 3px; font-size: 0.85em; word-break: break-all;">${escapeHtml(savedOrder.orderToken)}</code></p>
-                    <p>Notează acest cod — ai nevoie de el ca să verifici statusul mai târziu.</p>
-                    <p style="margin-top: 10px;"><strong>Total de plată: ${savedOrder.totalPrice} RON</strong></p>
-                    <div style="background: #fdf2b8; border: 1px solid #2f694b; border-radius: 4px; padding: 10px; margin-top: 10px;">
-                        <p style="margin: 0 0 5px 0; font-weight: bold;">Plată prin transfer bancar:</p>
-                        <p style="margin: 2px 0;">IBAN: ${escapeHtml(BANK_TRANSFER_INFO.iban)}</p>
-                        <p style="margin: 2px 0;">Bancă: ${escapeHtml(BANK_TRANSFER_INFO.bank)}</p>
-                        <p style="margin: 2px 0;">Titular: ${escapeHtml(BANK_TRANSFER_INFO.holder)}</p>
-                        <p style="margin: 8px 0 0 0; font-style: italic;">Menționează codul comenzii la detalii transfer.</p>
-                    </div>
-                    <p style="margin-top: 10px;">Comanda ta va apărea ca „plătită" după ce confirmăm transferul.
-                       Poți verifica oricând statusul pe pagina <a href="comenzi.html" style="color: #2f694b; font-weight: bold;">Verifică Comanda</a>.</p>
-                `;
-            }
-            checkoutBtn.style.display = 'block';
-        }
-        catch (error) {
-            console.error(error);
-            alert(error.message || "A apărut o eroare la salvarea comenzii.");
-        }
-    }));
 }
 // 8. Paginare
 function renderPagination() {
