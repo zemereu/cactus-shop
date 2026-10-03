@@ -28,6 +28,8 @@ public interface CactusRepository extends JpaRepository<Cactus, Long> {
 
     Page<Cactus> findByActiveTrueAndNameContainingIgnoreCase(String name, Pageable pageable);
 
+    List<Cactus> findByActiveTrue();
+
     // --- Filtre admin (toate produsele, fără paginare) ---
 
     List<Cactus> findByProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
