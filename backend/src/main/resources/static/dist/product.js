@@ -45,6 +45,25 @@ function loadProduct() {
                 return;
             }
             document.title = `${product.name} - Cactus Shop`;
+            // Dynamic SEO
+            const metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc)
+                metaDesc.setAttribute('content', `${product.name} — ${product.price} RON. ${product.description || 'Cactus Shop'}`);
+            const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement('meta');
+            ogTitle.setAttribute('property', 'og:title');
+            ogTitle.setAttribute('content', product.name);
+            if (!ogTitle.parentNode)
+                document.head.appendChild(ogTitle);
+            const ogDesc = document.querySelector('meta[property="og:description"]') || document.createElement('meta');
+            ogDesc.setAttribute('property', 'og:description');
+            ogDesc.setAttribute('content', `${product.price} RON — ${product.description || ''}`);
+            if (!ogDesc.parentNode)
+                document.head.appendChild(ogDesc);
+            const ogImg = document.querySelector('meta[property="og:image"]') || document.createElement('meta');
+            ogImg.setAttribute('property', 'og:image');
+            ogImg.setAttribute('content', product.imageUrl || '');
+            if (!ogImg.parentNode)
+                document.head.appendChild(ogImg);
             // Fill product details
             document.getElementById('product-image').src = product.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=600&q=80';
             document.getElementById('product-name').innerText = product.name;
@@ -168,7 +187,7 @@ function renderSimilar(products) {
         const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
         return `
         <a href="produs.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
-            <img src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
+            <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
             <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
             <p style="color:#d32f2f; font-weight:bold; margin:0;">${p.price} RON</p>
         </a>`;

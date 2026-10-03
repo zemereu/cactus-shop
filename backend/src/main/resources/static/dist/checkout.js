@@ -54,7 +54,8 @@ function renderCheckoutItems() {
     totalEl.innerText = total.toFixed(2);
 }
 renderCheckoutItems();
-// Pre-fill dacă logat
+// Pre-fill dacă logat — ascunde formularul, arată rezumatul
+let isLoggedIn = false;
 function prefillFromAccount() {
     return __awaiter(this, void 0, void 0, function* () {
         const name = localStorage.getItem(CUSTOMER_NAME_KEY);
@@ -65,17 +66,30 @@ function prefillFromAccount() {
             if (!response.ok)
                 return;
             const profile = yield response.json();
+            isLoggedIn = true;
             document.getElementById('checkout-name').value = profile.name || '';
             document.getElementById('checkout-email').value = profile.email || '';
             document.getElementById('checkout-address').value = profile.address || '';
+            // Ascunde câmpurile, arată rezumatul
+            const formFields = document.getElementById('checkout-fields');
             const info = document.getElementById('logged-in-info');
             const loggedName = document.getElementById('checkout-logged-name');
-            if (info && loggedName) {
-                loggedName.innerText = profile.name;
-                info.style.display = 'block';
-            }
+            formFields.style.display = 'none';
+            loggedName.innerText = profile.name;
+            info.style.display = 'block';
+            info.innerHTML = `
+            <div style="margin-bottom: 12px;">
+                <i class="fa-solid fa-circle-check" style="color: #2f694b; font-size: 1.2em;"></i>
+                <strong style="color: #2f694b;"> Logat ca ${escapeHtml(profile.name)}</strong>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.95em;">
+                <div><i class="fa-solid fa-envelope" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.email)}</div>
+                <div><i class="fa-solid fa-location-dot" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.address || 'Fără adresă salvată')}</div>
+            </div>
+            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="cont.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
+        `;
         }
-        catch (e) { /* nu e logat, form-ul rămâne gol */ }
+        catch (e) { /* nu e logat, form-ul rămâne vizibil */ }
     });
 }
 prefillFromAccount();
@@ -89,7 +103,9 @@ if (checkoutSubmitBtn) {
         const errorEl = document.getElementById('checkout-error');
         if (!nameVal || !emailVal || !addressVal) {
             if (errorEl) {
-                errorEl.innerText = 'Completează toate câmpurile.';
+                errorEl.innerHTML = isLoggedIn && !addressVal
+                    ? 'Adaugă o adresă în <a href="cont.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
+                    : 'Completează toate câmpurile.';
                 errorEl.style.display = 'block';
             }
             return;
