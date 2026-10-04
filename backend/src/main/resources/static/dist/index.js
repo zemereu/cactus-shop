@@ -277,12 +277,11 @@ applyViewMode();
 let currentSort = 'name-asc';
 function sortCacti(cacti) {
     let sorted = [...cacti];
-    if (currentSort === 'favorites') {
+    if (showOnlyFavorites) {
         sorted = sorted.filter(c => isWishlisted(c.id));
     }
     switch (currentSort) {
         case 'name-asc':
-        case 'favorites':
             sorted.sort((a, b) => a.name.localeCompare(b.name));
             break;
         case 'name-desc':
@@ -393,9 +392,14 @@ function renderCacti() {
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             var _a;
+            e.preventDefault();
+            e.stopPropagation();
             const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
-            if (id)
+            if (id) {
                 toggleWishlist(id);
+                updateFavoritesCount();
+                renderCacti();
+            }
         });
     });
     const addButtons = document.querySelectorAll('.add-to-cart-btn');
@@ -598,7 +602,35 @@ const priceMaxInput = document.getElementById('price-max');
             priceTimeout = setTimeout(() => fetchCacti(), 500);
         });
 });
-// 10. Recently viewed
+// 10. Buton Favorite toggle
+let showOnlyFavorites = false;
+const favoritesBtn = document.getElementById('favorites-btn');
+const favoritesCount = document.getElementById('favorites-count');
+function updateFavoritesCount() {
+    if (favoritesCount) {
+        const count = wishlist.length;
+        if (count > 0) {
+            favoritesCount.innerText = String(count);
+            favoritesCount.style.display = 'inline';
+        }
+        else {
+            favoritesCount.style.display = 'none';
+        }
+    }
+    if (favoritesBtn) {
+        favoritesBtn.style.backgroundColor = showOnlyFavorites ? '#2f694b' : 'transparent';
+        favoritesBtn.style.color = showOnlyFavorites ? '#fdf2b8' : '#2f694b';
+    }
+}
+if (favoritesBtn) {
+    favoritesBtn.addEventListener('click', () => {
+        showOnlyFavorites = !showOnlyFavorites;
+        updateFavoritesCount();
+        renderCacti();
+    });
+}
+updateFavoritesCount();
+// 11. Recently viewed
 function renderRecentlyViewed() {
     const container = document.getElementById('recent-products');
     const wrapper = document.getElementById('recently-viewed');
