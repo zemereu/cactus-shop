@@ -3,8 +3,10 @@ package com.cactusshop.backend.service;
 import com.cactusshop.backend.dto.OrderRequestDTO;
 import com.cactusshop.backend.dto.OrderStatusResponseDTO;
 import com.cactusshop.backend.model.Cactus;
+import com.cactusshop.backend.model.Customer;
 import com.cactusshop.backend.model.Order;
 import com.cactusshop.backend.repository.CactusRepository;
+import com.cactusshop.backend.repository.CustomerRepository;
 import com.cactusshop.backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,19 +26,20 @@ public class OrderService {
     @Autowired
     private CactusRepository cactusRepository;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     private static final Set<String> VALID_STATUSES = Set.of(
             "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"
     );
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-    // authenticatedEmail e null pentru comenzi guest (neautentificat).
-    // Dacă e prezent (client logat), IGNORĂM emailul trimis din formular
-    // și folosim emailul real al contului — altfel un typo sau un email
-    // diferit tastat la checkout ar rupe legătura cu "Comenzile mele",
-    // exact bug-ul raportat.
+    // Only the authenticated principal can establish account ownership.
+    // Guest email addresses remain contact details, never account identifiers.
     @Transactional
     public Order placeOrder(OrderRequestDTO request, String authenticatedEmail) {
+        Customer customer = authenticatedEmail == null ? null : requireCustomer(authenticatedEmail);
         Map<Long, Integer> quantityMap = new LinkedHashMap<>();
         for (Long id : request.cactusIds()) {
             quantityMap.merge(id, 1, Integer::sum);
@@ -74,7 +77,8 @@ public class OrderService {
 
         Order order = new Order();
         order.setCustomerName(request.customerName().trim());
-        order.setEmail(authenticatedEmail != null ? authenticatedEmail : request.email().trim());
+        order.setEmail(customer != null ? customer.getEmail() : request.email().trim());
+        order.setCustomer(customer);
         order.setAddress(request.address().trim());
         order.setTotalPrice(total);
         order.setPurchasedItems(String.join(", ", itemNames));
@@ -114,11 +118,17 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    public List<OrderStatusResponseDTO> getOrdersByEmail(String email) {
-        List<Order> orders = orderRepository.findByEmailIgnoreCaseOrderByIdDesc(email);
+    public List<OrderStatusResponseDTO> getOrdersForCustomer(String authenticatedEmail) {
+        Customer customer = requireCustomer(authenticatedEmail);
+        List<Order> orders = orderRepository.findByCustomer_IdOrderByIdDesc(customer.getId());
         return orders.stream().map(o -> new OrderStatusResponseDTO(
                 o.getId(), o.getOrderToken(), o.getStatus(), o.getPurchasedItems(), o.getTotalPrice(),
                 o.getCreatedAt() != null ? o.getCreatedAt().format(DATE_FORMAT) : ""
         )).collect(Collectors.toList());
+    }
+
+    private Customer requireCustomer(String email) {
+        return customerRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
     }
 }

@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderToken(String orderToken);
-    List<Order> findByEmailIgnoreCaseOrderByIdDesc(String email);
+    List<Order> findByCustomer_IdOrderByIdDesc(Long customerId);
 }

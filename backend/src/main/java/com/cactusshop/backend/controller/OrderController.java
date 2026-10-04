@@ -27,7 +27,7 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Trebuie sa fii logat.");
         }
         String email = authentication.getName();
-        List<OrderStatusResponseDTO> orders = orderService.getOrdersByEmail(email);
+        List<OrderStatusResponseDTO> orders = orderService.getOrdersForCustomer(email);
         return ResponseEntity.ok(orders);
     }
 
