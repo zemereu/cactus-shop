@@ -1,5 +1,6 @@
 package com.cactusshop.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -7,7 +8,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "orders", indexes = {
-        @Index(name = "idx_order_email", columnList = "email")
+        @Index(name = "idx_order_email", columnList = "email"),
+        @Index(name = "idx_order_customer", columnList = "customer_id")
 })
 public class Order {
 
@@ -22,6 +24,12 @@ public class Order {
     private String customerName;
     private String email;
     private String address;
+
+    // Null for guest and legacy orders; email alone never establishes ownership.
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", updatable = false)
+    private Customer customer;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal totalPrice;
@@ -48,6 +56,9 @@ public class Order {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
 
     public BigDecimal getTotalPrice() { return totalPrice; }
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }

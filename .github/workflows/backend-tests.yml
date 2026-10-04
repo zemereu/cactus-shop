@@ -1,0 +1,51 @@
+name: Backend tests
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cactus_shop_test
+          POSTGRES_USER: cactus_test
+          POSTGRES_PASSWORD: test-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cactus_test -d cactus_shop_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cactus_shop_test
+      SPRING_DATASOURCE_USERNAME: cactus_test
+      SPRING_DATASOURCE_PASSWORD: test-only-password
+      JWT_SECRET: test-only-jwt-secret-at-least-32-characters
+      ADMIN_USERNAME: test-admin
+      ADMIN_PASSWORD_HASH: unused-by-context-and-ownership-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Run backend tests
+        working-directory: backend
+        run: bash mvnw --batch-mode --no-transfer-progress verify
