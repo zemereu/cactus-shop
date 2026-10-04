@@ -29,8 +29,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/customers/register", "/api/customers/login").permitAll() // cont client
                         .requestMatchers("/api/customers/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/cacti/{id}").permitAll()
+                        // Regula exactă trebuie evaluată înainte de /{id}, care se potrivește și cu "all".
                         .requestMatchers(HttpMethod.GET, "/api/cacti/all").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/cacti/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll() // comandă guest
                         .requestMatchers(HttpMethod.GET, "/api/orders/lookup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/orders/my").hasRole("CUSTOMER")
