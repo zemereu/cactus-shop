@@ -86,7 +86,7 @@ function prefillFromAccount() {
                 <div><i class="fa-solid fa-envelope" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.email)}</div>
                 <div><i class="fa-solid fa-location-dot" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.address || 'Fără adresă salvată')}</div>
             </div>
-            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="cont.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
+            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="account.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
         `;
         }
         catch (e) { /* nu e logat, form-ul rămâne vizibil */ }
@@ -104,7 +104,7 @@ if (checkoutSubmitBtn) {
         if (!nameVal || !emailVal || !addressVal) {
             if (errorEl) {
                 errorEl.innerHTML = isLoggedIn && !addressVal
-                    ? 'Adaugă o adresă în <a href="cont.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
+                    ? 'Adaugă o adresă în <a href="account.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
                     : 'Completează toate câmpurile.';
                 errorEl.style.display = 'block';
             }

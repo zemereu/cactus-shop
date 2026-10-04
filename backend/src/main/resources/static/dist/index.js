@@ -21,7 +21,7 @@ let totalPages = 0;
 const PAGE_SIZE = 12;
 // showToast, wishlist, toggleWishlist, isWishlisted vin din shared.ts
 // Coșul se încarcă din localStorage la pornire, ca să nu dispară
-// când navighezi pe altă pagină (ex: cont.html) și te întorci.
+// când navighezi pe altă pagină (ex: account.html) și te întorci.
 function loadCartFromStorage() {
     try {
         const raw = localStorage.getItem(CART_STORAGE_KEY);

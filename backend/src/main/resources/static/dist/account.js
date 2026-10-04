@@ -12,7 +12,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const REDIRECT_FALLBACK = "shop.html";
 function getRedirectTarget() {
     const referrer = document.referrer;
-    if (referrer && !referrer.includes('cont.html')) {
+    if (referrer && !referrer.includes('account.html')) {
         try {
             const referrerUrl = new URL(referrer);
             if (referrerUrl.origin === window.location.origin) {

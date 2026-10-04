@@ -14,7 +14,7 @@ const PAGE_SIZE: number = 12;
 // showToast, wishlist, toggleWishlist, isWishlisted vin din shared.ts
 
 // Coșul se încarcă din localStorage la pornire, ca să nu dispară
-// când navighezi pe altă pagină (ex: cont.html) și te întorci.
+// când navighezi pe altă pagină (ex: account.html) și te întorci.
 function loadCartFromStorage(): Cactus[] {
     try {
         const raw = localStorage.getItem(CART_STORAGE_KEY);
@@ -295,11 +295,11 @@ let currentSort = 'name-asc';
 
 function sortCacti(cacti: Cactus[]): Cactus[] {
     let sorted = [...cacti];
-    if (currentSort === 'favorites') {
+    if (showOnlyFavorites) {
         sorted = sorted.filter(c => isWishlisted(c.id));
     }
     switch (currentSort) {
-        case 'name-asc': case 'favorites': sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
+        case 'name-asc': sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
         case 'name-desc': sorted.sort((a, b) => b.name.localeCompare(a.name)); break;
         case 'price-asc': sorted.sort((a, b) => a.price - b.price); break;
         case 'price-desc': sorted.sort((a, b) => b.price - a.price); break;
@@ -402,8 +402,10 @@ function renderCacti() {
     // Wishlist buttons
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
-            if (id) toggleWishlist(id);
+            if (id) { toggleWishlist(id); updateFavoritesCount(); renderCacti(); }
         });
     });
 
@@ -624,7 +626,34 @@ const priceMaxInput = document.getElementById('price-max');
     });
 });
 
-// 10. Recently viewed
+// 10. Buton Favorite toggle
+let showOnlyFavorites = false;
+const favoritesBtn = document.getElementById('favorites-btn');
+const favoritesCount = document.getElementById('favorites-count');
+
+function updateFavoritesCount() {
+    if (favoritesCount) {
+        const count = wishlist.length;
+        if (count > 0) { favoritesCount.innerText = String(count); favoritesCount.style.display = 'inline'; }
+        else { favoritesCount.style.display = 'none'; }
+    }
+    if (favoritesBtn) {
+        favoritesBtn.style.backgroundColor = showOnlyFavorites ? '#2f694b' : 'transparent';
+        favoritesBtn.style.color = showOnlyFavorites ? '#fdf2b8' : '#2f694b';
+    }
+}
+
+if (favoritesBtn) {
+    favoritesBtn.addEventListener('click', () => {
+        showOnlyFavorites = !showOnlyFavorites;
+        updateFavoritesCount();
+        renderCacti();
+    });
+}
+
+updateFavoritesCount();
+
+// 11. Recently viewed
 function renderRecentlyViewed() {
     const container = document.getElementById('recent-products');
     const wrapper = document.getElementById('recently-viewed');
