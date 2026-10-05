@@ -45,10 +45,11 @@ public class CustomerAuthController {
         try {
             Customer customer = customerService.register(request);
             rateLimiter.recordSuccess(clientIp);
-            String token = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER");
+            String jwt = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER");
+            // TODO: trimite email cu link de verificare în loc de a-l returna
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
-                    .body(Map.of("name", customer.getName()));
+                    .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(jwt).toString())
+                    .body(Map.of("name", customer.getName(), "verificationToken", customer.getVerificationToken()));
         } catch (IllegalStateException e) {
             rateLimiter.recordFailure(clientIp);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
@@ -103,6 +104,25 @@ public class CustomerAuthController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyAccount(@RequestParam String token) {
+        boolean success = customerService.verifyAccount(token);
+        if (success) {
+            return ResponseEntity.ok(Map.of("message", "Contul a fost verificat cu succes!"));
+        }
+        return ResponseEntity.badRequest().body("Token invalid sau cont deja verificat.");
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(Authentication authentication) {
+        String token = customerService.resendVerification(authentication.getName());
+        if (token == null) {
+            return ResponseEntity.ok(Map.of("message", "Contul este deja verificat."));
+        }
+        // TODO: trimite email cu token-ul. Deocamdată îl returnăm.
+        return ResponseEntity.ok(Map.of("message", "Cod de verificare retrimis.", "verificationToken", token));
     }
 
     private String extractClientIp(HttpServletRequest request) {

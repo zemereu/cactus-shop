@@ -28,6 +28,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/customers/register", "/api/customers/login").permitAll() // cont client
                         .requestMatchers("/api/customers/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/customers/verify").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/customers/resend-verification").hasRole("CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/cacti").permitAll()
                         // Regula exactă trebuie evaluată înainte de /{id}, care se potrivește și cu "all".
                         .requestMatchers(HttpMethod.GET, "/api/cacti/all").hasRole("ADMIN")

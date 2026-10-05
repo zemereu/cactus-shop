@@ -13,9 +13,9 @@ import java.util.List;
 @Repository
 public interface CactusRepository extends JpaRepository<Cactus, Long> {
 
-    // Decrementare atomică — returnează nr. de rânduri afectate (0 = stoc insuficient)
+    // Decrementare atomică — 0 = produs inactiv/inexistent sau stoc insuficient.
     @Modifying
-    @Query("UPDATE Cactus c SET c.stock = c.stock - :quantity WHERE c.id = :id AND c.stock >= :quantity")
+    @Query("UPDATE Cactus c SET c.stock = c.stock - :quantity WHERE c.id = :id AND c.active = true AND c.stock >= :quantity")
     int decrementStock(Long id, int quantity);
 
     // --- Filtre publice cu paginare (doar produse active) ---

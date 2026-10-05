@@ -41,10 +41,29 @@ public class CustomerService {
         return customer;
     }
 
+    public boolean verifyAccount(String token) {
+        Customer customer = customerRepository.findByVerificationToken(token).orElse(null);
+        if (customer == null || customer.isVerified()) return false;
+        customer.setVerified(true);
+        customer.setVerificationToken(null); // token consumat
+        customerRepository.save(customer);
+        return true;
+    }
+
+    public String resendVerification(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
+        if (customer.isVerified()) return null; // deja verificat
+        String newToken = java.util.UUID.randomUUID().toString();
+        customer.setVerificationToken(newToken);
+        customerRepository.save(customer);
+        return newToken;
+    }
+
     public CustomerProfileDTO getProfile(String email) {
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
-        return new CustomerProfileDTO(customer.getName(), customer.getEmail(), customer.getAddress());
+        return new CustomerProfileDTO(customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified());
     }
 
     public CustomerProfileDTO updateAddress(String email, CustomerUpdateDTO request) {
@@ -52,6 +71,6 @@ public class CustomerService {
                 .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
         customer.setAddress(request.address().trim());
         customerRepository.save(customer);
-        return new CustomerProfileDTO(customer.getName(), customer.getEmail(), customer.getAddress());
+        return new CustomerProfileDTO(customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified());
     }
 }

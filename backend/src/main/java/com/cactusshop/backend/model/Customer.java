@@ -1,6 +1,7 @@
 package com.cactusshop.backend.model;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "customers")
@@ -18,6 +19,11 @@ public class Customer {
     private String passwordHash;
     private String address;
 
+    private boolean verified = false;
+
+    @Column(unique = true)
+    private String verificationToken = UUID.randomUUID().toString();
+
     public Customer() {}
 
     public Long getId() { return id; }
@@ -34,4 +40,10 @@ public class Customer {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
+
+    public String getVerificationToken() { return verificationToken; }
+    public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
 }
