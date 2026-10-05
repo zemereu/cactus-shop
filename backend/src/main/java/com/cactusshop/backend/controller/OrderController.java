@@ -32,7 +32,8 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request, Authentication authentication) {
+    public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO request, Authentication authentication,
+                                        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         try {
             // /api/orders e permitAll (comenzi guest permise), deci Spring Security
             // populează Authentication cu un token ANONIM pentru cei nelogați —
@@ -44,7 +45,7 @@ public class OrderController {
                     .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
                 authenticatedEmail = authentication.getName();
             }
-            Order saved = orderService.placeOrder(request, authenticatedEmail);
+            Order saved = orderService.placeOrder(request, authenticatedEmail, idempotencyKey);
             return ResponseEntity.ok(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

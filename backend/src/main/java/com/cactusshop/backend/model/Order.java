@@ -21,6 +21,14 @@ public class Order {
     @Column(unique = true, nullable = false, updatable = false)
     private String orderToken = UUID.randomUUID().toString();
 
+    @JsonIgnore
+    @Column(unique = true, updatable = false)
+    private UUID idempotencyKey;
+
+    @JsonIgnore
+    @Column(length = 64, updatable = false)
+    private String requestHash;
+
     private String customerName;
     private String email;
     private String address;
@@ -47,6 +55,12 @@ public class Order {
     public void setId(Long id) { this.id = id; }
 
     public String getOrderToken() { return orderToken; }
+
+    public UUID getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(UUID idempotencyKey) { this.idempotencyKey = idempotencyKey; }
+
+    public String getRequestHash() { return requestHash; }
+    public void setRequestHash(String requestHash) { this.requestHash = requestHash; }
 
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }

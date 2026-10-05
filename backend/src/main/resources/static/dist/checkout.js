@@ -86,17 +86,22 @@ function prefillFromAccount() {
                 <div><i class="fa-solid fa-envelope" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.email)}</div>
                 <div><i class="fa-solid fa-location-dot" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.address || 'Fără adresă salvată')}</div>
             </div>
-            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="account.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
+            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="cont.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
         `;
         }
         catch (e) { /* nu e logat, form-ul rămâne vizibil */ }
     });
 }
 prefillFromAccount();
-// Submit comandă
+// Submit comandă. Keep the same attempt across reloads and uncertain network failures.
+const CHECKOUT_ATTEMPT_KEY = 'checkoutAttempt';
 const checkoutSubmitBtn = document.getElementById('submit-order-btn');
+let checkoutSubmitting = false;
+let checkoutCompleted = false;
 if (checkoutSubmitBtn) {
     checkoutSubmitBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
+        if (checkoutSubmitting || checkoutCompleted)
+            return;
         const nameVal = document.getElementById('checkout-name').value.trim();
         const emailVal = document.getElementById('checkout-email').value.trim();
         const addressVal = document.getElementById('checkout-address').value.trim();
@@ -104,7 +109,7 @@ if (checkoutSubmitBtn) {
         if (!nameVal || !emailVal || !addressVal) {
             if (errorEl) {
                 errorEl.innerHTML = isLoggedIn && !addressVal
-                    ? 'Adaugă o adresă în <a href="account.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
+                    ? 'Adaugă o adresă în <a href="cont.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
                     : 'Completează toate câmpurile.';
                 errorEl.style.display = 'block';
             }
@@ -112,52 +117,55 @@ if (checkoutSubmitBtn) {
         }
         if (errorEl)
             errorEl.style.display = 'none';
-        // Verificare stoc
-        const cartCounts = new Map();
-        cart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
-        const problems = [];
-        for (const [id, qty] of cartCounts) {
-            try {
-                const r = yield fetch(`${API_BASE}/api/cacti/${id}`);
-                if (!r.ok) {
-                    problems.push(`Produsul #${id} nu mai este disponibil.`);
-                    continue;
-                }
-                const fresh = yield r.json();
-                if (fresh.stock < qty)
-                    problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
-            }
-            catch (_a) { /* skip */ }
-        }
-        if (problems.length > 0) {
-            if (errorEl) {
-                errorEl.innerHTML = problems.join('<br>');
-                errorEl.style.display = 'block';
-            }
-            return;
-        }
-        // Trimite comanda
+        checkoutSubmitting = true;
         checkoutSubmitBtn.setAttribute('disabled', 'true');
         checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Se procesează...';
         try {
-            const cactusIds = cart.map(item => item.id);
+            const body = JSON.stringify({ customerName: nameVal, email: emailVal, address: addressVal,
+                cactusIds: cart.map(item => item.id).sort((a, b) => a - b) });
+            const stored = sessionStorage.getItem(CHECKOUT_ATTEMPT_KEY);
+            const pending = stored ? JSON.parse(stored) : null;
+            if (pending && (typeof pending.key !== 'string' || pending.body !== body)) {
+                throw new Error('Există o comandă cu rezultat neconfirmat. Reîncearcă folosind aceleași produse și date pentru a evita o comandă dublă.');
+            }
+            // A retry must reach the server even if the first request consumed the last item.
+            if (!pending) {
+                const cartCounts = new Map();
+                cart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
+                const problems = [];
+                for (const [id, qty] of cartCounts) {
+                    const r = yield fetch(`${API_BASE}/api/cacti/${id}`);
+                    if (!r.ok) {
+                        problems.push(`Produsul #${id} nu mai este disponibil.`);
+                        continue;
+                    }
+                    const fresh = yield r.json();
+                    if (fresh.stock < qty)
+                        problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
+                }
+                if (problems.length)
+                    throw new Error(problems.join('\n'));
+            }
+            const attempt = pending || { key: crypto.randomUUID(), body };
+            // If storage fails, do not send an order that cannot be retried safely.
+            sessionStorage.setItem(CHECKOUT_ATTEMPT_KEY, JSON.stringify(attempt));
             const response = yield fetch(`${API_BASE}/api/orders`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ customerName: nameVal, email: emailVal, address: addressVal, cactusIds })
+                headers: { 'Content-Type': 'application/json', 'Idempotency-Key': attempt.key },
+                body: attempt.body
             });
             if (!response.ok) {
                 const errText = yield response.text();
-                if (errorEl) {
-                    errorEl.innerText = errText || 'Eroare la plasarea comenzii.';
-                    errorEl.style.display = 'block';
+                // A definitive rejection permits editing; timeouts/server failures keep the key.
+                if (response.status >= 400 && response.status < 500 && ![408, 429].includes(response.status)) {
+                    sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
                 }
-                checkoutSubmitBtn.removeAttribute('disabled');
-                checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Trimite Comanda';
-                return;
+                throw new Error(errText || 'Eroare la plasarea comenzii.');
             }
             const order = yield response.json();
+            checkoutCompleted = true;
             localStorage.setItem(CART_STORAGE_KEY, '[]');
+            sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
             // Ascunde formularul, arată confirmare
             document.querySelector('main > div > div[style*="display: flex"]').style.display = 'none';
             const confirm = document.getElementById('order-confirmation');
@@ -186,11 +194,16 @@ if (checkoutSubmitBtn) {
         }
         catch (e) {
             if (errorEl) {
-                errorEl.innerText = 'Eroare de conexiune.';
+                errorEl.innerText = e instanceof Error ? e.message : 'Eroare de conexiune. Reîncearcă pentru confirmarea comenzii.';
                 errorEl.style.display = 'block';
             }
-            checkoutSubmitBtn.removeAttribute('disabled');
-            checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Trimite Comanda';
+        }
+        finally {
+            if (!checkoutCompleted) {
+                checkoutSubmitting = false;
+                checkoutSubmitBtn.removeAttribute('disabled');
+                checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Trimite Comanda';
+            }
         }
     }));
 }
