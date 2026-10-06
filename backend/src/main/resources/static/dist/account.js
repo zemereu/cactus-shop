@@ -79,6 +79,38 @@ function checkLoggedInState() {
                 profileEmail.innerText = profile.email;
             if (profileAddress)
                 profileAddress.value = profile.address;
+            // Banner verificare
+            const verifyBanner = document.getElementById('verify-banner');
+            if (verifyBanner) {
+                if (profile.verified) {
+                    verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <i class="fa-solid fa-circle-check"></i> Cont verificat
+                </div>`;
+                }
+                else {
+                    verifyBanner.innerHTML = `<div style="background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
+                    <button id="resend-verify-btn" style="margin-left: 8px; background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85em;">Retrimite codul</button>
+                </div>`;
+                    const resendBtn = document.getElementById('resend-verify-btn');
+                    if (resendBtn) {
+                        resendBtn.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
+                            const r = yield authFetch(`${API_BASE}/api/customers/resend-verification`, { method: 'POST' });
+                            const data = yield r.json();
+                            if (data.verificationToken) {
+                                verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                                <i class="fa-solid fa-envelope"></i> Link de verificare: <a href="${API_BASE}/api/customers/verify?token=${data.verificationToken}" target="_blank" style="color: #2f694b; font-weight: bold;">Click aici pentru verificare</a>
+                            </div>`;
+                            }
+                            else {
+                                verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                                <i class="fa-solid fa-circle-check"></i> Contul este deja verificat.
+                            </div>`;
+                            }
+                        }));
+                    }
+                }
+            }
         }
         catch (error) {
             console.error("Eroare la incarcarea contului:", error);

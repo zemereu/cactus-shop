@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-
 import java.util.List;
 
 @Service
@@ -23,29 +22,69 @@ public class CactusService {
         return cactusRepository.findById(id).filter(Cactus::isActive);
     }
 
-    public Page<Cactus> getActiveCacti(String productType, String mainCategory, String category, String search, java.math.BigDecimal priceMin, java.math.BigDecimal priceMax, Pageable pageable) {
-        Page<Cactus> result;
+    public Page<Cactus> getActiveCacti(
+            String productType,
+            String mainCategory,
+            String category,
+            String search,
+            java.math.BigDecimal priceMin,
+            java.math.BigDecimal priceMax,
+            List<Long> ids,
+            Pageable pageable) {
 
-        if (productType == null || productType.isBlank() || mainCategory == null || mainCategory.isBlank()) {
-            result = cactusRepository.findByActiveTrueAndNameContainingIgnoreCase(search, pageable);
-        } else if (category.equals("Toți")) {
-            result = cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndNameContainingIgnoreCase(
-                    productType, mainCategory, search, pageable);
-        } else {
-            result = cactusRepository.findByActiveTrueAndProductTypeAndMainCategoryAndCategoryAndNameContainingIgnoreCase(
-                    productType, mainCategory, category, search, pageable);
-        }
+        return cactusRepository.findAll(
+                (org.springframework.data.jpa.domain.Specification<Cactus>)
+                        (root, query, cb) -> {
 
-        // Filtrare preț client-side pe pagina curentă
-        if (priceMin != null || priceMax != null) {
-            var filtered = result.getContent().stream()
-                    .filter(c -> priceMin == null || c.getPrice().compareTo(priceMin) >= 0)
-                    .filter(c -> priceMax == null || c.getPrice().compareTo(priceMax) <= 0)
-                    .toList();
-            return new org.springframework.data.domain.PageImpl<>(filtered, pageable, filtered.size());
-        }
+                            var filters =
+                                    new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
 
-        return result;
+                            filters.add(cb.isTrue(root.get("active")));
+
+                            if (productType != null && !productType.isBlank()) {
+                                filters.add(cb.equal(root.get("productType"), productType));
+                            }
+
+                            if (mainCategory != null && !mainCategory.isBlank()) {
+                                filters.add(cb.equal(root.get("mainCategory"), mainCategory));
+                            }
+
+                            if (category != null && !category.isBlank()
+                                    && !category.equals("Toți")) {
+                                filters.add(cb.equal(root.get("category"), category));
+                            }
+
+                            if (search != null && !search.isBlank()) {
+                                String literal = search.toLowerCase(java.util.Locale.ROOT)
+                                        .replace("!", "!!")
+                                        .replace("%", "!%")
+                                        .replace("_", "!_");
+
+                                filters.add(cb.like(
+                                        cb.lower(root.get("name")),
+                                        "%" + literal + "%",
+                                        '!'));
+                            }
+
+                            if (priceMin != null) {
+                                filters.add(cb.greaterThanOrEqualTo(
+                                        root.get("price"), priceMin));
+                            }
+
+                            if (priceMax != null) {
+                                filters.add(cb.lessThanOrEqualTo(
+                                        root.get("price"), priceMax));
+                            }
+
+                            if (ids != null) {
+                                filters.add(ids.isEmpty()
+                                        ? cb.disjunction()
+                                        : root.get("id").in(ids));
+                            }
+
+                            return cb.and(
+                                    filters.toArray(jakarta.persistence.criteria.Predicate[]::new));
+                        }, pageable);
     }
 
     // Toate produsele — pentru admin
@@ -60,8 +99,10 @@ public class CactusService {
         cactus.setProductType(request.productType().trim());
         cactus.setMainCategory(request.mainCategory().trim());
         cactus.setCategory(request.category().trim());
-        cactus.setDescription(request.description() != null ? request.description().trim() : "");
-        cactus.setImageUrl(request.imageUrl() != null ? request.imageUrl().trim() : "");
+        cactus.setDescription(
+                request.description() != null ? request.description().trim() : "");
+        cactus.setImageUrl(
+                request.imageUrl() != null ? request.imageUrl().trim() : "");
         cactus.setStock(request.stock() != null ? request.stock() : 0);
 
         return cactusRepository.save(cactus);
@@ -70,38 +111,47 @@ public class CactusService {
     // Soft-delete: dezactivează produsul în loc să-l șteargă
     public void deleteCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Produsul nu a fost găsit."));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Produsul nu a fost găsit."));
         cactus.setActive(false);
         cactusRepository.save(cactus);
     }
 
     public Cactus reactivateCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Produsul nu a fost găsit."));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Produsul nu a fost găsit."));
         cactus.setActive(true);
         return cactusRepository.save(cactus);
     }
 
     public void hardDeleteCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Produsul nu a fost găsit."));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Produsul nu a fost găsit."));
+
         if (cactus.isActive()) {
-            throw new IllegalStateException("Dezactiveaza produsul inainte de a-l sterge definitiv.");
+            throw new IllegalStateException(
+                    "Dezactiveaza produsul inainte de a-l sterge definitiv.");
         }
+
         cactusRepository.delete(cactus);
     }
 
     public Cactus updateCactus(Long id, CactusRequestDTO request) {
         Cactus cactus = cactusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Produsul nu a fost găsit."));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Produsul nu a fost găsit."));
 
         cactus.setName(request.name().trim());
         cactus.setPrice(request.price());
         cactus.setProductType(request.productType().trim());
         cactus.setMainCategory(request.mainCategory().trim());
         cactus.setCategory(request.category().trim());
-        cactus.setDescription(request.description() != null ? request.description().trim() : "");
-        cactus.setImageUrl(request.imageUrl() != null ? request.imageUrl().trim() : "");
+        cactus.setDescription(
+                request.description() != null ? request.description().trim() : "");
+        cactus.setImageUrl(
+                request.imageUrl() != null ? request.imageUrl().trim() : "");
         cactus.setStock(request.stock() != null ? request.stock() : 0);
 
         return cactusRepository.save(cactus);
