@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,14 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<?> handleUploadTooLarge(
+            MaxUploadSizeExceededException ex) {
+
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(buildBody("Imaginea depășește limita de 5 MB."));
+    }
+
     // Corpul JSON standard pentru orice eroare
     private Map<String, Object> buildBody(String message) {
         Map<String, Object> body = new HashMap<>();
@@ -28,42 +37,52 @@ public class GlobalExceptionHandler {
         return body;
     }
 
-    // Date trimise într-un format greșit (JSON malformat, tip de câmp greșit etc.)
+    // Date trimise într-un format greșit
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<?> handleMalformedRequest(HttpMessageNotReadableException ex) {
+    public ResponseEntity<?> handleMalformedRequest(
+            HttpMessageNotReadableException ex) {
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(buildBody("Cererea trimisă are un format invalid."));
     }
 
-    // Erori de validare de la @Valid (ex: @NotBlank, @Positive nerespectate).
-    // Adunăm toate mesajele de eroare într-o singură listă clară, în loc
-    // de formatul default, verbose, al Spring.
+    // Erori de validare de la @Valid.
+    // Adunăm mesajele de eroare într-o structură clară.
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<?> handleValidationErrors(
+            MethodArgumentNotValidException ex) {
+
         Map<String, String> fieldErrors = new HashMap<>();
+
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(error.getField(), error.getDefaultMessage());
         }
+
         Map<String, Object> body = new HashMap<>();
         body.put("error", "Date invalide trimise.");
         body.put("details", fieldErrors);
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
-    // Metodă HTTP greșită folosită pe un endpoint (ex: GET pe un endpoint doar POST)
+    // Metodă HTTP greșită folosită pe un endpoint
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<?> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<?> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex) {
+
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(buildBody("Metodă HTTP neacceptată pentru acest endpoint."));
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<?> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+    public ResponseEntity<?> handleMediaTypeNotSupported(
+            HttpMediaTypeNotSupportedException ex) {
+
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                 .body(buildBody("Tip de conținut neacceptat. Folosește application/json."));
     }
 
-    // O resursă căutată (ex: findById) nu a fost găsită
+    // O resursă căutată nu a fost găsită
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> handleNotFound(NoSuchElementException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -78,16 +97,17 @@ public class GlobalExceptionHandler {
     }
 
     // Plasă de siguranță finală — orice altă excepție necontrolată.
-    // NU includem ex.getMessage() sau stack trace-ul în răspuns,
-    // ca să nu scurgem detalii interne (nume de clase, structuri SQL etc.)
-    // către un client care ar putea fi rău-intenționat.
+    // Nu expunem detaliile interne în răspunsul către client.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {
-        // Logăm eroarea completă pe server, pentru debugging — dar NU o trimitem clientului.
-        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Eroare necontrolată", ex);
+        // Logăm eroarea completă pe server pentru debugging.
+        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class)
+                .error("Eroare necontrolată", ex);
+
         ex.printStackTrace();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildBody("A apărut o eroare internă. Te rugăm să încerci din nou mai târziu."));
+                .body(buildBody(
+                        "A apărut o eroare internă. Te rugăm să încerci din nou mai târziu."));
     }
 }

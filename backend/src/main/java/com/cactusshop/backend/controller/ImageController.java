@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,22 +26,43 @@ public class ImageController {
     private static final int MAX_HEIGHT = 800;
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadImage(
+            @RequestParam("file") MultipartFile file) {
+
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Fisierul este gol.");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            return ResponseEntity.badRequest().body("Doar imagini sunt acceptate.");
+            return ResponseEntity.badRequest()
+                    .body("Doar imagini sunt acceptate.");
         }
 
         if (file.getSize() > 5 * 1024 * 1024) {
-            return ResponseEntity.badRequest().body("Imaginea depaseste 5MB.");
+            return ResponseEntity.badRequest()
+                    .body("Imaginea depaseste 5MB.");
+        }
+
+        // Verificăm conținutul efectiv, nu doar tipul declarat de browser.
+        BufferedImage image;
+        try (var input = file.getInputStream()) {
+            image = ImageIO.read(input);
+
+            if (image == null) {
+                return ResponseEntity.badRequest()
+                        .body("Imagine invalidă sau format neacceptat.");
+            }
+        } catch (IOException e) {
+            return ResponseEntity.badRequest()
+                    .body("Imagine invalidă sau deteriorată.");
         }
 
         try {
-            Path uploadPath = Paths.get(uploadDir).normalize().toAbsolutePath();
+            Path uploadPath = Paths.get(uploadDir)
+                    .normalize()
+                    .toAbsolutePath();
+
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
@@ -52,8 +75,9 @@ public class ImageController {
                 return ResponseEntity.badRequest().body("Path invalid.");
             }
 
-            // Resize + conversie la JPEG (optimizat, max 800x800)
-            Thumbnails.of(file.getInputStream())
+            // Folosim imaginea deja decodată.
+            // Resize + conversie la JPEG (maxim 800x800).
+            Thumbnails.of(image)
                     .size(MAX_WIDTH, MAX_HEIGHT)
                     .keepAspectRatio(true)
                     .outputFormat("jpg")
@@ -64,18 +88,24 @@ public class ImageController {
             return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
 
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Eroare la salvarea imaginii.");
+            return ResponseEntity.internalServerError()
+                    .body("Eroare la salvarea imaginii.");
         }
     }
 
     @GetMapping("/{fileName}")
     public ResponseEntity<byte[]> getImage(@PathVariable String fileName) {
         try {
-            if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            if (fileName.contains("..")
+                    || fileName.contains("/")
+                    || fileName.contains("\\")) {
                 return ResponseEntity.badRequest().build();
             }
 
-            Path uploadPath = Paths.get(uploadDir).normalize().toAbsolutePath();
+            Path uploadPath = Paths.get(uploadDir)
+                    .normalize()
+                    .toAbsolutePath();
+
             Path filePath = uploadPath.resolve(fileName).normalize();
 
             if (!filePath.startsWith(uploadPath) || !Files.exists(filePath)) {
@@ -84,11 +114,14 @@ public class ImageController {
 
             byte[] imageBytes = Files.readAllBytes(filePath);
             String ct = Files.probeContentType(filePath);
-            if (ct == null) ct = "image/jpeg";
+
+            if (ct == null) {
+                ct = "image/jpeg";
+            }
 
             return ResponseEntity.ok()
                     .header("Content-Type", ct)
-                    .header("Cache-Control", "public, max-age=31536000") // cache 1 an (URL unic)
+                    .header("Cache-Control", "public, max-age=31536000")
                     .body(imageBytes);
 
         } catch (IOException e) {
