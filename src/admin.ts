@@ -1,8 +1,30 @@
 // Interfetele Cactus, Order, Category + constantele vin din shared.ts
 // authFetch, escapeHtml, starsDisplay vin din shared.ts
 
-// showToast vine din shared.ts — folosim adminToast ca alias
 function adminToast(msg: string) { showToast(msg); }
+
+// La eroare, formularul si listele raman nemodificate.
+async function adminRequest(url: string, options: RequestInit): Promise<Response | null> {
+    try {
+        const response = await authFetch(url, options);
+        if (response.ok) return response;
+        const text = await response.text();
+        let message = text || `Eroare HTTP ${response.status}.`;
+        try {
+            const body = JSON.parse(text);
+            if (typeof body.error === 'string') message = body.error;
+            if (body.details && typeof body.details === 'object') {
+                const details = Object.keys(body.details).map(key => body.details[key])
+                    .filter(value => typeof value === 'string');
+                if (details.length) message += '\n' + details.join('\n');
+            }
+        } catch { /* Serverul poate raspunde cu text simplu. */ }
+        alert(message);
+    } catch {
+        alert('Nu am putut confirma operatia. Verifica rezultatul dupa restabilirea conexiunii.');
+    }
+    return null;
+}
 
 // --- 1. LOGIN ---
 const loginBtn = document.getElementById('login-btn');
@@ -50,7 +72,8 @@ function renderFilteredCategories() {
         btn.addEventListener('click', async (e) => {
             const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (confirm("Stergi aceasta subcategorie?")) {
-                await authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' }); adminToast('Categorie stearsa');
+                if (!await adminRequest(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' })) return;
+                adminToast('Categorie stearsa');
                 fetchAdminCategories();
             }
         });
@@ -74,10 +97,10 @@ if (addCategoryBtn) {
         const name = (document.getElementById('new-category-name') as HTMLInputElement).value.trim();
         const main = (document.getElementById('new-category-main') as HTMLSelectElement).value;
         if (!name) { alert("Introdu un nume."); return; }
-        await authFetch(`${API_BASE}/api/categories`, {
+        if (!await adminRequest(`${API_BASE}/api/categories`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, mainCategory: main })
-        });
+        })) return;
         (document.getElementById('new-category-name') as HTMLInputElement).value = "";
         fetchAdminCategories();
         adminToast('Categorie adaugata');
@@ -146,16 +169,50 @@ function renderAdminCacti(cacti: Cactus[]) {
             <h4 style="margin:8px 0 4px; color:#2f694b; font-size:0.95em;">${escapeHtml(c.name)}</h4>
             <p style="margin:0; color:#d32f2f; font-weight:bold;">${c.price} RON</p>
             <p style="margin:4px 0 0; color:${c.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size:0.85em; font-weight:bold;">Stoc: ${c.stock}</p>
-            <div class="edit-panel" data-id="${c.id}" style="display:none; margin-top:8px; text-align:left; font-size:0.85em;">
-                <input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}" style="width:100%; margin-bottom:4px;">
-                <input type="number" class="edit-price admin-input" value="${c.price}" style="width:48%; margin-bottom:4px;">
-                <input type="number" class="edit-stock admin-input" value="${c.stock}" min="0" style="width:48%; margin-bottom:4px; float:right;">
-                <input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}" style="width:100%; margin-bottom:4px;">
-                <input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}" style="width:100%; margin-bottom:6px;">
-                <input type="hidden" class="edit-product-type" value="${escapeHtml(c.productType)}">
-                <input type="hidden" class="edit-main-category" value="${escapeHtml(c.mainCategory)}">
-                <input type="hidden" class="edit-category" value="${escapeHtml(c.category)}">
-                <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}" style="width:100%;">Salveaza</button>
+            <div class="edit-panel" data-id="${c.id}" style="display:none; margin-top:10px; text-align:left; background:#f8f4e0; border-radius:10px; padding:16px; border:1px solid #ddd;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div style="grid-column:1/-1;">
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Nume</label>
+                        <input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Preț (RON)</label>
+                        <input type="number" class="edit-price admin-input" value="${c.price}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Stoc</label>
+                        <input type="number" class="edit-stock admin-input" value="${c.stock}" min="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Descriere</label>
+                        <input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Imagine (URL)</label>
+                        <input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Tip produs</label>
+                        <select class="edit-product-type admin-input" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
+                            ${PRODUCT_TYPES.map(t => `<option value="${escapeHtml(t)}" ${t === c.productType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Categorie principală</label>
+                        <select class="edit-main-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
+                            ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <label style="font-size:0.78em; color:#666; font-weight:600; margin-bottom:2px; display:block;">Subcategorie (gen)</label>
+                        <select class="edit-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
+                            ${allCategoriesCache.filter(cat => cat.mainCategory === c.mainCategory).sort((a, b) => a.name.localeCompare(b.name)).map(cat => `<option value="${escapeHtml(cat.name)}" ${cat.name === c.category ? 'selected' : ''}>${escapeHtml(cat.name)}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}" style="width:100%; padding:10px; font-size:0.95em; border-radius:6px;">Salvează</button>
+                    </div>
+                </div>
             </div>
             <div style="display:flex; gap:4px; margin-top:8px;">
                 <button class="edit-cactus-btn admin-btn btn-warning btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-pen"></i></button>
@@ -172,33 +229,47 @@ function renderAdminCacti(cacti: Cactus[]) {
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (!p) return;
         const opening = p.style.display === 'none';
-        // Închide toate celelalte panouri
         container.querySelectorAll('.edit-panel').forEach((panel: Element) => {
             (panel as HTMLElement).style.display = 'none';
         });
         if (opening) p.style.display = 'block';
+    }));
+    // Schimbarea categoriei principale actualizeaza genurile disponibile.
+    container.querySelectorAll('.edit-main-category').forEach(sel => sel.addEventListener('change', (e) => {
+        const select = e.target as HTMLSelectElement;
+        const id = select.getAttribute('data-id');
+        const panel = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
+        if (!panel) return;
+        const subSelect = panel.querySelector('.edit-category') as HTMLSelectElement;
+        const filtered = allCategoriesCache.filter(cat => cat.mainCategory === select.value).sort((a, b) => a.name.localeCompare(b.name));
+        subSelect.innerHTML = filtered.map(cat => `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`).join("");
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (!p) return;
         const u = { name: (p.querySelector('.edit-name') as HTMLInputElement).value.trim(), price: Number((p.querySelector('.edit-price') as HTMLInputElement).value), stock: Number((p.querySelector('.edit-stock') as HTMLInputElement).value)||0, description: (p.querySelector('.edit-desc') as HTMLInputElement).value.trim(), imageUrl: (p.querySelector('.edit-image') as HTMLInputElement).value.trim(), productType: (p.querySelector('.edit-product-type') as HTMLInputElement).value, mainCategory: (p.querySelector('.edit-main-category') as HTMLInputElement).value, category: (p.querySelector('.edit-category') as HTMLInputElement).value };
-        const r = await authFetch(`${API_BASE}/api/cacti/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(u) });
-        if (r.ok) { fetchAdminCacti(); adminToast('Produs actualizat'); } else alert("Eroare la salvare.");
+        if (!await adminRequest(`${API_BASE}/api/cacti/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(u) })) return;
+        fetchAdminCacti(); adminToast('Produs actualizat');
     }));
     container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
-        if (confirm("Dezactivezi acest produs?")) { await authFetch(`${API_BASE}/api/cacti/${id}`, {method:'DELETE'}); fetchAdminCacti(); adminToast('Produs dezactivat'); }
+        if (confirm("Dezactivezi acest produs?")) {
+            if (!await adminRequest(`${API_BASE}/api/cacti/${id}`, {method:'DELETE'})) return;
+            fetchAdminCacti(); adminToast('Produs dezactivat');
+        }
     }));
     container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
-        await authFetch(`${API_BASE}/api/cacti/${id}/reactivate`, {method:'PUT'}); fetchAdminCacti(); adminToast('Produs reactivat');
+        if (!await adminRequest(`${API_BASE}/api/cacti/${id}/reactivate`, {method:'PUT'})) return;
+        fetchAdminCacti(); adminToast('Produs reactivat');
     }));
     container.querySelectorAll('.hard-delete-btn').forEach(b => b.addEventListener('click', async (e) => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         if (!confirm("ATENTIE: Stergere definitiva?")) return;
         if (!confirm("Absolut sigur? Ireversibil.")) return;
-        await authFetch(`${API_BASE}/api/cacti/${id}/permanent`, {method:'DELETE'}); fetchAdminCacti(); adminToast('Produs sters definitiv');
+        if (!await adminRequest(`${API_BASE}/api/cacti/${id}/permanent`, {method:'DELETE'})) return;
+        fetchAdminCacti(); adminToast('Produs sters definitiv');
     }));
 }
 
@@ -224,8 +295,8 @@ if (addCactusBtn) {
         const fileInput = document.getElementById('new-cactus-file') as HTMLInputElement;
         if (fileInput.files && fileInput.files.length > 0) {
             const fd = new FormData(); fd.append('file', fileInput.files[0]);
-            const ur = await authFetch(`${API_BASE}/api/images/upload`, { method:'POST', body:fd });
-            if (!ur.ok) { alert("Eroare upload: " + await ur.text()); return; }
+            const ur = await adminRequest(`${API_BASE}/api/images/upload`, { method:'POST', body:fd });
+            if (!ur) return;
             imageUrl = (await ur.json()).imageUrl;
         }
         const newCactus = {
@@ -238,7 +309,7 @@ if (addCactusBtn) {
             imageUrl, stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0
         };
         if (!newCactus.name || !newCactus.price || !newCactus.category) { alert("Completeaza campurile obligatorii!"); return; }
-        await authFetch(`${API_BASE}/api/cacti`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCactus) });
+        if (!await adminRequest(`${API_BASE}/api/cacti`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCactus) })) return;
         ['new-cactus-name','new-cactus-price','new-cactus-desc','new-cactus-image','new-cactus-stock'].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
         if (fileInput) fileInput.value = "";
         fetchAdminCacti();
@@ -264,8 +335,16 @@ function renderOrderRows(orders: Order[]) {
         </tr>`).join("");
     tb.querySelectorAll('.order-status-select').forEach(s => s.addEventListener('change', async (e) => {
         const t = e.target as HTMLSelectElement;
-        const r = await authFetch(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:t.value}) });
-        if (r.ok) { adminToast('Status actualizat'); } else { alert("Eroare status."); fetchAdminOrders(); }
+        const previousStatus = orders.find(order => order.id === Number(t.getAttribute('data-id')))?.status;
+        const r = await adminRequest(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:t.value}) });
+        if (r) {
+            const order = orders.find(order => order.id === Number(t.getAttribute('data-id')));
+            if (order) order.status = t.value;
+            updateStats();
+            adminToast('Status actualizat');
+        } else if (previousStatus !== undefined) {
+            t.value = previousStatus;
+        }
     }));
 }
 
@@ -322,10 +401,14 @@ async function fetchPendingReviews() {
                 </div>
             </div>`).join("");
         container.querySelectorAll('.approve-review-btn').forEach(b => b.addEventListener('click', async (e) => {
-            await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id")}/approve`, {method:'PUT'}); fetchPendingReviews();
+            if (!await adminRequest(`${API_BASE}/api/reviews/${(e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id")}/approve`, {method:'PUT'})) return;
+            fetchPendingReviews();
         }));
         container.querySelectorAll('.reject-review-btn').forEach(b => b.addEventListener('click', async (e) => {
-            if (confirm("Respingi recenzia?")) { await authFetch(`${API_BASE}/api/reviews/${(e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id")}`, {method:'DELETE'}); fetchPendingReviews(); adminToast('Recenzie respinsa'); }
+            if (confirm("Respingi recenzia?")) {
+                if (!await adminRequest(`${API_BASE}/api/reviews/${(e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id")}`, {method:'DELETE'})) return;
+                fetchPendingReviews(); adminToast('Recenzie respinsa');
+            }
         }));
     } catch (e) { console.error("Eroare recenzii:", e); }
 }
