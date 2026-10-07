@@ -35,5 +35,7 @@ public record CactusRequestDTO(
         String imageUrl,
 
         @Min(value = 0, message = "Stocul nu poate fi negativ.")
-        Integer stock
+        Integer stock,
+
+        String location
 ) {}

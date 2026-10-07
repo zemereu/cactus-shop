@@ -118,6 +118,8 @@ public class CactusService {
         cactus.setImageUrl(
                 request.imageUrl() != null ? request.imageUrl().trim() : "");
         cactus.setStock(request.stock() != null ? request.stock() : 0);
+        cactus.setLocation(
+                request.location() != null ? request.location().trim() : "");
 
         return cactusRepository.save(cactus);
     }
@@ -170,6 +172,8 @@ public class CactusService {
         cactus.setImageUrl(
                 request.imageUrl() != null ? request.imageUrl().trim() : "");
         cactus.setStock(request.stock() != null ? request.stock() : 0);
+        cactus.setLocation(
+                request.location() != null ? request.location().trim() : "");
 
         return cactusRepository.save(cactus);
     }

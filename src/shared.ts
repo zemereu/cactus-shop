@@ -52,6 +52,7 @@ interface Cactus {
     mainCategory: string;
     imageUrl: string;
     stock: number;
+    location: string;
     active: boolean;
 }
 

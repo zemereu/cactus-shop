@@ -34,6 +34,8 @@ public class Cactus {
 
     private int stock = 0;
 
+    private String location;
+
     private boolean active = true;
 
     public Cactus() {}
@@ -64,6 +66,9 @@ public class Cactus {
 
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
