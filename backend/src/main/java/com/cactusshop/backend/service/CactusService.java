@@ -3,13 +3,14 @@ package com.cactusshop.backend.service;
 import com.cactusshop.backend.dto.CactusRequestDTO;
 import com.cactusshop.backend.model.Cactus;
 import com.cactusshop.backend.repository.CactusRepository;
+import com.cactusshop.backend.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CactusService {
@@ -17,7 +18,19 @@ public class CactusService {
     @Autowired
     private CactusRepository cactusRepository;
 
-    // Produse active — pentru magazin (clienți), cu paginare
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    private void validateCategory(CactusRequestDTO request) {
+        if (!categoryRepository.existsByNameAndMainCategory(
+                request.category().trim(),
+                request.mainCategory().trim())) {
+
+            throw new IllegalArgumentException(
+                    "Genul nu există în categoria principală selectată.");
+        }
+    }
+
     public Optional<Cactus> getActiveById(Long id) {
         return cactusRepository.findById(id).filter(Cactus::isActive);
     }
@@ -87,12 +100,13 @@ public class CactusService {
                         }, pageable);
     }
 
-    // Toate produsele — pentru admin
     public List<Cactus> getAllCacti() {
         return cactusRepository.findAll();
     }
 
     public Cactus addCactus(CactusRequestDTO request) {
+        validateCategory(request);
+
         Cactus cactus = new Cactus();
         cactus.setName(request.name().trim());
         cactus.setPrice(request.price());
@@ -108,11 +122,11 @@ public class CactusService {
         return cactusRepository.save(cactus);
     }
 
-    // Soft-delete: dezactivează produsul în loc să-l șteargă
     public void deleteCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Produsul nu a fost găsit."));
+
         cactus.setActive(false);
         cactusRepository.save(cactus);
     }
@@ -121,6 +135,7 @@ public class CactusService {
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Produsul nu a fost găsit."));
+
         cactus.setActive(true);
         return cactusRepository.save(cactus);
     }
@@ -139,6 +154,8 @@ public class CactusService {
     }
 
     public Cactus updateCactus(Long id, CactusRequestDTO request) {
+        validateCategory(request);
+
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Produsul nu a fost găsit."));
