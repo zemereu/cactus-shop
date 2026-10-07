@@ -5,7 +5,7 @@ const productId = produsParams.get('id');
 
 // showToast, wishlist, toggleWishlist, isWishlisted, escapeHtml, starsDisplay, CART_STORAGE_KEY vin din shared.ts
 
-interface ProdCactus { id: number; name: string; price: number; stock: number; description: string; imageUrl: string; category: string; mainCategory: string; productType: string; active: boolean; }
+interface ProdCactus { id: number; name: string; price: number; stock: number; description: string; imageUrl: string; category: string; mainCategory: string; productType: string; location: string; active: boolean; }
 interface ProdReview { id: number; customerName: string; rating: number; comment: string; createdAt: string; }
 
 // --- Coș ---
@@ -57,6 +57,16 @@ async function loadProduct() {
             stockEl.innerHTML = `<i class="fa-solid fa-check" style="color:#2f694b;"></i> <strong style="color:#2f694b;">${product.stock} în stoc</strong>`;
         } else {
             stockEl.innerHTML = `<i class="fa-solid fa-xmark" style="color:#d32f2f;"></i> <strong style="color:#d32f2f;">Stoc epuizat</strong>`;
+        }
+
+        // Location
+        const locEl = document.getElementById('product-location');
+        if (locEl) {
+            if (product.location) {
+                locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#FF9800;"></i> ${escapeHtml(product.location)}`;
+            } else {
+                locEl.style.display = 'none';
+            }
         }
 
         // Add to cart
@@ -170,7 +180,7 @@ function renderSimilar(products: ProdCactus[]) {
     container.innerHTML = products.map(p => {
         const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
         return `
-        <a href="produs.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
+        <a href="product.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
             <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
             <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
             <p style="color:#d32f2f; font-weight:bold; margin:0;">${p.price} RON</p>

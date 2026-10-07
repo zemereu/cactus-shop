@@ -77,6 +77,16 @@ function loadProduct() {
             else {
                 stockEl.innerHTML = `<i class="fa-solid fa-xmark" style="color:#d32f2f;"></i> <strong style="color:#d32f2f;">Stoc epuizat</strong>`;
             }
+            // Location
+            const locEl = document.getElementById('product-location');
+            if (locEl) {
+                if (product.location) {
+                    locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#FF9800;"></i> ${escapeHtml(product.location)}`;
+                }
+                else {
+                    locEl.style.display = 'none';
+                }
+            }
             // Add to cart
             const addBtn = document.getElementById('product-add-cart');
             if (product.stock <= 0) {
@@ -186,7 +196,7 @@ function renderSimilar(products) {
     container.innerHTML = products.map(p => {
         const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
         return `
-        <a href="produs.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
+        <a href="product.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
             <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
             <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
             <p style="color:#d32f2f; font-weight:bold; margin:0;">${p.price} RON</p>
