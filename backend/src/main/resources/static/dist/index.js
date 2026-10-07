@@ -291,7 +291,21 @@ if (sortSelect) {
         fetchCacti();
     });
 }
+function renderBreadcrumbs() {
+    const bc = document.getElementById('shop-breadcrumbs');
+    if (!bc)
+        return;
+    let parts = `<a href="index.html">Acasă</a><span>›</span><a href="shop.html">Magazin</a>`;
+    if (selectedProductType)
+        parts += `<span>›</span><strong style="color:#333;">${escapeHtml(selectedProductType)}</strong>`;
+    if (selectedMainCategory && selectedMainCategory !== 'Toți')
+        parts += `<span>›</span><strong style="color:#333;">${escapeHtml(selectedMainCategory)}</strong>`;
+    if (selectedSubCategory && selectedSubCategory !== 'Toți')
+        parts += `<span>›</span><strong style="color:#333;">${escapeHtml(selectedSubCategory)}</strong>`;
+    bc.innerHTML = parts;
+}
 function renderCacti() {
+    renderBreadcrumbs();
     const container = document.getElementById('cacti-list');
     if (!container)
         return;
@@ -327,7 +341,7 @@ function renderCacti() {
                             <i class="fa-solid fa-expand"></i>
                         </button>
                     </div>
-                    <a href="product.html?id=${cactus.id}"><img loading="lazy" class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
+                    <a href="product.html?id=${cactus.id}"><img loading="lazy" class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
                     <div class="cactus-details">
                         ${categoryTag}
                         <a href="product.html?id=${cactus.id}" style="text-decoration:none;"><h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2></a>

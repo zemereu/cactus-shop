@@ -120,7 +120,8 @@ function updateStats() {
 function getFilteredCacti(): Cactus[] {
     const q = (document.getElementById('admin-search') as HTMLInputElement)?.value.toLowerCase() || '';
     const f = (document.getElementById('admin-filter-status') as HTMLSelectElement)?.value || 'all';
-    return allCactiCache.filter(c => {
+    const s = (document.getElementById('admin-sort') as HTMLSelectElement)?.value || 'name-asc';
+    let result = allCactiCache.filter(c => {
         const matchQ = c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q);
         let matchF = true;
         if (f === 'active') matchF = c.active;
@@ -128,6 +129,16 @@ function getFilteredCacti(): Cactus[] {
         else if (f === 'nostock') matchF = c.active && c.stock <= 0;
         return matchQ && matchF;
     });
+    result.sort((a, b) => {
+        if (s === 'name-asc') return a.name.localeCompare(b.name);
+        if (s === 'name-desc') return b.name.localeCompare(a.name);
+        if (s === 'price-asc') return a.price - b.price;
+        if (s === 'price-desc') return b.price - a.price;
+        if (s === 'stock-asc') return a.stock - b.stock;
+        if (s === 'stock-desc') return b.stock - a.stock;
+        return 0;
+    });
+    return result;
 }
 
 function renderAdminCacti(cacti: Cactus[]) {
@@ -147,8 +158,11 @@ function renderAdminCacti(cacti: Cactus[]) {
             ${c.active ? '' : '<p style="margin:0 0 5px 0; color:#d32f2f; font-weight:bold; font-size:0.8em;">DEZACTIVAT</p>'}
             <img src="${escapeHtml(img)}" alt="${escapeHtml(c.name)}">
             <h4 style="margin:8px 0 4px; color:#2f694b; font-size:0.95em;">${escapeHtml(c.name)}</h4>
+            <p style="margin:2px 0; color:#888; font-size:0.75em;">${escapeHtml(c.productType)} · ${escapeHtml(c.mainCategory)} — ${escapeHtml(c.category)}</p>
             <p style="margin:0; color:#d32f2f; font-weight:bold;">${c.price} RON</p>
             <p style="margin:4px 0 0; color:${c.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size:0.85em; font-weight:bold;">Stoc: ${c.stock}</p>
+            ${c.location ? `<p style="margin:2px 0 0; font-size:0.75em; color:#666;"><i class="fa-solid fa-location-dot" style="color:#FF9800;"></i> ${escapeHtml(c.location)}</p>` : ''}
+            ${c.description ? `<p style="margin:4px 0 0; font-size:0.75em; color:#999; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(c.description)}</p>` : ''}
             <div style="display:flex; gap:4px; margin-top:8px;">
                 <button class="edit-cactus-btn admin-btn btn-warning btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-pen"></i></button>
                 ${c.active
@@ -268,8 +282,10 @@ async function fetchAdminCacti() {
 
 const adminSearch = document.getElementById('admin-search');
 const adminFilter = document.getElementById('admin-filter-status');
+const adminSort = document.getElementById('admin-sort');
 if (adminSearch) adminSearch.addEventListener('input', () => renderAdminCacti(getFilteredCacti()));
 if (adminFilter) adminFilter.addEventListener('change', () => renderAdminCacti(getFilteredCacti()));
+if (adminSort) adminSort.addEventListener('change', () => renderAdminCacti(getFilteredCacti()));
 
 // --- ADAUGARE PRODUS ---
 const addCactusBtn = document.getElementById('add-new-cactus-btn');

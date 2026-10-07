@@ -583,7 +583,8 @@ body.view-compact .cactus-card {
     padding: 8px !important;
 }
 body.view-compact .cactus-image {
-    height: 100px !important;
+    aspect-ratio: 1/1 !important;
+    height: auto !important;
     margin-bottom: 6px !important;
 }
 body.view-compact .cactus-desc {
@@ -617,7 +618,8 @@ body.view-list .cactus-card {
 }
 body.view-list .cactus-image {
     width: 90px !important;
-    height: 90px !important;
+    height: auto !important;
+    aspect-ratio: 1/1 !important;
     flex-shrink: 0;
     margin-bottom: 0 !important;
 }
@@ -651,7 +653,8 @@ body.view-list .cactus-card button {
     }
     body.view-list .cactus-image {
         width: 60px !important;
-        height: 60px !important;
+        height: auto !important;
+        aspect-ratio: 1/1 !important;
     }
     body.view-list .cactus-details h2 {
         font-size: 0.95em !important;
@@ -679,6 +682,15 @@ body.view-list .cactus-card button {
 .zoom-btn:hover { color: #2f694b !important; }
 /* Wishlist activ = mereu vizibil */
 .wishlist-btn[style*="#d32f2f"] { opacity: 1 !important; }
+/* List view: card-actions nu mai e absolute, apare inline */
+body.view-list .card-actions {
+    position: static !important;
+    flex-direction: row !important;
+    margin-left: 8px;
+}
+body.view-list .card-action-btn {
+    opacity: 1 !important;
+}
 
 /* === SCROLL TO TOP === */
 #scroll-top-btn {

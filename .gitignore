@@ -49,3 +49,6 @@ Thumbs.db
 
 # --- Uploads (runtime, nu în git) ---
 /uploads
+
+# --- to_do.txt ---
+/to_do.txt

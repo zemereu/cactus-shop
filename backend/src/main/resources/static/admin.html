@@ -143,6 +143,14 @@
                     <option value="inactive">Dezactivate</option>
                     <option value="nostock">Fără stoc</option>
                 </select>
+                <select id="admin-sort" class="admin-input">
+                    <option value="name-asc">Nume A-Z</option>
+                    <option value="name-desc">Nume Z-A</option>
+                    <option value="price-asc">Preț crescător</option>
+                    <option value="price-desc">Preț descrescător</option>
+                    <option value="stock-asc">Stoc crescător</option>
+                    <option value="stock-desc">Stoc descrescător</option>
+                </select>
                 <span id="products-count" style="color: #666; font-size: 0.9em;"></span>
             </div>
             <div id="admin-cacti-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;"></div>
@@ -150,7 +158,7 @@
 
         <!-- TAB: Adaugă produs -->
         <div id="tab-add" class="tab-content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 700px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 700px; margin: 0 auto;">
                 <input type="text" id="new-cactus-name" placeholder="Nume produs" class="admin-input" style="grid-column: 1 / -1;">
                 <input type="number" id="new-cactus-price" placeholder="Preț (RON)" class="admin-input">
                 <input type="number" id="new-cactus-stock" placeholder="Stoc" min="0" class="admin-input">
