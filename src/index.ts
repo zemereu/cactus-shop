@@ -2,10 +2,10 @@
 
 let cactiForSale: Cactus[] = [];
 let allCategories: Category[] = [];
-let selectedProductType: string = "Plante";
-let selectedMainCategory: string = "Cactuși";
+let selectedProductType: string = "";
+let selectedMainCategory: string = "";
 let selectedSubCategory: string = "Toți";
-let expandedMainCategory: string = "Cactuși"; // care secțiune e deschisă în sidebar
+let expandedMainCategory: string = ""; // care secțiune e deschisă în sidebar
 let searchQuery: string = "";
 let currentPage: number = 0;
 let totalPages: number = 0;
@@ -129,8 +129,16 @@ function renderSidebar() {
 
     let html = "";
 
-    // --- Toggle Plantă / Semințe (nivelul de sus) ---
+    // --- Toggle Toate / Plantă / Semințe (nivelul de sus) ---
     html += `<div style="display: flex; gap: 8px; margin-bottom: 15px;">`;
+    const isAllType = selectedProductType === '';
+    html += `
+        <button class="product-type-btn" data-type=""
+            style="flex: 1; background: ${isAllType ? '#FF9800' : 'transparent'}; color: ${isAllType ? '#fdf2b8' : '#2f694b'};
+                   border: 2px solid #FF9800; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Toate
+        </button>
+    `;
     for (const type of PRODUCT_TYPES) {
         const isActive = selectedProductType === type;
         html += `
@@ -142,6 +150,17 @@ function renderSidebar() {
         `;
     }
     html += `</div>`;
+
+    // Buton "Toate" pentru categorii principale
+    const isAllMain = selectedMainCategory === '';
+    html += `
+        <button class="main-cat-btn" data-main=""
+            style="background: ${isAllMain ? '#2f694b' : 'transparent'}; color: ${isAllMain ? '#fdf2b8' : '#2f694b'};
+                   border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer;
+                   font-weight: bold; text-align: left; margin-bottom: 4px;">
+            Toate categoriile
+        </button>
+    `;
 
     for (const main of MAIN_CATEGORIES) {
         const isMainActive = selectedMainCategory === main;
@@ -197,11 +216,11 @@ function renderSidebar() {
 
     container.innerHTML = html;
 
-    // Click pe Plante/Semințe -> schimbă tipul de produs, păstrează gen/categorie selectate
+    // Click pe Toate/Plante/Semințe -> schimbă tipul de produs
     document.querySelectorAll('.product-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             selectedProductType =
-                (e.currentTarget as HTMLButtonElement).getAttribute('data-type') || "Plante";
+                (e.currentTarget as HTMLButtonElement).getAttribute('data-type') || "";
             currentPage = 0;
             renderSidebar();
             fetchCacti();
@@ -212,16 +231,22 @@ function renderSidebar() {
     document.querySelectorAll('.main-cat-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const main =
-                (e.currentTarget as HTMLButtonElement).getAttribute('data-main') || "Cactuși";
+                (e.currentTarget as HTMLButtonElement).getAttribute('data-main') ?? "";
 
-            if (expandedMainCategory === main) {
-                expandedMainCategory = "";
+            if (main === '') {
+                // "Toate categoriile"
+                selectedMainCategory = '';
+                selectedSubCategory = 'Toți';
+                expandedMainCategory = '';
             } else {
-                expandedMainCategory = main;
+                if (expandedMainCategory === main) {
+                    expandedMainCategory = "";
+                } else {
+                    expandedMainCategory = main;
+                }
+                selectedMainCategory = main;
+                selectedSubCategory = "Toți";
             }
-
-            selectedMainCategory = main;
-            selectedSubCategory = "Toți";
             currentPage = 0;
             renderSidebar();
             fetchCacti();
@@ -265,6 +290,10 @@ if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
 }
 
 fetchAndRenderCategories();
+
+// Inițializează contorul de favorite
+const initFavCount = document.getElementById('favorites-count');
+if (initFavCount) initFavCount.innerText = wishlist.length > 0 ? wishlist.length.toString() : '';
 
 // 4. Randare Produse (Fără filtrare locală, bazat direct pe server)
 // --- Comutare mod afișare (grilă / compact / listă) ---
@@ -320,14 +349,44 @@ if (sortSelect) {
     });
 }
 
+// Buton Favorite din toolbar — toggle între modul favorites și sortarea anterioară
+const favBtn = document.getElementById('favorites-btn');
+let prevSort = 'name-asc';
+if (favBtn) {
+    favBtn.addEventListener('click', () => {
+        if (currentSort === 'favorites') {
+            currentSort = prevSort;
+            favBtn.classList.remove('active');
+        } else {
+            prevSort = currentSort;
+            currentSort = 'favorites';
+            favBtn.classList.add('active');
+        }
+        if (sortSelect) sortSelect.value = currentSort === 'favorites' ? 'name-asc' : currentSort;
+        currentPage = 0;
+        fetchCacti();
+    });
+}
+
 function renderBreadcrumbs() {
     const bc = document.getElementById('shop-breadcrumbs');
     if (!bc) return;
-    let parts = `<a href="index.html">Acasă</a><span>›</span><a href="shop.html">Magazin</a>`;
-    if (selectedProductType) parts += `<span>›</span><strong style="color:#333;">${escapeHtml(selectedProductType)}</strong>`;
-    if (selectedMainCategory && selectedMainCategory !== 'Toți') parts += `<span>›</span><strong style="color:#333;">${escapeHtml(selectedMainCategory)}</strong>`;
-    if (selectedSubCategory && selectedSubCategory !== 'Toți') parts += `<span>›</span><strong style="color:#333;">${escapeHtml(selectedSubCategory)}</strong>`;
-    bc.innerHTML = parts;
+    const crumbs: string[] = [];
+    crumbs.push(`<a href="index.html">Acasă</a>`);
+    // Collect labels for the chain
+    const labels: string[] = ['Magazin'];
+    if (selectedProductType) labels.push(selectedProductType);
+    if (selectedMainCategory) labels.push(selectedMainCategory);
+    if (selectedSubCategory && selectedSubCategory !== 'Toți') labels.push(selectedSubCategory);
+    // All except last are links, last is bold
+    for (let i = 0; i < labels.length; i++) {
+        if (i < labels.length - 1) {
+            crumbs.push(`<a href="shop.html">${escapeHtml(labels[i])}</a>`);
+        } else {
+            crumbs.push(`<strong style="color:#333;">${escapeHtml(labels[i])}</strong>`);
+        }
+    }
+    bc.innerHTML = crumbs.join('<span>›</span>');
 }
 
 function renderCacti() {
@@ -433,6 +492,16 @@ function renderCacti() {
             );
             if (id) {
                 toggleWishlist(id);
+                // Actualizează icon-ul imediat
+                const btnEl = (e.target as HTMLElement).closest('.wishlist-btn') as HTMLElement;
+                if (btnEl) {
+                    const liked = wishlist.includes(id);
+                    btnEl.style.color = liked ? '#d32f2f' : '#999';
+                    btnEl.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>`;
+                }
+                // Actualizează contorul de favorite
+                const favCount = document.getElementById('favorites-count');
+                if (favCount) favCount.innerText = wishlist.length > 0 ? wishlist.length.toString() : '';
                 if (currentSort === 'favorites') {
                     currentPage = 0;
                     fetchCacti();
