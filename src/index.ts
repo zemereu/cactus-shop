@@ -5,16 +5,13 @@ let allCategories: Category[] = [];
 let selectedProductType: string = "Plante";
 let selectedMainCategory: string = "Cactuși";
 let selectedSubCategory: string = "Toți";
-let expandedMainCategory: string = "Cactuși"; // care secțiune e deschisă în sidebar
+let expandedMainCategory: string = "Cactuși";
 let searchQuery: string = "";
 let currentPage: number = 0;
 let totalPages: number = 0;
 const PAGE_SIZE: number = 12;
 
-// showToast, wishlist, toggleWishlist, isWishlisted vin din shared.ts
-
-// Coșul se încarcă din localStorage la pornire, ca să nu dispară
-// când navighezi pe altă pagină (ex: account.html) și te întorci.
+// Coșul persistă când navighezi între pagini.
 function loadCartFromStorage(): Cactus[] {
     try {
         const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
@@ -26,17 +23,18 @@ function loadCartFromStorage(): Cactus[] {
         return [];
     }
 }
+
 function saveCartToStorage() {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(shoppingCart));
+    return saveLocalValue(CART_STORAGE_KEY, JSON.stringify(shoppingCart));
 }
 
 let shoppingCart: Cactus[] = loadCartFromStorage();
 
-// PRODUCT_TYPES, MAIN_CATEGORIES, escapeHtml, API_BASE, CART_STORAGE_KEY,
-// CUSTOMER_NAME_KEY, authFetch vin din shared.ts
+// Filtrare, sortare și paginare pe server.
+let catalogRequestId = 0;
 
-// 1. Fetch de la Backend (Filtrare aplicată pe server, cu paginare)
 async function fetchCacti() {
+    const requestId = ++catalogRequestId;
     const container = document.getElementById('cacti-list');
     if (container) {
         container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
@@ -51,10 +49,12 @@ async function fetchCacti() {
         params.append('mainCategory', selectedMainCategory);
         params.append('category', selectedSubCategory);
         params.append('search', searchQuery);
+
         const priceMin = (document.getElementById('price-min') as HTMLInputElement)?.value;
         const priceMax = (document.getElementById('price-max') as HTMLInputElement)?.value;
         if (priceMin) params.append('priceMin', priceMin);
         if (priceMax) params.append('priceMax', priceMax);
+
         params.append('page', currentPage.toString());
         params.append('size', PAGE_SIZE.toString());
         params.append('sort', currentSort);
@@ -64,11 +64,14 @@ async function fetchCacti() {
         if (!response.ok) throw new Error('Eroare conectare server!');
 
         const data = await response.json();
+        if (requestId !== catalogRequestId) return;
+
         cactiForSale = data.content;
         totalPages = data.totalPages;
         renderCacti();
         renderPagination();
     } catch (error) {
+        if (requestId !== catalogRequestId) return;
         console.error("Eroare:", error);
         if (container) {
             container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
@@ -82,29 +85,30 @@ async function fetchCacti() {
     }
 }
 
-// Cont dropdown — vine din shared.ts
 initAccountDropdown();
 
-// 2. UI Coș & Notificări
-function updateCartUI() {
+// UI coș
+function updateCartUI(persist = true): boolean {
+    const saved = !persist || saveCartToStorage();
+    if (!saved) shoppingCart = loadCartFromStorage();
+
     const cartCountElement = document.getElementById('cart-count');
     if (cartCountElement) {
         cartCountElement.innerText = shoppingCart.length.toString();
     }
-    // Bounce pe butonul de coș
+
     const cartBtn = document.getElementById('cart-button');
     if (cartBtn) {
         cartBtn.style.transform = 'scale(1.15)';
         cartBtn.style.transition = 'transform 0.15s ease';
         setTimeout(() => { cartBtn.style.transform = 'scale(1)'; }, 200);
     }
-    saveCartToStorage();
+
     renderCartItems();
+    return saved;
 }
 
-// showToast vine din shared.ts
-
-// 3. Randare Sidebar — toggle Plante/Semințe sus, apoi Cactuși/Suculente expandabile cu genurile lor
+// Categorii
 async function fetchAndRenderCategories() {
     try {
         const response = await fetch(`${API_BASE}/api/categories`);
@@ -121,7 +125,6 @@ function renderSidebar() {
 
     let html = "";
 
-    // --- Toggle Plantă / Semințe (nivelul de sus) ---
     html += `<div style="display: flex; gap: 8px; margin-bottom: 15px;">`;
     for (const type of PRODUCT_TYPES) {
         const isActive = selectedProductType === type;
@@ -138,9 +141,10 @@ function renderSidebar() {
     for (const main of MAIN_CATEGORIES) {
         const isMainActive = selectedMainCategory === main;
         const isExpanded = expandedMainCategory === main;
-        const subcats = allCategories.filter(c => c.mainCategory === main).sort((a, b) => a.name.localeCompare(b.name));
+        const subcats = allCategories
+            .filter(c => c.mainCategory === main)
+            .sort((a, b) => a.name.localeCompare(b.name));
 
-        // Butonul categoriei principale (click = selectează + expandează/restrânge)
         html += `
             <button class="main-cat-btn" data-main="${escapeHtml(main)}"
                 style="background: ${isMainActive ? '#2f694b' : 'transparent'}; color: ${isMainActive ? '#fdf2b8' : '#2f694b'};
@@ -151,7 +155,6 @@ function renderSidebar() {
             </button>
         `;
 
-        // Subcategoriile — vizibile doar dacă secțiunea e expandată
         if (isExpanded) {
             html += `<div style="display: flex; flex-direction: column; gap: 6px; margin: 4px 0 8px 15px;">`;
 
@@ -187,7 +190,6 @@ function renderSidebar() {
 
     container.innerHTML = html;
 
-    // Click pe Plante/Semințe -> schimbă tipul de produs, păstrează gen/categorie selectate
     document.querySelectorAll('.product-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             selectedProductType = (e.currentTarget as HTMLButtonElement).getAttribute('data-type') || "Plante";
@@ -197,17 +199,10 @@ function renderSidebar() {
         });
     });
 
-    // Click pe categorie principală -> selectează + expandează secțiunea (sau o restrânge dacă era deja deschisă)
     document.querySelectorAll('.main-cat-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const main = (e.currentTarget as HTMLButtonElement).getAttribute('data-main') || "Cactuși";
-
-            if (expandedMainCategory === main) {
-                expandedMainCategory = ""; // restrânge dacă era deja deschisă
-            } else {
-                expandedMainCategory = main;
-            }
-
+            expandedMainCategory = expandedMainCategory === main ? "" : main;
             selectedMainCategory = main;
             selectedSubCategory = "Toți";
             currentPage = 0;
@@ -216,7 +211,6 @@ function renderSidebar() {
         });
     });
 
-    // Click pe subcategorie -> selectează gen specific + închide sidebar-ul
     document.querySelectorAll('.sub-cat-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const target = e.currentTarget as HTMLButtonElement;
@@ -230,7 +224,7 @@ function renderSidebar() {
     });
 }
 
-// Logica de deschidere/închidere
+// Deschidere/închidere sidebar
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 const menuBtn = document.getElementById('menu-btn');
@@ -262,16 +256,13 @@ document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && sidebar?.style.visibility === 'visible') closeSidebar();
 });
 
-// Adaugă apelul în zona de inițializare de la finalul fișierului
 fetchAndRenderCategories();
 
-// 4. Randare Produse (Fără filtrare locală, bazat direct pe server)
-// --- Comutare mod afișare (grilă / compact / listă) ---
+// Mod afișare
 type ViewMode = 'grid' | 'compact' | 'list';
 const VIEW_MODE_KEY = 'cactusViewMode';
 let viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || 'grid';
 
-// Generează butoanele de view toggle în #view-toggles
 const viewTogglesContainer = document.getElementById('view-toggles');
 if (viewTogglesContainer) {
     const views = [
@@ -299,16 +290,16 @@ function applyViewMode() {
 document.querySelectorAll('.view-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         viewMode = btn.getAttribute('data-view') as ViewMode;
-        localStorage.setItem(VIEW_MODE_KEY, viewMode);
+        saveLocalValue(VIEW_MODE_KEY, viewMode);
         applyViewMode();
     });
 });
 applyViewMode();
 
-// --- Sortare produse ---
+// Sortare
 let currentSort = 'name-asc';
-
 const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+
 if (sortSelect) {
     sortSelect.addEventListener('change', () => {
         currentSort = sortSelect.value;
@@ -334,16 +325,16 @@ function renderCacti() {
             const pageInfo = totalPages > 1 ? ` (pagina ${currentPage + 1} din ${totalPages})` : '';
             countEl.innerText = `${showing} produse afișate${pageInfo}`;
         }
+
         for (let cactus of sorted) {
-            // Categoria acum are bordură verde și text verde, fără fundal plin
             const categoryTag = `<span style="border: 1px solid #2f694b; color: #2f694b; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${escapeHtml(cactus.category)}</span>`;
             const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
-
             const hearted = isWishlisted(cactus.id);
+
             htmlContent += `
                 <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent; position: relative;">
                     <div class="card-actions" style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 2;">
-                        <button class="wishlist-btn card-action-btn" data-id="${cactus.id}" style="color: ${hearted ? '#d32f2f' : '#999'};" title="Favorite">
+                        <button class="wishlist-btn card-action-btn" data-id="${cactus.id}" style="color: ${hearted ? '#d32f2f' : '#999'};" title="Favorite" aria-pressed="${hearted}">
                             <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
                         </button>
                         <button class="zoom-btn card-action-btn" data-img="${escapeHtml(validImage)}" title="Zoom">
@@ -375,20 +366,21 @@ function renderCacti() {
 
     container.innerHTML = htmlContent;
 
-    // Zoom pe imagine
     document.querySelectorAll('.cactus-image').forEach(img => {
         (img as HTMLElement).style.cursor = 'zoom-in';
-        img.addEventListener('click', () => {
+        img.addEventListener('click', (event) => {
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img') as HTMLImageElement;
             if (modal && zoomImg) {
+                event.preventDefault();
                 zoomImg.src = (img as HTMLImageElement).src;
                 modal.style.display = 'flex';
+                (img.closest('a') as HTMLElement | null)?.focus();
+                modal.dispatchEvent(new Event('zoom-open'));
             }
         });
     });
 
-    // Zoom buttons
     document.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -396,17 +388,28 @@ function renderCacti() {
             const src = (e.target as HTMLElement).closest('[data-img]')?.getAttribute('data-img');
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img') as HTMLImageElement;
-            if (modal && zoomImg && src) { zoomImg.src = src; modal.style.display = 'flex'; }
+            if (modal && zoomImg && src) {
+                zoomImg.src = src;
+                modal.style.display = 'flex';
+                (btn as HTMLElement).focus();
+                modal.dispatchEvent(new Event('zoom-open'));
+            }
         });
     });
 
-    // Wishlist buttons
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
             if (id) {
                 toggleWishlist(id);
-                if (currentSort === 'favorites') { currentPage = 0; fetchCacti(); }
+                const liked = isWishlisted(id);
+                (btn as HTMLElement).style.color = liked ? '#d32f2f' : '#999';
+                btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>`;
+                btn.setAttribute('aria-pressed', String(liked));
+                if (currentSort === 'favorites') {
+                    currentPage = 0;
+                    fetchCacti();
+                }
             }
         });
     });
@@ -419,33 +422,42 @@ function renderCacti() {
             const cactusToAdd = cactiForSale.find(c => c.id === cactusId);
 
             if (cactusToAdd) {
+                shoppingCart = loadCartFromStorage();
                 const alreadyInCart = shoppingCart.filter(c => c.id === cactusId).length;
                 if (alreadyInCart >= cactusToAdd.stock) {
                     showToast(`<i class="fa-solid fa-triangle-exclamation" style="color: #FF9800;"></i> Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
                     return;
                 }
                 shoppingCart.push(cactusToAdd);
-                updateCartUI();
+                if (!updateCartUI()) return;
                 showToast(`<i class="fa-solid fa-check" style="color: #2f694b;"></i> ${cactusToAdd.name} a fost adăugat în coș!`);
             }
         });
     });
 }
 
-// 5. Randare elemente coș modal (Acum cu buton de ștergere)
+const pendingCartAdds = new Set<number>();
+
+// Produsele din coș
 function renderCartItems() {
     const cartItemsContainer = document.getElementById('cart-items-container');
     const cartTotalElement = document.getElementById('cart-total');
-
     if (!cartItemsContainer || !cartTotalElement) return;
+
+    const focused = document.activeElement as HTMLElement | null;
+    const focusedId = focused?.getAttribute('data-id');
+    const focusedClass = ['cart-minus-btn', 'cart-plus-btn', 'cart-remove-btn']
+        .find(name => focused?.classList.contains(name));
+    const focusSelector = focusedId && focusedClass && cartItemsContainer.contains(focused)
+        ? `.${focusedClass}[data-id="${Number(focusedId)}"]` : null;
 
     if (shoppingCart.length === 0) {
         cartItemsContainer.innerHTML = '<div style="text-align:center; padding:15px;"><i class="fa-solid fa-cart-shopping" style="font-size:2em; color:#ccc;"></i><p style="color:#999; margin-top:8px;">Coșul e gol. Explorează <a href="shop.html" style="color:#2f694b; font-weight:bold;">magazinul</a>!</p></div>';
         cartTotalElement.innerText = "0";
+        if (focusSelector) document.getElementById('cart-button')?.focus();
         return;
     }
 
-    // Grupare pe produs (id → {item, qty})
     const grouped = new Map<number, { item: Cactus; qty: number }>();
     shoppingCart.forEach(item => {
         const existing = grouped.get(item.id);
@@ -478,62 +490,91 @@ function renderCartItems() {
     cartItemsContainer.innerHTML = htmlContent;
     cartTotalElement.innerText = totalPrice.toFixed(2);
 
-    // − buton: scoate 1 bucată
+    if (focusSelector) {
+        const next = cartItemsContainer.querySelector<HTMLElement>(focusSelector)
+            || cartItemsContainer.querySelector<HTMLElement>('button')
+            || document.getElementById('cart-button');
+        next?.focus();
+    }
+
     cartItemsContainer.querySelectorAll('.cart-minus-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
+            shoppingCart = loadCartFromStorage();
             const idx = shoppingCart.findIndex(c => c.id === id);
-            if (idx !== -1) { shoppingCart.splice(idx, 1); updateCartUI(); }
-        });
-    });
-
-    // + buton: adaugă 1 bucată (dacă stocul permite)
-    cartItemsContainer.querySelectorAll('.cart-plus-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
-            const item = shoppingCart.find(c => c.id === id);
-            if (!item) return;
-            const currentQty = shoppingCart.filter(c => c.id === id).length;
-            const stockItem = cactiForSale.find(c => c.id === id);
-            if (stockItem && currentQty >= stockItem.stock) {
-                showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc maxim atins');
-                return;
+            if (idx !== -1) {
+                shoppingCart.splice(idx, 1);
+                updateCartUI();
             }
-            shoppingCart.push(item);
-            updateCartUI();
         });
     });
 
-    // Trash: elimină toate bucățile
+    // Verifică stocul actual inclusiv pentru produse de pe alte pagini.
+    cartItemsContainer.querySelectorAll('.cart-plus-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = Number(btn.getAttribute('data-id'));
+            shoppingCart = loadCartFromStorage();
+            const item = shoppingCart.find(c => c.id === id);
+            if (!item || pendingCartAdds.has(id)) return;
+
+            pendingCartAdds.add(id);
+            btn.setAttribute('aria-busy', 'true');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/cacti/${id}`);
+                if (!response.ok) throw new Error('Nu am putut verifica stocul. Reîncearcă.');
+
+                const fresh = await response.json();
+                shoppingCart = loadCartFromStorage();
+                if (!shoppingCart.some(c => c.id === id)) return;
+
+                if (!Number.isSafeInteger(fresh.stock) || fresh.stock < 0) {
+                    throw new Error('Nu am putut verifica stocul. Reîncearcă.');
+                }
+
+                const qty = shoppingCart.filter(c => c.id === id).length;
+                if (fresh.active === false || qty >= fresh.stock) {
+                    showToast('Stoc insuficient pentru încă o bucată.');
+                    return;
+                }
+
+                shoppingCart.push(item);
+                updateCartUI();
+            } catch {
+                showToast('Nu am putut verifica stocul. Reîncearcă.');
+            } finally {
+                pendingCartAdds.delete(id);
+                btn.removeAttribute('aria-busy');
+            }
+        });
+    });
+
     cartItemsContainer.querySelectorAll('.cart-remove-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
-            shoppingCart = shoppingCart.filter(c => c.id !== id);
+            shoppingCart = loadCartFromStorage().filter(c => c.id !== id);
             updateCartUI();
         });
     });
 }
 
-// 6. Logica Închidere/Deschidere Coș (Click în afară)
+// Deschidere/închidere coș
 const cartButton = document.getElementById('cart-button');
 const cartModal = document.getElementById('cart-modal');
 
 if (cartButton && cartModal) {
-    // Deschide/Închide la click pe butonul de sus
     cartButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // Oprim propagarea pentru a nu declanșa imediat 'window.click'
+        event.stopPropagation();
         cartModal.style.display = cartModal.style.display === "none" ? "block" : "none";
         cartButton.setAttribute("aria-expanded", String(cartModal.style.display === "block"));
     });
 
-    // Închide fereastra dacă utilizatorul dă click oriunde altundeva pe pagină
     window.addEventListener('click', (event) => {
         if (cartModal.style.display === "block") {
             const target = event.target as Node;
-            // Dacă click-ul NU s-a efectuat în interiorul ferestrei modale și NU pe butonul de coș
             if (!cartModal.contains(target) && !cartButton.contains(target)) {
                 cartModal.style.display = "none";
                 cartButton.setAttribute("aria-expanded", "false");
@@ -541,7 +582,6 @@ if (cartButton && cartModal) {
         }
     });
 
-    // Oprim propagarea click-urilor din interiorul ferestrei modale (ca să nu se închidă accidental când scrii în input)
     cartModal.addEventListener('click', (event) => {
         event.stopPropagation();
     });
@@ -555,9 +595,8 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// 7. Checkout Process
+// Checkout
 const checkoutBtn = document.getElementById('checkout-btn');
-
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
         if (shoppingCart.length === 0) {
@@ -566,10 +605,9 @@ if (checkoutBtn) {
         }
         window.location.href = 'checkout.html';
     });
-
 }
 
-// 8. Paginare
+// Paginare
 function renderPagination() {
     let container = document.getElementById('pagination-container');
     if (!container) {
@@ -614,11 +652,13 @@ function renderPagination() {
     });
 }
 
-// 9. Căutare (Apelează Java automat)
+// Căutare
 const searchBar = document.getElementById('search-bar') as HTMLInputElement;
 let searchTimeout: ReturnType<typeof setTimeout>;
+
 if (searchBar) {
     searchBar.addEventListener('input', (event) => {
+        catalogRequestId++;
         searchQuery = (event.target as HTMLInputElement).value.toLowerCase();
         currentPage = 0;
         clearTimeout(searchTimeout);
@@ -626,31 +666,40 @@ if (searchBar) {
     });
 }
 
-// 9. Filtru preț
+// Filtru preț
 let priceTimeout: ReturnType<typeof setTimeout>;
 const priceMinInput = document.getElementById('price-min');
 const priceMaxInput = document.getElementById('price-max');
+
 [priceMinInput, priceMaxInput].forEach(input => {
     if (input) input.addEventListener('input', () => {
+        catalogRequestId++;
         currentPage = 0;
         clearTimeout(priceTimeout);
         priceTimeout = setTimeout(() => fetchCacti(), 500);
     });
 });
 
-// 10. Recently viewed
+// Produse vizualizate recent
 function renderRecentlyViewed() {
     const container = document.getElementById('recent-products');
     const wrapper = document.getElementById('recently-viewed');
     if (!container || !wrapper) return;
 
     const recent: number[] = readStoredProductIds('recentlyViewed');
-    if (recent.length === 0) { wrapper.style.display = 'none'; return; }
+    if (recent.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
 
-    // Fetch doar produsele recente
-    Promise.all(recent.slice(0, 4).map(id => fetch(`${API_BASE}/api/cacti/${id}`).then(r => r.ok ? r.json() : null))).then(products => {
+    Promise.all(recent.slice(0, 4).map(id => fetch(`${API_BASE}/api/cacti/${id}`)
+        .then(r => r.ok ? r.json() : null).catch(() => null))).then(products => {
         const valid = products.filter(Boolean);
-        if (valid.length === 0) { wrapper.style.display = 'none'; return; }
+        if (valid.length === 0) {
+            wrapper.style.display = 'none';
+            return;
+        }
+
         wrapper.style.display = 'block';
         container.innerHTML = valid.map((p: any) => {
             const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
@@ -662,25 +711,18 @@ function renderRecentlyViewed() {
         }).join('');
     });
 }
+
 renderRecentlyViewed();
 
-// 11. Zoom modal close
-const zoomModal = document.getElementById('zoom-modal');
-const zoomClose = document.getElementById('zoom-close');
-if (zoomModal) {
-    zoomModal.addEventListener('click', (e) => {
-        if (e.target === zoomModal) zoomModal.style.display = 'none';
-    });
-}
-if (zoomClose) {
-    zoomClose.addEventListener('click', () => {
-        if (zoomModal) zoomModal.style.display = 'none';
-    });
-}
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && zoomModal) zoomModal.style.display = 'none';
+// Zoom și sincronizarea coșului între taburi
+initImageZoom();
+
+window.addEventListener('storage', event => {
+    if (event.key === CART_STORAGE_KEY || event.key === null) {
+        shoppingCart = loadCartFromStorage();
+        updateCartUI(false);
+    }
 });
 
-// 10. Inițializare
 fetchCacti();
-updateCartUI();
+updateCartUI(false);

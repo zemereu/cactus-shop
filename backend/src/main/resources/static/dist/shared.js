@@ -13,31 +13,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 // Detaliile de plată prin transfer bancar, afișate la checkout.
-// ⚠️ ÎNLOCUIEȘTE cu datele tale reale (IBAN, banca, titular) înainte de a activa plățile live.
+// ÎNLOCUIEȘTE cu datele tale reale înainte de a activa plățile live.
 const BANK_TRANSFER_INFO = {
-    iban: "RO00 XXXX 0000 0000 0000 0000", // TODO: pune IBAN-ul tău real
-    bank: "Numele Băncii", // TODO
-    holder: "Numele Titularului / Firmei" // TODO
+    iban: "RO00 XXXX 0000 0000 0000 0000",
+    bank: "Numele Băncii",
+    holder: "Numele Titularului / Firmei"
 };
 const ORDER_STATUSES = ["Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"];
-// Tokenurile JWT sunt acum în HttpOnly cookies — nu mai stocăm nimic
-// legat de autentificare în localStorage.
+// Tokenurile JWT sunt în HttpOnly cookies.
 const CUSTOMER_NAME_KEY = "customerName";
 const CART_STORAGE_KEY = "shoppingCart";
-// Nivelul de sus: tipul de produs — orizontal, se aplică peste orice gen.
 const PRODUCT_TYPES = ["Plante", "Semințe"];
-// Nivelul din mijloc, fix. Genurile (nivelul de jos) sunt adăugate
-// dinamic din admin, sub una din aceste 2 categorii.
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
 // Frontendul si API-ul sunt servite de aceeasi aplicatie pe Railway.
 const API_BASE = '';
-// Fetch cu credentials incluse — browserul trimite automat cookie-ul JWT.
 function authFetch(url, options = {}) {
     return fetch(url, Object.assign(Object.assign({}, options), { credentials: 'include', headers: Object.assign({}, options.headers) }));
 }
-// Scapă orice text ce ar putea proveni din date introduse de utilizator
-// înainte de a-l pune în innerHTML (nume produs, descriere, categorie,
-// nume client, adresă, etc.) — previne XSS stocat.
 function escapeHtml(unsafe) {
     if (unsafe === null || unsafe === undefined)
         return "";
@@ -53,8 +45,6 @@ function starsDisplay(rating) {
     const empty = '<i class="fa-regular fa-star" style="color: #ccc;"></i>';
     return full.repeat(rating) + empty.repeat(5 - rating);
 }
-// Inițializează dropdown-ul de cont — folosit pe orice pagină care are
-// #account-link, #account-dropdown și #dropdown-logout-btn în header.
 function initAccountDropdown() {
     const accountLink = document.getElementById('account-link');
     const dropdown = document.getElementById('account-dropdown');
@@ -71,7 +61,6 @@ function initAccountDropdown() {
                 dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
             }
         });
-        // Ascunde butonul "Verifică Comanda" din header când ești logat
         const verificaBtn = document.getElementById('header-verifica-btn');
         if (verificaBtn)
             verificaBtn.style.display = 'none';
@@ -98,7 +87,6 @@ function initAccountDropdown() {
         }));
     }
 }
-// --- Toast global ---
 function showToast(message) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -113,7 +101,6 @@ function showToast(message) {
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
 }
-// --- Wishlist global ---
 function readStoredProductIds(key) {
     try {
         const data = JSON.parse(localStorage.getItem(key) || '[]');
@@ -128,17 +115,64 @@ function readStoredProductIds(key) {
 const WISHLIST_KEY = 'wishlist';
 let wishlist = readStoredProductIds(WISHLIST_KEY);
 function toggleWishlist(id) {
-    const idx = wishlist.indexOf(id);
-    if (idx === -1) {
-        wishlist.push(id);
-        showToast('<i class="fa-solid fa-heart" style="color: #d32f2f;"></i> Adăugat la favorite');
-    }
-    else {
-        wishlist.splice(idx, 1);
-        showToast('<i class="fa-regular fa-heart"></i> Eliminat din favorite');
-    }
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+    const next = readStoredProductIds(WISHLIST_KEY);
+    const idx = next.indexOf(id);
+    if (idx === -1)
+        next.push(id);
+    else
+        next.splice(idx, 1);
+    if (!saveLocalValue(WISHLIST_KEY, JSON.stringify(next)))
+        return;
+    wishlist = next;
+    showToast(idx === -1 ? 'Adăugat la favorite' : 'Eliminat din favorite');
 }
 function isWishlisted(id) {
     return wishlist.includes(id);
+}
+function saveLocalValue(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    }
+    catch (_a) {
+        showToast('Nu am putut salva în browser. Verifică setările de stocare și reîncearcă.');
+        return false;
+    }
+}
+function initImageZoom() {
+    const modal = document.getElementById('zoom-modal');
+    const close = document.getElementById('zoom-close');
+    if (!modal || !close)
+        return;
+    let opener = null;
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Imagine mărită');
+    close.setAttribute('aria-label', 'Închide imaginea');
+    const hide = () => {
+        modal.style.display = 'none';
+        if (opener === null || opener === void 0 ? void 0 : opener.isConnected)
+            opener.focus();
+    };
+    modal.addEventListener('zoom-open', () => {
+        opener = document.activeElement;
+        close.focus();
+    });
+    close.addEventListener('click', hide);
+    modal.addEventListener('click', event => {
+        if (event.target === modal)
+            hide();
+    });
+    document.addEventListener('keydown', event => {
+        if (modal.style.display !== 'flex')
+            return;
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            hide();
+        }
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            close.focus();
+        }
+    });
 }

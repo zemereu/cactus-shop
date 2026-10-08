@@ -1,14 +1,29 @@
-// shared.ts: API_BASE, escapeHtml, authFetch, starsDisplay, CART_STORAGE_KEY, CUSTOMER_NAME_KEY
+// Funcțiile și constantele comune vin din shared.ts.
 
 const produsParams = new URLSearchParams(window.location.search);
 const productId = produsParams.get('id');
 
-// showToast, wishlist, toggleWishlist, isWishlisted, escapeHtml, starsDisplay, CART_STORAGE_KEY vin din shared.ts
+interface ProdCactus {
+    id: number;
+    name: string;
+    price: number;
+    stock: number;
+    description: string;
+    imageUrl: string;
+    category: string;
+    mainCategory: string;
+    productType: string;
+    active: boolean;
+}
 
-interface ProdCactus { id: number; name: string; price: number; stock: number; description: string; imageUrl: string; category: string; mainCategory: string; productType: string; active: boolean; }
-interface ProdReview { id: number; customerName: string; rating: number; comment: string; createdAt: string; }
+interface ProdReview {
+    id: number;
+    customerName: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+}
 
-// --- Coș ---
 function produsLoadCart(): ProdCactus[] {
     try {
         const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
@@ -20,40 +35,52 @@ function produsLoadCart(): ProdCactus[] {
         return [];
     }
 }
+
 function produsSaveCart(cart: ProdCactus[]) {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    return saveLocalValue(CART_STORAGE_KEY, JSON.stringify(cart));
 }
 
 async function loadProduct() {
-    if (!productId) { showError(); return; }
+    if (!productId) {
+        showError();
+        return;
+    }
 
     try {
         const response = await fetch(`${API_BASE}/api/cacti/${productId}`);
-        if (!response.ok) { showError(); return; }
+        if (!response.ok) {
+            showError();
+            return;
+        }
+
         const product: ProdCactus = await response.json();
-
-        // Fetch all for similar products (lightweight — just this category)
-        const allResponse = await fetch(`${API_BASE}/api/cacti?mainCategory=${encodeURIComponent(product.mainCategory)}&category=${encodeURIComponent(product.category)}&size=50`);
-        const allData = await allResponse.json();
-        const allProducts: ProdCactus[] = allData.content || allData;
-
-        if (!product) { showError(); return; }
+        if (!product) {
+            showError();
+            return;
+        }
 
         document.title = `${product.name} - Cactus Shop`;
-        // Dynamic SEO
+
         const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', `${product.name} — ${product.price} RON. ${product.description || 'Cactus Shop'}`);
+        if (metaDesc) {
+            metaDesc.setAttribute('content', `${product.name} — ${product.price} RON. ${product.description || 'Cactus Shop'}`);
+        }
+
         const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement('meta');
-        ogTitle.setAttribute('property', 'og:title'); ogTitle.setAttribute('content', product.name);
+        ogTitle.setAttribute('property', 'og:title');
+        ogTitle.setAttribute('content', product.name);
         if (!ogTitle.parentNode) document.head.appendChild(ogTitle);
+
         const ogDesc = document.querySelector('meta[property="og:description"]') || document.createElement('meta');
-        ogDesc.setAttribute('property', 'og:description'); ogDesc.setAttribute('content', `${product.price} RON — ${product.description || ''}`);
+        ogDesc.setAttribute('property', 'og:description');
+        ogDesc.setAttribute('content', `${product.price} RON — ${product.description || ''}`);
         if (!ogDesc.parentNode) document.head.appendChild(ogDesc);
+
         const ogImg = document.querySelector('meta[property="og:image"]') || document.createElement('meta');
-        ogImg.setAttribute('property', 'og:image'); ogImg.setAttribute('content', product.imageUrl || '');
+        ogImg.setAttribute('property', 'og:image');
+        ogImg.setAttribute('content', product.imageUrl || '');
         if (!ogImg.parentNode) document.head.appendChild(ogImg);
 
-        // Fill product details
         (document.getElementById('product-image') as HTMLImageElement).src = product.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=600&q=80';
         document.getElementById('product-name')!.innerText = product.name;
         document.getElementById('product-category')!.innerText = `${product.mainCategory} — ${product.category}`;
@@ -67,27 +94,46 @@ async function loadProduct() {
             stockEl.innerHTML = `<i class="fa-solid fa-xmark" style="color:#d32f2f;"></i> <strong style="color:#d32f2f;">Stoc epuizat</strong>`;
         }
 
-        // Add to cart
+        // Adăugare în coș cu verificarea stocului actual.
         const addBtn = document.getElementById('product-add-cart')!;
         if (product.stock <= 0) {
             addBtn.style.backgroundColor = '#999';
             addBtn.style.cursor = 'not-allowed';
             addBtn.innerHTML = '<i class="fa-solid fa-ban"></i> Stoc epuizat';
         } else {
-            addBtn.addEventListener('click', () => {
-                const cart = produsLoadCart();
-                const inCart = cart.filter(c => c.id === product.id).length;
-                if (inCart >= product.stock) {
-                    showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc insuficient!');
-                    return;
+            let adding = false;
+            addBtn.addEventListener('click', async () => {
+                if (adding) return;
+                adding = true;
+                addBtn.setAttribute('aria-busy', 'true');
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/cacti/${product.id}`);
+                    if (!response.ok) throw new Error();
+
+                    const fresh: ProdCactus = await response.json();
+                    if (!Number.isSafeInteger(fresh.stock) || fresh.stock < 0) throw new Error();
+
+                    const cart = produsLoadCart();
+                    const inCart = cart.filter(c => c.id === product.id).length;
+                    if (fresh.active === false || inCart >= fresh.stock) {
+                        showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc insuficient!');
+                        return;
+                    }
+
+                    cart.push(product);
+                    if (!produsSaveCart(cart)) return;
+                    showToast('<i class="fa-solid fa-check" style="color:#2f694b;"></i> Adăugat în coș!');
+                } catch {
+                    showToast('Nu am putut verifica stocul. Reîncearcă.');
+                } finally {
+                    adding = false;
+                    addBtn.removeAttribute('aria-busy');
                 }
-                cart.push(product);
-                produsSaveCart(cart);
-                showToast('<i class="fa-solid fa-check" style="color:#2f694b;"></i> Adăugat în coș!');
             });
         }
 
-        // Wishlist
+        // Favorite
         const wishBtn = document.getElementById('product-wishlist')!;
         updateWishBtn(wishBtn, product.id);
         wishBtn.addEventListener('click', () => {
@@ -95,30 +141,40 @@ async function loadProduct() {
             updateWishBtn(wishBtn, product.id);
         });
 
-        // Zoom
+        // Zoom accesibil și din tastatură.
         const prodImg = document.getElementById('product-image')!;
+        prodImg.setAttribute('tabindex', '0');
+        prodImg.setAttribute('role', 'button');
+        prodImg.setAttribute('aria-label', 'Mărește imaginea produsului');
+
+        prodImg.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                prodImg.click();
+            }
+        });
+
         prodImg.addEventListener('click', () => {
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img') as HTMLImageElement;
-            if (modal && zoomImg) { zoomImg.src = (prodImg as HTMLImageElement).src; modal.style.display = 'flex'; }
+            if (modal && zoomImg) {
+                prodImg.focus();
+                zoomImg.src = (prodImg as HTMLImageElement).src;
+                modal.style.display = 'flex';
+                modal.dispatchEvent(new Event('zoom-open'));
+            }
         });
 
-        // Reviews
         loadProductReviews(product.id);
 
-        // Similar products (same category, exclude current)
-        const similar = allProducts.filter(p => p.id !== product.id && p.category === product.category && p.active).slice(0, 4);
-        renderSimilar(similar);
-
-        // Recently viewed — salvează în localStorage
+        // Produse vizualizate recent
         const RECENT_KEY = 'recentlyViewed';
         let recent: number[] = readStoredProductIds(RECENT_KEY);
         recent = recent.filter(id => id !== product.id);
         recent.unshift(product.id);
         if (recent.length > 8) recent = recent.slice(0, 8);
-        localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+        saveLocalValue(RECENT_KEY, JSON.stringify(recent));
 
-        // Breadcrumbs
         document.getElementById('product-content')!.insertAdjacentHTML('afterbegin', `
             <div class="breadcrumbs">
                 <a href="index.html">Acasă</a><span>›</span>
@@ -128,10 +184,9 @@ async function loadProduct() {
                 <strong style="color:#333;">${escapeHtml(product.name)}</strong>
             </div>`);
 
-        // Show content
         document.getElementById('product-loading')!.style.display = 'none';
         document.getElementById('product-content')!.style.display = 'block';
-
+        void loadSimilarProducts(product);
     } catch (e) {
         console.error(e);
         showError();
@@ -153,10 +208,12 @@ async function loadProductReviews(cactusId: number) {
     try {
         const response = await fetch(`${API_BASE}/api/reviews/product/${cactusId}`);
         const reviews: ProdReview[] = await response.json();
+
         if (reviews.length === 0) {
             container.innerHTML = '<p style="color:#999; font-style:italic;">Nicio recenzie pentru acest produs.</p>';
             return;
         }
+
         container.innerHTML = reviews.map(r => `
             <div style="background:white; padding:15px; border-radius:8px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
                 <div style="color:#FF9800; font-size:1.1em;">${starsDisplay(r.rating)}</div>
@@ -169,12 +226,33 @@ async function loadProductReviews(cactusId: number) {
     }
 }
 
+async function loadSimilarProducts(product: ProdCactus) {
+    try {
+        const response = await fetch(`${API_BASE}/api/cacti?productType=${encodeURIComponent(product.productType)}&mainCategory=${encodeURIComponent(product.mainCategory)}&category=${encodeURIComponent(product.category)}&size=50`);
+        if (!response.ok) throw new Error('Similar products unavailable');
+
+        const data = await response.json();
+        const products: ProdCactus[] = data.content || data;
+
+        renderSimilar(products.filter(p =>
+            p.id !== product.id &&
+            p.category === product.category &&
+            p.productType === product.productType &&
+            p.active
+        ).slice(0, 4));
+    } catch {
+        const container = document.getElementById('similar-products');
+        if (container) container.textContent = 'Nu am putut încărca produsele similare.';
+    }
+}
+
 function renderSimilar(products: ProdCactus[]) {
     const container = document.getElementById('similar-products')!;
     if (products.length === 0) {
         container.innerHTML = '<p style="color:#999; font-style:italic; grid-column: span 4;">Niciun produs similar găsit.</p>';
         return;
     }
+
     container.innerHTML = products.map(p => {
         const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
         return `
@@ -186,11 +264,5 @@ function renderSimilar(products: ProdCactus[]) {
     }).join('');
 }
 
-// Zoom close
-const prodZoomModal = document.getElementById('zoom-modal');
-const prodZoomClose = document.getElementById('zoom-close');
-if (prodZoomModal) prodZoomModal.addEventListener('click', (e) => { if (e.target === prodZoomModal) prodZoomModal.style.display = 'none'; });
-if (prodZoomClose) prodZoomClose.addEventListener('click', () => { if (prodZoomModal) prodZoomModal.style.display = 'none'; });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && prodZoomModal) prodZoomModal.style.display = 'none'; });
-
+initImageZoom();
 loadProduct();

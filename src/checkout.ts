@@ -1,6 +1,11 @@
-// shared.ts: API_BASE, CART_STORAGE_KEY, CUSTOMER_NAME_KEY, escapeHtml, authFetch, showToast, BANK_TRANSFER_INFO
+// Funcțiile și constantele comune vin din shared.ts.
 
-interface CheckoutCactus { id: number; name: string; price: number; stock: number; }
+interface CheckoutCactus {
+    id: number;
+    name: string;
+    price: number;
+    stock: number;
+}
 
 function loadCart(): CheckoutCactus[] {
     try {
@@ -16,12 +21,17 @@ function loadCart(): CheckoutCactus[] {
 
 const cart = loadCart();
 
-// Redirect dacă coșul e gol
+window.addEventListener('storage', event => {
+    if ((event.key === CART_STORAGE_KEY || event.key === null) && !checkoutSubmitting && !checkoutCompleted) {
+        cart.splice(0, cart.length, ...loadCart());
+        renderCheckoutItems();
+    }
+});
+
 if (cart.length === 0) {
     window.location.href = 'shop.html';
 }
 
-// Grupare + render sumar
 function renderCheckoutItems() {
     const container = document.getElementById('checkout-items');
     const totalEl = document.getElementById('checkout-total');
@@ -30,12 +40,14 @@ function renderCheckoutItems() {
     const grouped = new Map<number, { item: CheckoutCactus; qty: number }>();
     cart.forEach(item => {
         const e = grouped.get(item.id);
-        if (e) e.qty++; else grouped.set(item.id, { item, qty: 1 });
+        if (e) e.qty++;
+        else grouped.set(item.id, {item, qty: 1});
     });
 
     let total = 0;
     container.innerHTML = '';
-    grouped.forEach(({ item, qty }) => {
+
+    grouped.forEach(({item, qty}) => {
         const line = Math.round(item.price * 100) * qty;
         total += line;
         container.innerHTML += `
@@ -48,12 +60,15 @@ function renderCheckoutItems() {
                 <strong style="color: #d32f2f;">${(line / 100).toFixed(2)} RON</strong>
             </div>`;
     });
+
     totalEl.innerText = (total / 100).toFixed(2);
 }
+
 renderCheckoutItems();
 
-// Pre-fill dacă logat — ascunde formularul, arată rezumatul
+// Datele contului autentificat
 let isLoggedIn = false;
+
 async function prefillFromAccount() {
     const name = localStorage.getItem(CUSTOMER_NAME_KEY);
     if (!name) return;
@@ -61,6 +76,7 @@ async function prefillFromAccount() {
     try {
         const response = await authFetch(`${API_BASE}/api/customers/me`);
         if (!response.ok) return;
+
         const profile = await response.json();
         isLoggedIn = true;
 
@@ -68,7 +84,6 @@ async function prefillFromAccount() {
         (document.getElementById('checkout-email') as HTMLInputElement).value = profile.email || '';
         (document.getElementById('checkout-address') as HTMLInputElement).value = profile.address || '';
 
-        // Ascunde câmpurile, arată rezumatul
         const formFields = document.getElementById('checkout-fields')!;
         const info = document.getElementById('logged-in-info')!;
         const loggedName = document.getElementById('checkout-logged-name')!;
@@ -87,18 +102,31 @@ async function prefillFromAccount() {
             </div>
             ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="account.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
         `;
-    } catch (e) { /* nu e logat, form-ul rămâne vizibil */ }
+    } catch {
+        // Formularul rămâne disponibil dacă autentificarea nu poate fi verificată.
+    }
 }
+
 prefillFromAccount();
 
-// Submit comandă. Keep the same attempt across reloads and uncertain network failures.
+// Aceeași cheie este păstrată la reîncercări cu rezultat incert.
 const CHECKOUT_ATTEMPT_KEY = 'checkoutAttempt';
 const checkoutSubmitBtn = document.getElementById('submit-order-btn');
 let checkoutSubmitting = false;
 let checkoutCompleted = false;
+
 if (checkoutSubmitBtn) {
     checkoutSubmitBtn.addEventListener('click', async () => {
         if (checkoutSubmitting || checkoutCompleted) return;
+
+        cart.splice(0, cart.length, ...loadCart());
+        renderCheckoutItems();
+
+        if (!cart.length) {
+            showToast('Coșul este gol. Adaugă produse înainte de a comanda.');
+            return;
+        }
+
         const nameVal = (document.getElementById('checkout-name') as HTMLInputElement).value.trim();
         const emailVal = (document.getElementById('checkout-email') as HTMLInputElement).value.trim();
         const addressVal = (document.getElementById('checkout-address') as HTMLInputElement).value.trim();
@@ -113,36 +141,56 @@ if (checkoutSubmitBtn) {
             }
             return;
         }
+
         if (errorEl) errorEl.style.display = 'none';
         checkoutSubmitting = true;
         checkoutSubmitBtn.setAttribute('disabled', 'true');
         checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Se procesează...';
 
         try {
-            const body = JSON.stringify({ customerName: nameVal, email: emailVal, address: addressVal,
+            const body = JSON.stringify({
+                customerName: nameVal,
+                email: emailVal,
+                address: addressVal,
                 cactusIds: cart.map(item => item.id).sort((a, b) => a - b),
-                expectedTotal: (cart.reduce((sum, item) => sum + Math.round(item.price * 100), 0) / 100).toFixed(2) });
+                expectedTotal: (cart.reduce((sum, item) => sum + Math.round(item.price * 100), 0) / 100).toFixed(2)
+            });
+
             const stored = sessionStorage.getItem(CHECKOUT_ATTEMPT_KEY);
             const pending: { key: string; body: string } | null = stored ? JSON.parse(stored) : null;
+
             if (pending && (typeof pending.key !== 'string' || pending.body !== body)) {
                 throw new Error('Există o comandă cu rezultat neconfirmat. Reîncearcă folosind aceleași produse și date pentru a evita o comandă dublă.');
             }
 
-            // A retry must reach the server even if the first request consumed the last item.
+            // Reîncercarea ajunge la server chiar dacă prima cerere a consumat ultimul produs.
             if (!pending) {
                 const cartCounts = new Map<number, number>();
                 cart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
+
                 const problems: string[] = [];
                 const prices = new Map<number, number>();
+
                 for (const [id, qty] of cartCounts) {
                     const r = await fetch(`${API_BASE}/api/cacti/${id}`);
-                    if (!r.ok) { problems.push(`Produsul #${id} nu mai este disponibil.`); continue; }
+                    if (!r.ok) {
+                        problems.push(`Produsul #${id} nu mai este disponibil.`);
+                        continue;
+                    }
+
                     const fresh = await r.json();
-                    if (!Number.isFinite(fresh.price) || fresh.price < 0) throw new Error("Preț invalid. Reîncearcă mai târziu.");
+                    if (!Number.isFinite(fresh.price) || fresh.price < 0) {
+                        throw new Error("Preț invalid. Reîncearcă mai târziu.");
+                    }
+
                     prices.set(id, fresh.price);
-                    if (fresh.stock < qty) problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
+                    if (fresh.stock < qty) {
+                        problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
+                    }
                 }
+
                 if (problems.length) throw new Error(problems.join('\n'));
+
                 if (cart.some(item => Math.round(item.price * 100) !== Math.round(prices.get(item.id)! * 100))) {
                     cart.forEach(item => item.price = prices.get(item.id)!);
                     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
@@ -151,17 +199,22 @@ if (checkoutSubmitBtn) {
                 }
             }
 
-            const attempt = pending || { key: crypto.randomUUID(), body };
-            // If storage fails, do not send an order that cannot be retried safely.
+            const attempt = pending || {key: crypto.randomUUID(), body};
+
+            // Nu trimitem comanda dacă nu putem salva cheia pentru reîncercare.
             sessionStorage.setItem(CHECKOUT_ATTEMPT_KEY, JSON.stringify(attempt));
+
             const response = await fetch(`${API_BASE}/api/orders`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Idempotency-Key': attempt.key },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Idempotency-Key': attempt.key
+                },
                 body: attempt.body
             });
+
             if (!response.ok) {
                 const errText = await response.text();
-                // A definitive rejection permits editing; timeouts/server failures keep the key.
                 if (response.status >= 400 && response.status < 500 && ![408, 429].includes(response.status)) {
                     sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
                 }
@@ -170,10 +223,23 @@ if (checkoutSubmitBtn) {
 
             const order = await response.json();
             checkoutCompleted = true;
-            localStorage.setItem(CART_STORAGE_KEY, '[]');
-            sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
 
-            // Ascunde formularul, arată confirmare
+            // Eliminăm doar cantitățile comandate, păstrând adăugările din alte taburi.
+            const purchased = new Map<number, number>();
+            cart.forEach(item => purchased.set(item.id, (purchased.get(item.id) || 0) + 1));
+
+            const remaining = loadCart().filter(item => {
+                const qty = purchased.get(item.id) || 0;
+                if (!qty) return true;
+                purchased.set(item.id, qty - 1);
+                return false;
+            });
+
+            // Păstrăm cheia dacă salvarea coșului eșuează.
+            if (saveLocalValue(CART_STORAGE_KEY, JSON.stringify(remaining))) {
+                sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
+            }
+
             (document.querySelector('main > div > div[style*="display: flex"]') as HTMLElement).style.display = 'none';
             const confirm = document.getElementById('order-confirmation')!;
             confirm.style.display = 'block';
@@ -201,7 +267,9 @@ if (checkoutSubmitBtn) {
                 </div>`;
         } catch (e) {
             if (errorEl) {
-                errorEl.innerText = e instanceof Error ? e.message : 'Eroare de conexiune. Reîncearcă pentru confirmarea comenzii.';
+                errorEl.innerText = e instanceof Error
+                    ? e.message
+                    : 'Eroare de conexiune. Reîncearcă pentru confirmarea comenzii.';
                 errorEl.style.display = 'block';
             }
         } finally {
