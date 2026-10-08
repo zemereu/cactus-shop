@@ -90,7 +90,7 @@ function prefillFromAccount() {
                 <div><i class="fa-solid fa-envelope" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.email)}</div>
                 <div><i class="fa-solid fa-location-dot" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.address || 'Fără adresă salvată')}</div>
             </div>
-            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="cont.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
+            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="account.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
         `;
         }
         catch (e) { /* nu e logat, form-ul rămâne vizibil */ }
@@ -113,7 +113,7 @@ if (checkoutSubmitBtn) {
         if (!nameVal || !emailVal || !addressVal) {
             if (errorEl) {
                 errorEl.innerHTML = isLoggedIn && !addressVal
-                    ? 'Adaugă o adresă în <a href="cont.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
+                    ? 'Adaugă o adresă în <a href="account.html" style="color:#2f694b; font-weight:bold;">contul tău</a> mai întâi.'
                     : 'Completează toate câmpurile.';
                 errorEl.style.display = 'block';
             }
@@ -200,7 +200,7 @@ if (checkoutSubmitBtn) {
                     <p style="margin: 8px 0 0; color: #666;">Menționează codul <strong>${escapeHtml(order.orderToken)}</strong> în detaliile plății.</p>
                 </div>
                 <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-                    <a href="comenzi.html" style="background: #2f694b; color: #fdf2b8; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                    <a href="orders.html" style="background: #2f694b; color: #fdf2b8; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                         <i class="fa-solid fa-box"></i> Vezi comenzile
                     </a>
                     <a href="shop.html" style="background: #FF9800; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">

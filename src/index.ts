@@ -14,7 +14,7 @@ const PAGE_SIZE: number = 12;
 // showToast, wishlist, toggleWishlist, isWishlisted vin din shared.ts
 
 // Coșul se încarcă din localStorage la pornire, ca să nu dispară
-// când navighezi pe altă pagină (ex: cont.html) și te întorci.
+// când navighezi pe altă pagină (ex: account.html) și te întorci.
 function loadCartFromStorage(): Cactus[] {
     try {
         const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
@@ -350,10 +350,10 @@ function renderCacti() {
                             <i class="fa-solid fa-expand"></i>
                         </button>
                     </div>
-                    <a href="produs.html?id=${cactus.id}"><img loading="lazy" class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
+                    <a href="product.html?id=${cactus.id}"><img loading="lazy" class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
                     <div class="cactus-details">
                         ${categoryTag}
-                        <a href="produs.html?id=${cactus.id}" style="text-decoration:none;"><h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2></a>
+                        <a href="product.html?id=${cactus.id}" style="text-decoration:none;"><h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2></a>
                         <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
                         <p class="cactus-stock" style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
                             ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
@@ -654,7 +654,7 @@ function renderRecentlyViewed() {
         wrapper.style.display = 'block';
         container.innerHTML = valid.map((p: any) => {
             const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
-            return `<a href="produs.html?id=${p.id}" style="flex: 0 0 140px; text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:8px; text-align:center;">
+            return `<a href="product.html?id=${p.id}" style="flex: 0 0 140px; text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:8px; text-align:center;">
                 <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
                 <p style="color:#2f694b; font-weight:bold; margin:6px 0 2px; font-size:0.8em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</p>
                 <p style="color:#d32f2f; font-weight:bold; margin:0; font-size:0.85em;">${p.price} RON</p>
