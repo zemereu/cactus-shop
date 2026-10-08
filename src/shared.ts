@@ -25,9 +25,7 @@ const PRODUCT_TYPES = ["Plante", "Semințe"];
 // dinamic din admin, sub una din aceste 2 categorii.
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
 
-// Gol — request-urile merg prin proxy-ul Netlify (same origin),
-// care le redirecționează către Railway. Asta permite cookie-uri
-// first-party (HttpOnly, Secure, SameSite=Lax).
+// Frontendul si API-ul sunt servite de aceeasi aplicatie pe Railway.
 const API_BASE = '';
 
 // Fetch cu credentials incluse — browserul trimite automat cookie-ul JWT.
@@ -52,8 +50,8 @@ interface Cactus {
     mainCategory: string;
     imageUrl: string;
     stock: number;
-    location: string;
     active: boolean;
+    location?: string | null;
 }
 
 interface Category {
@@ -133,12 +131,13 @@ function initAccountDropdown() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async (event) => {
             event.preventDefault();
-            await authFetch(`${API_BASE}/api/customers/logout`, { method: 'POST' });
+            await authFetch(`${API_BASE}/api/customers/logout`, {method: 'POST'});
             localStorage.removeItem(CUSTOMER_NAME_KEY);
             window.location.reload();
         });
     }
 }
+
 // --- Toast global ---
 function showToast(message: string) {
     let container = document.getElementById('toast-container');
@@ -156,8 +155,19 @@ function showToast(message: string) {
 }
 
 // --- Wishlist global ---
+function readStoredProductIds(key: string): number[] {
+    try {
+        const data: unknown = JSON.parse(localStorage.getItem(key) || '[]');
+        return Array.isArray(data)
+            ? [...new Set(data.filter((id): id is number => Number.isSafeInteger(id) && id > 0))]
+            : [];
+    } catch {
+        return [];
+    }
+}
+
 const WISHLIST_KEY = 'wishlist';
-let wishlist: number[] = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+let wishlist: number[] = readStoredProductIds(WISHLIST_KEY);
 
 function toggleWishlist(id: number) {
     const idx = wishlist.indexOf(id);

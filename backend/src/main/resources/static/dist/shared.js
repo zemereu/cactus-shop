@@ -29,9 +29,7 @@ const PRODUCT_TYPES = ["Plante", "Semințe"];
 // Nivelul din mijloc, fix. Genurile (nivelul de jos) sunt adăugate
 // dinamic din admin, sub una din aceste 2 categorii.
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
-// Gol — request-urile merg prin proxy-ul Netlify (same origin),
-// care le redirecționează către Railway. Asta permite cookie-uri
-// first-party (HttpOnly, Secure, SameSite=Lax).
+// Frontendul si API-ul sunt servite de aceeasi aplicatie pe Railway.
 const API_BASE = '';
 // Fetch cu credentials incluse — browserul trimite automat cookie-ul JWT.
 function authFetch(url, options = {}) {
@@ -116,8 +114,19 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 2500);
 }
 // --- Wishlist global ---
+function readStoredProductIds(key) {
+    try {
+        const data = JSON.parse(localStorage.getItem(key) || '[]');
+        return Array.isArray(data)
+            ? [...new Set(data.filter((id) => Number.isSafeInteger(id) && id > 0))]
+            : [];
+    }
+    catch (_a) {
+        return [];
+    }
+}
 const WISHLIST_KEY = 'wishlist';
-let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+let wishlist = readStoredProductIds(WISHLIST_KEY);
 function toggleWishlist(id) {
     const idx = wishlist.indexOf(id);
     if (idx === -1) {

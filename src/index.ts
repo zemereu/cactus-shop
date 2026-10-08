@@ -17,8 +17,11 @@ const PAGE_SIZE: number = 12;
 // când navighezi pe altă pagină (ex: cont.html) și te întorci.
 function loadCartFromStorage(): Cactus[] {
     try {
-        const raw = localStorage.getItem(CART_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
+        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+        return Array.isArray(data) ? data.filter(item => item &&
+            Number.isSafeInteger(item.id) && item.id > 0 && typeof item.name === 'string' &&
+            Number.isFinite(item.price) && item.price >= 0 &&
+            Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
     } catch {
         return [];
     }
@@ -641,7 +644,7 @@ function renderRecentlyViewed() {
     const wrapper = document.getElementById('recently-viewed');
     if (!container || !wrapper) return;
 
-    const recent: number[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+    const recent: number[] = readStoredProductIds('recentlyViewed');
     if (recent.length === 0) { wrapper.style.display = 'none'; return; }
 
     // Fetch doar produsele recente

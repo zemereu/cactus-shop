@@ -11,7 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 function loadCart() {
     try {
-        return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+        return Array.isArray(data) ? data.filter(item => item &&
+            Number.isSafeInteger(item.id) && item.id > 0 && typeof item.name === 'string' &&
+            Number.isFinite(item.price) && item.price >= 0 &&
+            Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
     }
     catch (_a) {
         return [];
@@ -89,9 +93,7 @@ function prefillFromAccount() {
             ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="cont.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
         `;
         }
-        catch (e) {
-            /* nu e logat, form-ul rămâne vizibil */
-        }
+        catch (e) { /* nu e logat, form-ul rămâne vizibil */ }
     });
 }
 prefillFromAccount();
@@ -123,13 +125,9 @@ if (checkoutSubmitBtn) {
         checkoutSubmitBtn.setAttribute('disabled', 'true');
         checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Se procesează...';
         try {
-            const body = JSON.stringify({
-                customerName: nameVal,
-                email: emailVal,
-                address: addressVal,
+            const body = JSON.stringify({ customerName: nameVal, email: emailVal, address: addressVal,
                 cactusIds: cart.map(item => item.id).sort((a, b) => a - b),
-                expectedTotal: (cart.reduce((sum, item) => sum + Math.round(item.price * 100), 0) / 100).toFixed(2)
-            });
+                expectedTotal: (cart.reduce((sum, item) => sum + Math.round(item.price * 100), 0) / 100).toFixed(2) });
             const stored = sessionStorage.getItem(CHECKOUT_ATTEMPT_KEY);
             const pending = stored ? JSON.parse(stored) : null;
             if (pending && (typeof pending.key !== 'string' || pending.body !== body)) {
@@ -148,19 +146,15 @@ if (checkoutSubmitBtn) {
                         continue;
                     }
                     const fresh = yield r.json();
-                    if (!Number.isFinite(fresh.price) || fresh.price < 0) {
+                    if (!Number.isFinite(fresh.price) || fresh.price < 0)
                         throw new Error("Preț invalid. Reîncearcă mai târziu.");
-                    }
                     prices.set(id, fresh.price);
-                    if (fresh.stock < qty) {
+                    if (fresh.stock < qty)
                         problems.push(`"${fresh.name}" — doar ${fresh.stock} în stoc, ai ${qty} în coș.`);
-                    }
                 }
-                if (problems.length) {
+                if (problems.length)
                     throw new Error(problems.join('\n'));
-                }
-                if (cart.some(item => Math.round(item.price * 100) !==
-                    Math.round(prices.get(item.id) * 100))) {
+                if (cart.some(item => Math.round(item.price * 100) !== Math.round(prices.get(item.id) * 100))) {
                     cart.forEach(item => item.price = prices.get(item.id));
                     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
                     renderCheckoutItems();
@@ -172,18 +166,13 @@ if (checkoutSubmitBtn) {
             sessionStorage.setItem(CHECKOUT_ATTEMPT_KEY, JSON.stringify(attempt));
             const response = yield fetch(`${API_BASE}/api/orders`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Idempotency-Key': attempt.key
-                },
+                headers: { 'Content-Type': 'application/json', 'Idempotency-Key': attempt.key },
                 body: attempt.body
             });
             if (!response.ok) {
                 const errText = yield response.text();
                 // A definitive rejection permits editing; timeouts/server failures keep the key.
-                if (response.status >= 400 &&
-                    response.status < 500 &&
-                    ![408, 429].includes(response.status)) {
+                if (response.status >= 400 && response.status < 500 && ![408, 429].includes(response.status)) {
                     sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
                 }
                 throw new Error(errText || 'Eroare la plasarea comenzii.');
@@ -221,9 +210,7 @@ if (checkoutSubmitBtn) {
         }
         catch (e) {
             if (errorEl) {
-                errorEl.innerText = e instanceof Error
-                    ? e.message
-                    : 'Eroare de conexiune. Reîncearcă pentru confirmarea comenzii.';
+                errorEl.innerText = e instanceof Error ? e.message : 'Eroare de conexiune. Reîncearcă pentru confirmarea comenzii.';
                 errorEl.style.display = 'block';
             }
         }
@@ -231,8 +218,7 @@ if (checkoutSubmitBtn) {
             if (!checkoutCompleted) {
                 checkoutSubmitting = false;
                 checkoutSubmitBtn.removeAttribute('disabled');
-                checkoutSubmitBtn.innerHTML =
-                    '<i class="fa-solid fa-paper-plane"></i> Trimite Comanda';
+                checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Trimite Comanda';
             }
         }
     }));
