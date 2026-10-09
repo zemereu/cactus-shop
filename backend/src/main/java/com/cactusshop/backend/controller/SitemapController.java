@@ -13,30 +13,39 @@ import java.util.List;
 @RestController
 public class SitemapController {
 
+    @org.springframework.beans.factory.annotation.Value("${app.public-url}")
+    private String publicUrl;
+
     @Autowired
     private CactusRepository cactusRepository;
 
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     public String sitemap(HttpServletRequest request) {
-        String base = request.getScheme() + "://" + request.getServerName();
-        if (request.getServerPort() != 80 && request.getServerPort() != 443) {
-            base += ":" + request.getServerPort();
-        }
+        String base = publicUrl.replaceAll("/+$", "");
 
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
 
-        // Pagini statice
-        String[] pages = {"", "shop.html", "recenzii.html", "comenzi.html", "cont.html", "termeni.html"};
+        String[] pages = {
+                "", "shop.html", "reviews.html",
+                "orders.html", "account.html", "terms.html"
+        };
+
         for (String page : pages) {
-            xml.append("  <url><loc>").append(base).append("/").append(page).append("</loc></url>\n");
+            xml.append("  <url><loc>")
+                    .append(base).append("/").append(page)
+                    .append("</loc></url>\n");
         }
 
-        // Pagini produse active
         List<Cactus> products = cactusRepository.findByActiveTrue();
-        for (Cactus p : products) {
-            xml.append("  <url><loc>").append(base).append("/produs.html?id=").append(p.getId()).append("</loc></url>\n");
+
+        for (Cactus product : products) {
+            xml.append("  <url><loc>")
+                    .append(base)
+                    .append("/product.html?id=")
+                    .append(product.getId())
+                    .append("</loc></url>\n");
         }
 
         xml.append("</urlset>");

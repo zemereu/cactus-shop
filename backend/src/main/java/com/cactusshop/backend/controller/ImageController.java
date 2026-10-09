@@ -44,19 +44,67 @@ public class ImageController {
                     .body("Imaginea depaseste 5MB.");
         }
 
-        // Verificăm conținutul efectiv, nu doar tipul declarat de browser.
         BufferedImage image;
-        try (var input = file.getInputStream()) {
-            image = ImageIO.read(input);
 
-            if (image == null) {
+        try (var stream = file.getInputStream();
+             var input = ImageIO.createImageInputStream(stream)) {
+
+            var readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) {
                 return ResponseEntity.badRequest()
                         .body("Imagine invalidă sau format neacceptat.");
             }
-        } catch (IOException e) {
+
+            var reader = readers.next();
+
+            try {
+                reader.setInput(input, true, true);
+
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+
+                if (width < 1 || height < 1
+                        || width > 10000 || height > 10000
+                        || (long) width * height > 20000000) {
+                    return ResponseEntity.badRequest().body(
+                            "Imaginea depășește limita de 20 megapixeli / 10000 pixeli pe latură.");
+                }
+
+                // Decode only a subsampled image when the source is large.
+                var parameters = reader.getDefaultReadParam();
+                int sample = Math.max(1, Math.max(width, height) / 1600);
+                parameters.setSourceSubsampling(sample, sample, 0, 0);
+
+                image = reader.read(0, parameters);
+            } finally {
+                reader.dispose();
+            }
+
+            if (image == null) {
+                return ResponseEntity.badRequest().body("Imagine invalidă.");
+            }
+        } catch (IOException | IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body("Imagine invalidă sau deteriorată.");
         }
+
+        // JPEG has no transparency: composite onto a white background.
+        BufferedImage rgb = new BufferedImage(
+                image.getWidth(),
+                image.getHeight(),
+                BufferedImage.TYPE_INT_RGB
+        );
+
+        var graphics = rgb.createGraphics();
+        try {
+            graphics.setColor(java.awt.Color.WHITE);
+            graphics.fillRect(0, 0, rgb.getWidth(), rgb.getHeight());
+            graphics.drawImage(image, 0, 0, null);
+        } finally {
+            graphics.dispose();
+        }
+
+        image = rgb;
 
         try {
             Path uploadPath = Paths.get(uploadDir)
@@ -70,13 +118,10 @@ public class ImageController {
             String fileName = UUID.randomUUID() + ".jpg";
             Path filePath = uploadPath.resolve(fileName).normalize();
 
-            // Verificare path traversal
             if (!filePath.startsWith(uploadPath)) {
                 return ResponseEntity.badRequest().body("Path invalid.");
             }
 
-            // Folosim imaginea deja decodată.
-            // Resize + conversie la JPEG (maxim 800x800).
             Thumbnails.of(image)
                     .size(MAX_WIDTH, MAX_HEIGHT)
                     .keepAspectRatio(true)
@@ -84,9 +129,9 @@ public class ImageController {
                     .outputQuality(0.85)
                     .toFile(filePath.toFile());
 
-            String imageUrl = "/api/images/" + fileName;
-            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
-
+            return ResponseEntity.ok(
+                    Map.of("imageUrl", "/api/images/" + fileName)
+            );
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
                     .body("Eroare la salvarea imaginii.");
@@ -113,14 +158,14 @@ public class ImageController {
             }
 
             byte[] imageBytes = Files.readAllBytes(filePath);
-            String ct = Files.probeContentType(filePath);
+            String contentType = Files.probeContentType(filePath);
 
-            if (ct == null) {
-                ct = "image/jpeg";
+            if (contentType == null) {
+                contentType = "image/jpeg";
             }
 
             return ResponseEntity.ok()
-                    .header("Content-Type", ct)
+                    .header("Content-Type", contentType)
                     .header("Cache-Control", "public, max-age=31536000")
                     .body(imageBytes);
 

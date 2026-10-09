@@ -21,8 +21,10 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // --- Fisiere statice (frontend) ---
-                        .requestMatchers("/", "/*.html", "/dist/**", "/images/**", "/favicon.ico", "/sitemap.xml").permitAll()
-
+                        .requestMatchers(
+                                "/", "/*.html", "/dist/**", "/images/**",
+                                "/favicon.ico", "/sitemap.xml", "/robots.txt"
+                        ).permitAll()
                         // --- Public ---
                         .requestMatchers("/api/auth/login").permitAll() // login admin
                         .requestMatchers("/api/auth/logout").permitAll()
