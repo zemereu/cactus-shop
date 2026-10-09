@@ -15,24 +15,31 @@ import java.util.Date;
 public class JwtUtil {
 
     private final SecretKey key;
-    private final long expirationMs = 7 * 24 * 3600000; // 7 zile
+
+    @Value("${ADMIN_TOKEN_VERSION:0}")
+    private String adminTokenVersion;
+
+    private final long expirationMs = 7 * 24 * 3600000;
 
     public JwtUtil(@Value("${JWT_SECRET}") String secret) {
-        // Cheia trebuie să aibă minim 32 de caractere (256 biți) pentru HS256
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
     }
 
-    // 'role' e "ADMIN" pentru autentificarea din panoul de admin,
-    // "CUSTOMER" pentru conturile de client. Fără asta, orice token
-    // valid ar trece de JwtFilter la fel, indiferent cine s-a logat —
-    // un client ar putea folosi propriul token ca să acceseze
-    // endpoint-uri de admin.
     public String generateToken(String subject, String role) {
         return Jwts.builder()
                 .subject(subject)
                 .claim("role", role)
+                .claim(
+                        "adminVersion",
+                        "ADMIN".equals(role) ? adminTokenVersion : null
+                )
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .expiration(new Date(
+                        System.currentTimeMillis()
+                                + ("ADMIN".equals(role) ? 3600000L : expirationMs)
+                ))
                 .signWith(key)
                 .compact();
     }
@@ -43,7 +50,11 @@ public class JwtUtil {
                 .secure(true)
                 .sameSite("Lax")
                 .path("/api")
-                .maxAge(expirationMs / 1000)
+                .maxAge(Math.max(
+                        0,
+                        (parseClaims(token).getExpiration().getTime()
+                                - System.currentTimeMillis()) / 1000
+                ))
                 .build();
     }
 
@@ -67,15 +78,22 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            parseClaims(token);
-            return true;
+            Claims claims = parseClaims(token);
+            return !"ADMIN".equals(claims.get("role", String.class))
+                    || java.util.Objects.equals(
+                    adminTokenVersion,
+                    claims.get("adminVersion", String.class)
+            );
         } catch (Exception e) {
             return false;
         }
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parser().verifyWith(key).build()
-                .parseSignedClaims(token).getPayload();
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
