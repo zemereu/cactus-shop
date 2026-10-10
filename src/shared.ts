@@ -1,35 +1,25 @@
-// --- shared.ts ---
-// Cod comun folosit atât de index.ts (magazin) cât și de admin.ts (panou admin).
-// Acest fișier trebuie încărcat ÎNAINTE de index.js / admin.js în HTML,
-// altfel API_BASE și escapeHtml nu vor exista încă atunci când sunt apelate.
-
-// Detaliile de plată prin transfer bancar, afișate la checkout.
-// ÎNLOCUIEȘTE cu datele tale reale înainte de a activa plățile live.
 const BANK_TRANSFER_INFO = {
     iban: "RO00 XXXX 0000 0000 0000 0000",
     bank: "Numele Băncii",
     holder: "Numele Titularului / Firmei"
 };
 
-const ORDER_STATUSES = ["Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"];
+const ORDER_STATUSES = [
+    "Neplătită", "Plătită - în pregătire",
+    "Expediată", "Livrată", "Anulată"
+];
 
-// Tokenurile JWT sunt în HttpOnly cookies.
 const CUSTOMER_NAME_KEY = "customerName";
 const CART_STORAGE_KEY = "shoppingCart";
-
 const PRODUCT_TYPES = ["Plante", "Semințe"];
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
-
-// Frontendul si API-ul sunt servite de aceeasi aplicatie pe Railway.
 const API_BASE = '';
 
 function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
     return fetch(url, {
         ...options,
         credentials: 'include',
-        headers: {
-            ...options.headers
-        }
+        headers: { ...options.headers }
     });
 }
 
@@ -45,6 +35,7 @@ interface Cactus {
     stock: number;
     active: boolean;
     location?: string | null;
+    version: number;
 }
 
 interface Category {
@@ -61,6 +52,7 @@ interface Order {
     totalPrice: number;
     purchasedItems: string;
     status: string;
+    createdAt?: string;
 }
 
 function escapeHtml(unsafe: string | null | undefined): string {
@@ -79,50 +71,111 @@ function starsDisplay(rating: number): string {
     return full.repeat(rating) + empty.repeat(5 - rating);
 }
 
-function initAccountDropdown() {
-    const accountLink = document.getElementById('account-link') as HTMLAnchorElement | null;
+async function responseError(response: Response): Promise<string> {
+    const text = await response.text();
+    try {
+        const body = JSON.parse(text);
+        const details = body.details && typeof body.details === 'object'
+            ? Object.keys(body.details)
+                .map(key => body.details[key])
+                .filter(value => typeof value === 'string')
+            : [];
+        return [
+            typeof body.error === 'string'
+                ? body.error
+                : `Eroare HTTP ${response.status}.`,
+            ...details
+        ].join('\n');
+    } catch {
+        return text || `Eroare HTTP ${response.status}.`;
+    }
+}
+
+function formatPrice(value: number): string {
+    return Number(value).toFixed(2);
+}
+
+function formatOrderDate(value?: string): string {
+    if (!value) return '';
+    const date = new Date(
+        /Z$|[+-]\d\d:\d\d$/.test(value) ? value : value + 'Z'
+    );
+    return Number.isNaN(date.getTime())
+        ? value
+        : date.toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' });
+}
+
+async function initAccountDropdown() {
+    if (document.getElementById('login-container')) return;
+
+    let accountLink = document.getElementById('account-link') as HTMLAnchorElement | null;
+    if (!accountLink) {
+        const header = document.querySelector('header');
+        if (!header) return;
+        accountLink = document.createElement('a');
+        accountLink.id = 'account-link';
+        accountLink.href = 'account.html';
+        accountLink.textContent = 'Cont';
+        header.appendChild(accountLink);
+    }
+
+    const link = accountLink;
     const dropdown = document.getElementById('account-dropdown');
-    const logoutBtn = document.getElementById('dropdown-logout-btn');
-    if (!accountLink) return;
+    let authenticated = false;
 
-    const customerName = localStorage.getItem(CUSTOMER_NAME_KEY);
+    const refresh = async () => {
+        try {
+            const response = await authFetch(`${API_BASE}/api/customers/me`);
+            if (!response.ok && response.status !== 401 && response.status !== 403) return;
 
-    if (customerName) {
-        accountLink.innerHTML = `<i class="fa-solid fa-user" style="margin-right: 4px;"></i> ${escapeHtml(customerName)}`;
-        accountLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            authenticated = response.ok;
+            if (authenticated) {
+                const profile = await response.json();
+                link.textContent = profile.name;
+            } else {
+                link.textContent = 'Cont';
+                if (dropdown) dropdown.style.display = 'none';
+                try { localStorage.removeItem(CUSTOMER_NAME_KEY); } catch {}
             }
-        });
 
-        const verificaBtn = document.getElementById('header-verifica-btn');
-        if (verificaBtn) verificaBtn.style.display = 'none';
-    }
+            const lookup = document.getElementById('header-verifica-btn');
+            if (lookup) lookup.style.display = authenticated ? 'none' : '';
+        } catch {
+            // O eroare de retea nu inseamna deconectare.
+        }
+    };
 
-    if (dropdown) {
-        window.addEventListener('click', (event) => {
-            if (dropdown.style.display === 'block') {
-                const target = event.target as Node;
-                if (!dropdown.contains(target) && target !== accountLink) {
-                    dropdown.style.display = 'none';
-                }
-            }
-        });
-        dropdown.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-    }
+    link.addEventListener('click', event => {
+        if (!authenticated || !dropdown) return;
+        event.preventDefault();
+        event.stopPropagation();
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (event) => {
-            event.preventDefault();
-            await authFetch(`${API_BASE}/api/customers/logout`, { method: 'POST' });
-            localStorage.removeItem(CUSTOMER_NAME_KEY);
-            window.location.reload();
-        });
-    }
+    window.addEventListener('click', event => {
+        if (dropdown
+            && !dropdown.contains(event.target as Node)
+            && !link.contains(event.target as Node)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    document.getElementById('dropdown-logout-btn')?.addEventListener('click', async event => {
+        event.preventDefault();
+        try {
+            const response = await authFetch(`${API_BASE}/api/customers/logout`, {
+                method: 'POST'
+            });
+            if (!response.ok) throw new Error(await responseError(response));
+            try { localStorage.removeItem(CUSTOMER_NAME_KEY); } catch {}
+            await refresh();
+        } catch {
+            showToast('Deconectarea nu a putut fi confirmată. Reîncearcă.');
+        }
+    });
+
+    window.addEventListener('focus', refresh);
+    await refresh();
 }
 
 function showToast(message: string) {
@@ -130,12 +183,15 @@ function showToast(message: string) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.style.cssText = 'position:fixed; top:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:10px;';
+        container.style.cssText =
+            'position:fixed; top:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:10px;';
         document.body.appendChild(container);
     }
+
     const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = 'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
+    toast.textContent = message;
+    toast.style.cssText =
+        'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
 }
@@ -144,7 +200,9 @@ function readStoredProductIds(key: string): number[] {
     try {
         const data: unknown = JSON.parse(localStorage.getItem(key) || '[]');
         return Array.isArray(data)
-            ? [...new Set(data.filter((id): id is number => Number.isSafeInteger(id) && id > 0))]
+            ? [...new Set(data.filter(
+                (id): id is number => Number.isSafeInteger(id) && id > 0
+            ))]
             : [];
     } catch {
         return [];
@@ -157,7 +215,9 @@ let wishlist: number[] = readStoredProductIds(WISHLIST_KEY);
 function toggleWishlist(id: number) {
     const next = readStoredProductIds(WISHLIST_KEY);
     const idx = next.indexOf(id);
-    if (idx === -1) next.push(id); else next.splice(idx, 1);
+    if (idx === -1) next.push(id);
+    else next.splice(idx, 1);
+
     if (!saveLocalValue(WISHLIST_KEY, JSON.stringify(next))) return;
     wishlist = next;
     showToast(idx === -1 ? 'Adăugat la favorite' : 'Eliminat din favorite');
@@ -197,10 +257,12 @@ function initImageZoom() {
         opener = document.activeElement as HTMLElement | null;
         close.focus();
     });
+
     close.addEventListener('click', hide);
     modal.addEventListener('click', event => {
         if (event.target === modal) hide();
     });
+
     document.addEventListener('keydown', event => {
         if (modal.style.display !== 'flex') return;
         if (event.key === 'Escape') {
@@ -213,3 +275,5 @@ function initImageZoom() {
         }
     });
 }
+
+void initAccountDropdown();

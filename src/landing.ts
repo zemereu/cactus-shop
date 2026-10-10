@@ -1,8 +1,5 @@
 // CUSTOMER_NAME_KEY, API_BASE, escapeHtml, authFetch, initAccountDropdown vin din shared.ts
 
-// Cont dropdown — vine din shared.ts
-initAccountDropdown();
-
 // Încarcă primele 3 recenzii generale aprobate pe landing page
 async function loadLandingReviews() {
     const container = document.getElementById('general-reviews-container');

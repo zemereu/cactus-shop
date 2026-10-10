@@ -29,54 +29,66 @@ public class AuthController {
     @Value("${ADMIN_PASSWORD_HASH}")
     private String adminPasswordHash;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder =
+            new BCryptPasswordEncoder();
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials, HttpServletRequest request) {
+    public ResponseEntity<?> login(
+            @RequestBody Map<String, String> credentials,
+            HttpServletRequest request) {
 
-        String clientIp = extractClientIp(request);
-
-        if (rateLimiter.isBlocked(clientIp)) {
-            long minutes = rateLimiter.minutesRemaining(clientIp);
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Prea multe încercări eșuate. Încearcă din nou peste " + minutes + " minute.");
+        if (!rateLimiter.tryAcquire("admin", "login", 5)) {
+            return ResponseEntity.status(429)
+                    .header("Retry-After", "900")
+                    .body(Map.of(
+                            "error",
+                            "Prea multe încercări. Reîncearcă peste 15 minute."
+                    ));
         }
 
         String username = credentials.get("username");
         String password = credentials.get("password");
 
-        if (username == null || password == null) {
-            rateLimiter.recordFailure(clientIp);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Date incorecte");
+        if (username == null || password == null
+                || password.getBytes(
+                java.nio.charset.StandardCharsets.UTF_8
+        ).length > 72) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Date incorecte");
         }
 
         boolean usernameMatches = adminUsername.equals(username);
-        boolean passwordMatches = passwordEncoder.matches(password, adminPasswordHash);
+        boolean passwordMatches = passwordEncoder.matches(
+                password, adminPasswordHash
+        );
 
         if (usernameMatches && passwordMatches) {
-            rateLimiter.recordSuccess(clientIp);
             String token = jwtUtil.generateToken(username, "ADMIN");
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            jwtUtil.createJwtCookie(token).toString()
+                    )
                     .body(Map.of("message", "Login reusit"));
-        } else {
-            rateLimiter.recordFailure(clientIp);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Date incorecte");
         }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Date incorecte");
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtUtil.createLogoutCookie().toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        jwtUtil.createLogoutCookie().toString()
+                )
                 .body(Map.of("message", "Deconectat"));
     }
 
-    private String extractClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
+    @GetMapping("/me")
+    public Map<String, String> me() {
+        return Map.of("role", "ADMIN");
     }
 }

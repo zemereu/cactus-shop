@@ -1,5 +1,3 @@
-// API_BASE, CUSTOMER_NAME_KEY, authFetch vin din shared.ts
-
 interface CustomerProfile {
     name: string;
     email: string;
@@ -8,6 +6,7 @@ interface CustomerProfile {
 }
 
 const REDIRECT_FALLBACK = "shop.html";
+
 function getRedirectTarget(): string {
     const referrer = document.referrer;
     if (referrer && !referrer.includes('account.html')) {
@@ -21,7 +20,6 @@ function getRedirectTarget(): string {
     return REDIRECT_FALLBACK;
 }
 
-// --- Comutare tab-uri Login / Inregistrare ---
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
 const loginPanel = document.getElementById('login-panel');
@@ -43,14 +41,10 @@ function activateTab(tab: 'login' | 'register') {
 if (tabLogin) tabLogin.addEventListener('click', () => activateTab('login'));
 if (tabRegister) tabRegister.addEventListener('click', () => activateTab('register'));
 
-// --- Daca e deja logat, arata panoul de cont ---
 async function checkLoggedInState() {
     const loggedInPanel = document.getElementById('logged-in-panel');
     const loggedInName = document.getElementById('logged-in-name');
     const tabsContainer = tabLogin?.parentElement;
-
-    // Dacă nu există customerName în localStorage, nu suntem logați — skip API call
-    if (!localStorage.getItem(CUSTOMER_NAME_KEY)) return;
 
     try {
         const response = await authFetch(`${API_BASE}/api/customers/me`);
@@ -68,7 +62,7 @@ async function checkLoggedInState() {
         if (loggedInPanel) loggedInPanel.style.display = 'block';
         if (loggedInName) loggedInName.innerText = profile.name;
 
-        localStorage.setItem(CUSTOMER_NAME_KEY, profile.name);
+        saveLocalValue(CUSTOMER_NAME_KEY, profile.name);
 
         const profileName = document.getElementById('profile-name');
         const profileEmail = document.getElementById('profile-email');
@@ -78,44 +72,52 @@ async function checkLoggedInState() {
         if (profileEmail) profileEmail.innerText = profile.email;
         if (profileAddress) profileAddress.value = profile.address;
 
-        // Banner verificare
         const verifyBanner = document.getElementById('verify-banner');
         if (verifyBanner) {
             if (profile.verified) {
-                verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                    <i class="fa-solid fa-circle-check"></i> Cont verificat
-                </div>`;
+                verifyBanner.innerHTML = `
+                    <div style="background:#e8f5e9; color:#2f694b; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
+                        <i class="fa-solid fa-circle-check"></i> Cont verificat
+                    </div>`;
             } else {
-                verifyBanner.innerHTML = `<div style="background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
-                    <button id="resend-verify-btn" style="margin-left: 8px; background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85em;">Retrimite codul</button>
-                </div>`;
+                verifyBanner.innerHTML = `
+                    <div style="background:#fff3e0; color:#e65100; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
+                        <button id="resend-verify-btn" style="margin-left:8px; background:#e65100; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85em;">
+                            Retrimite codul
+                        </button>
+                    </div>`;
+
                 const resendBtn = document.getElementById('resend-verify-btn');
                 if (resendBtn) {
                     resendBtn.addEventListener('click', async () => {
-                        const r = await authFetch(`${API_BASE}/api/customers/resend-verification`, { method: 'POST' });
-                        const data = await r.json();
-                        if (data.verificationToken) {
-                            verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                                <i class="fa-solid fa-envelope"></i> Link de verificare: <a href="${API_BASE}/api/customers/verify?token=${data.verificationToken}" target="_blank" style="color: #2f694b; font-weight: bold;">Click aici pentru verificare</a>
-                            </div>`;
-                        } else {
-                            verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                                <i class="fa-solid fa-circle-check"></i> Contul este deja verificat.
-                            </div>`;
+                        resendBtn.setAttribute('disabled', 'true');
+                        try {
+                            const response = await authFetch(
+                                `${API_BASE}/api/customers/resend-verification`,
+                                { method: 'POST' }
+                            );
+                            if (!response.ok) throw new Error(await responseError(response));
+                            const data = await response.json();
+                            showToast(data.message);
+                        } catch (error) {
+                            showToast(error instanceof Error
+                                ? error.message
+                                : 'Nu am putut trimite emailul.');
+                        } finally {
+                            resendBtn.removeAttribute('disabled');
                         }
                     });
                 }
             }
         }
-
     } catch (error) {
         console.error("Eroare la incarcarea contului:", error);
     }
 }
+
 checkLoggedInState();
 
-// --- Login ---
 const loginSubmitBtn = document.getElementById('login-submit-btn');
 if (loginSubmitBtn) {
     loginSubmitBtn.addEventListener('click', async () => {
@@ -124,7 +126,10 @@ if (loginSubmitBtn) {
         const errorEl = document.getElementById('login-error');
 
         if (!email || !password) {
-            if (errorEl) { errorEl.innerText = "Completeaza emailul si parola."; errorEl.style.display = 'block'; }
+            if (errorEl) {
+                errorEl.innerText = "Completeaza emailul si parola.";
+                errorEl.style.display = 'block';
+            }
             return;
         }
 
@@ -136,22 +141,27 @@ if (loginSubmitBtn) {
             });
 
             if (!response.ok) {
-                const message = await response.text();
-                if (errorEl) { errorEl.innerText = message || "Email sau parola incorecte."; errorEl.style.display = 'block'; }
+                const message = await responseError(response);
+                if (errorEl) {
+                    errorEl.innerText = message || "Email sau parola incorecte.";
+                    errorEl.style.display = 'block';
+                }
                 return;
             }
 
             const data = await response.json();
-            localStorage.setItem(CUSTOMER_NAME_KEY, data.name);
+            saveLocalValue(CUSTOMER_NAME_KEY, data.name);
             window.location.href = getRedirectTarget();
         } catch (error) {
             console.error(error);
-            if (errorEl) { errorEl.innerText = "Nu am putut contacta serverul."; errorEl.style.display = 'block'; }
+            if (errorEl) {
+                errorEl.innerText = "Nu am putut contacta serverul.";
+                errorEl.style.display = 'block';
+            }
         }
     });
 }
 
-// --- Inregistrare ---
 const registerSubmitBtn = document.getElementById('register-submit-btn');
 if (registerSubmitBtn) {
     registerSubmitBtn.addEventListener('click', async () => {
@@ -162,11 +172,18 @@ if (registerSubmitBtn) {
         const errorEl = document.getElementById('register-error');
 
         if (!name || !email || !password || !address) {
-            if (errorEl) { errorEl.innerText = "Completeaza toate campurile."; errorEl.style.display = 'block'; }
+            if (errorEl) {
+                errorEl.innerText = "Completeaza toate campurile.";
+                errorEl.style.display = 'block';
+            }
             return;
         }
+
         if (password.length < 8) {
-            if (errorEl) { errorEl.innerText = "Parola trebuie sa aiba cel putin 8 caractere."; errorEl.style.display = 'block'; }
+            if (errorEl) {
+                errorEl.innerText = "Parola trebuie sa aiba cel putin 8 caractere.";
+                errorEl.style.display = 'block';
+            }
             return;
         }
 
@@ -178,22 +195,27 @@ if (registerSubmitBtn) {
             });
 
             if (!response.ok) {
-                const message = await response.text();
-                if (errorEl) { errorEl.innerText = message || "Nu am putut crea contul."; errorEl.style.display = 'block'; }
+                const message = await responseError(response);
+                if (errorEl) {
+                    errorEl.innerText = message || "Nu am putut crea contul.";
+                    errorEl.style.display = 'block';
+                }
                 return;
             }
 
             const data = await response.json();
-            localStorage.setItem(CUSTOMER_NAME_KEY, data.name);
+            saveLocalValue(CUSTOMER_NAME_KEY, data.name);
             window.location.href = getRedirectTarget();
         } catch (error) {
             console.error(error);
-            if (errorEl) { errorEl.innerText = "Nu am putut contacta serverul."; errorEl.style.display = 'block'; }
+            if (errorEl) {
+                errorEl.innerText = "Nu am putut contacta serverul.";
+                errorEl.style.display = 'block';
+            }
         }
     });
 }
 
-// --- Salvare adresa ---
 const saveAddressBtn = document.getElementById('save-address-btn');
 if (saveAddressBtn) {
     saveAddressBtn.addEventListener('click', async () => {
@@ -225,7 +247,6 @@ if (saveAddressBtn) {
     });
 }
 
-// --- Deconectare ---
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
@@ -233,4 +254,19 @@ if (logoutBtn) {
         localStorage.removeItem(CUSTOMER_NAME_KEY);
         window.location.href = REDIRECT_FALLBACK;
     });
+}
+
+const verifyToken = new URLSearchParams(window.location.search).get('verify');
+if (verifyToken) {
+    window.history.replaceState(null, '', 'account.html');
+
+    authFetch(`${API_BASE}/api/customers/verify?token=${encodeURIComponent(verifyToken)}`)
+        .then(async response => {
+            if (!response.ok) throw new Error(await responseError(response));
+            showToast('Adresa de email a fost verificată.');
+            await checkLoggedInState();
+        })
+        .catch(error => showToast(
+            error instanceof Error ? error.message : 'Verificarea a eșuat.'
+        ));
 }

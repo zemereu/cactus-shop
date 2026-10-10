@@ -85,8 +85,6 @@ async function fetchCacti() {
     }
 }
 
-initAccountDropdown();
-
 // UI coș
 function updateCartUI(persist = true): boolean {
     const saved = !persist || saveCartToStorage();

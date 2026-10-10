@@ -33,103 +33,153 @@ public class CustomerAuthController {
     private LoginRateLimiter rateLimiter;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody CustomerRegisterDTO request, HttpServletRequest httpRequest) {
-        String clientIp = extractClientIp(httpRequest);
+    public ResponseEntity<?> register(
+            @Valid @RequestBody CustomerRegisterDTO request,
+            HttpServletRequest httpRequest) {
 
-        if (rateLimiter.isBlocked(clientIp)) {
-            long minutes = rateLimiter.minutesRemaining(clientIp);
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Prea multe incercari. Incearca din nou peste " + minutes + " minute.");
+        if (!rateLimiter.tryAcquire(
+                "register", httpRequest.getRemoteAddr(), 20)) {
+            return ResponseEntity.status(429)
+                    .header("Retry-After", "900")
+                    .body(Map.of(
+                            "error",
+                            "Prea multe încercări. Reîncearcă peste 15 minute."
+                    ));
         }
 
         try {
             Customer customer = customerService.register(request);
-            rateLimiter.recordSuccess(clientIp);
-            String jwt = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER");
-            // TODO: trimite email cu link de verificare în loc de a-l returna
+            String jwt = jwtUtil.generateToken(
+                    customer.getEmail(), "CUSTOMER"
+            );
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(jwt).toString())
-                    .body(Map.of("name", customer.getName(), "verificationToken", customer.getVerificationToken()));
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            jwtUtil.createJwtCookie(jwt).toString()
+                    )
+                    .body(Map.of("name", customer.getName()));
+
         } catch (IllegalStateException e) {
-            rateLimiter.recordFailure(clientIp);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(e.getMessage());
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody CustomerLoginDTO request, HttpServletRequest httpRequest) {
-        String clientIp = extractClientIp(httpRequest);
+    public ResponseEntity<?> login(
+            @Valid @RequestBody CustomerLoginDTO request,
+            HttpServletRequest httpRequest) {
 
-        if (rateLimiter.isBlocked(clientIp)) {
-            long minutes = rateLimiter.minutesRemaining(clientIp);
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Prea multe incercari esuate. Incearca din nou peste " + minutes + " minute.");
+        String identity = request.email().trim()
+                .toLowerCase(java.util.Locale.ROOT);
+
+        if (!rateLimiter.tryAcquire("customer", identity, 5)) {
+            return ResponseEntity.status(429)
+                    .header("Retry-After", "900")
+                    .body(Map.of(
+                            "error",
+                            "Prea multe încercări. Reîncearcă peste 15 minute."
+                    ));
         }
 
-        Customer customer = customerService.authenticate(request.email(), request.password());
+        Customer customer = customerService.authenticate(
+                request.email(), request.password()
+        );
+
         if (customer == null) {
-            rateLimiter.recordFailure(clientIp);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email sau parola incorecte.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Email sau parola incorecte.");
         }
 
-        rateLimiter.recordSuccess(clientIp);
-        String token = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER");
+        String token = jwtUtil.generateToken(
+                customer.getEmail(), "CUSTOMER"
+        );
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtUtil.createJwtCookie(token).toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        jwtUtil.createJwtCookie(token).toString()
+                )
                 .body(Map.of("name", customer.getName()));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtUtil.createLogoutCookie().toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        jwtUtil.createLogoutCookie().toString()
+                )
                 .body(Map.of("message", "Deconectat"));
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> getMyProfile(Authentication authentication) {
         try {
-            CustomerProfileDTO profile = customerService.getProfile(authentication.getName());
+            CustomerProfileDTO profile = customerService.getProfile(
+                    authentication.getName()
+            );
             return ResponseEntity.ok(profile);
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
         }
     }
 
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyProfile(Authentication authentication, @Valid @RequestBody CustomerUpdateDTO request) {
+    public ResponseEntity<?> updateMyProfile(
+            Authentication authentication,
+            @Valid @RequestBody CustomerUpdateDTO request) {
         try {
-            CustomerProfileDTO profile = customerService.updateAddress(authentication.getName(), request);
+            CustomerProfileDTO profile = customerService.updateAddress(
+                    authentication.getName(), request
+            );
             return ResponseEntity.ok(profile);
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
         }
     }
 
     @GetMapping("/verify")
     public ResponseEntity<?> verifyAccount(@RequestParam String token) {
         boolean success = customerService.verifyAccount(token);
+
         if (success) {
-            return ResponseEntity.ok(Map.of("message", "Contul a fost verificat cu succes!"));
+            return ResponseEntity.ok(Map.of(
+                    "message", "Contul a fost verificat cu succes!"
+            ));
         }
-        return ResponseEntity.badRequest().body("Token invalid sau cont deja verificat.");
+
+        return ResponseEntity.badRequest()
+                .body("Token invalid sau cont deja verificat.");
     }
 
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerification(Authentication authentication) {
-        String token = customerService.resendVerification(authentication.getName());
-        if (token == null) {
-            return ResponseEntity.ok(Map.of("message", "Contul este deja verificat."));
-        }
-        // TODO: trimite email cu token-ul. Deocamdată îl returnăm.
-        return ResponseEntity.ok(Map.of("message", "Cod de verificare retrimis.", "verificationToken", token));
-    }
+    public ResponseEntity<?> resendVerification(
+            Authentication authentication) {
 
-    private String extractClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+        if (!rateLimiter.tryAcquire(
+                "verify-email", authentication.getName(), 3)) {
+            return ResponseEntity.status(429).body(Map.of(
+                    "error",
+                    "Așteaptă 15 minute înainte de retrimitere."
+            ));
         }
-        return request.getRemoteAddr();
+
+        String message = customerService.resendVerification(
+                authentication.getName()
+        );
+
+        if (message == null) {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Contul este deja verificat."
+            ));
+        }
+
+        return ResponseEntity.ok(Map.of("message", message));
     }
 }
