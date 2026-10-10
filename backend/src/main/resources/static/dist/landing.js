@@ -9,8 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// Cont dropdown — vine din shared.ts
-initAccountDropdown();
 // Încarcă primele 3 recenzii generale aprobate pe landing page
 function loadLandingReviews() {
     return __awaiter(this, void 0, void 0, function* () {

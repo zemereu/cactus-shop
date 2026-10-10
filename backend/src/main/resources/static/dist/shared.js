@@ -1,8 +1,4 @@
 "use strict";
-// --- shared.ts ---
-// Cod comun folosit atât de index.ts (magazin) cât și de admin.ts (panou admin).
-// Acest fișier trebuie încărcat ÎNAINTE de index.js / admin.js în HTML,
-// altfel API_BASE și escapeHtml nu vor exista încă atunci când sunt apelate.
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,20 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// Detaliile de plată prin transfer bancar, afișate la checkout.
-// ÎNLOCUIEȘTE cu datele tale reale înainte de a activa plățile live.
 const BANK_TRANSFER_INFO = {
     iban: "RO00 XXXX 0000 0000 0000 0000",
     bank: "Numele Băncii",
     holder: "Numele Titularului / Firmei"
 };
-const ORDER_STATUSES = ["Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"];
-// Tokenurile JWT sunt în HttpOnly cookies.
+const ORDER_STATUSES = [
+    "Neplătită", "Plătită - în pregătire",
+    "Expediată", "Livrată", "Anulată"
+];
 const CUSTOMER_NAME_KEY = "customerName";
 const CART_STORAGE_KEY = "shoppingCart";
 const PRODUCT_TYPES = ["Plante", "Semințe"];
 const MAIN_CATEGORIES = ["Cactuși", "Suculente"];
-// Frontendul si API-ul sunt servite de aceeasi aplicatie pe Railway.
 const API_BASE = '';
 function authFetch(url, options = {}) {
     return fetch(url, Object.assign(Object.assign({}, options), { credentials: 'include', headers: Object.assign({}, options.headers) }));
@@ -45,59 +40,134 @@ function starsDisplay(rating) {
     const empty = '<i class="fa-regular fa-star" style="color: #ccc;"></i>';
     return full.repeat(rating) + empty.repeat(5 - rating);
 }
+function responseError(response) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const text = yield response.text();
+        try {
+            const body = JSON.parse(text);
+            const details = body.details && typeof body.details === 'object'
+                ? Object.keys(body.details)
+                    .map(key => body.details[key])
+                    .filter(value => typeof value === 'string')
+                : [];
+            return [
+                typeof body.error === 'string'
+                    ? body.error
+                    : `Eroare HTTP ${response.status}.`,
+                ...details
+            ].join('\n');
+        }
+        catch (_a) {
+            return text || `Eroare HTTP ${response.status}.`;
+        }
+    });
+}
+function formatPrice(value) {
+    return Number(value).toFixed(2);
+}
+function formatOrderDate(value) {
+    if (!value)
+        return '';
+    const date = new Date(/Z$|[+-]\d\d:\d\d$/.test(value) ? value : value + 'Z');
+    return Number.isNaN(date.getTime())
+        ? value
+        : date.toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' });
+}
 function initAccountDropdown() {
-    const accountLink = document.getElementById('account-link');
-    const dropdown = document.getElementById('account-dropdown');
-    const logoutBtn = document.getElementById('dropdown-logout-btn');
-    if (!accountLink)
-        return;
-    const customerName = localStorage.getItem(CUSTOMER_NAME_KEY);
-    if (customerName) {
-        accountLink.innerHTML = `<i class="fa-solid fa-user" style="margin-right: 4px;"></i> ${escapeHtml(customerName)}`;
-        accountLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-            }
-        });
-        const verificaBtn = document.getElementById('header-verifica-btn');
-        if (verificaBtn)
-            verificaBtn.style.display = 'none';
-    }
-    if (dropdown) {
-        window.addEventListener('click', (event) => {
-            if (dropdown.style.display === 'block') {
-                const target = event.target;
-                if (!dropdown.contains(target) && target !== accountLink) {
-                    dropdown.style.display = 'none';
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        if (document.getElementById('login-container'))
+            return;
+        let accountLink = document.getElementById('account-link');
+        if (!accountLink) {
+            const header = document.querySelector('header');
+            if (!header)
+                return;
+            accountLink = document.createElement('a');
+            accountLink.id = 'account-link';
+            accountLink.href = 'account.html';
+            accountLink.textContent = 'Cont';
+            header.appendChild(accountLink);
+        }
+        const link = accountLink;
+        const dropdown = document.getElementById('account-dropdown');
+        let authenticated = false;
+        const refresh = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield authFetch(`${API_BASE}/api/customers/me`);
+                if (!response.ok && response.status !== 401 && response.status !== 403)
+                    return;
+                authenticated = response.ok;
+                if (authenticated) {
+                    const profile = yield response.json();
+                    link.textContent = profile.name;
                 }
+                else {
+                    link.textContent = 'Cont';
+                    if (dropdown)
+                        dropdown.style.display = 'none';
+                    try {
+                        localStorage.removeItem(CUSTOMER_NAME_KEY);
+                    }
+                    catch (_a) { }
+                }
+                const lookup = document.getElementById('header-verifica-btn');
+                if (lookup)
+                    lookup.style.display = authenticated ? 'none' : '';
+            }
+            catch (_b) {
+                // O eroare de retea nu inseamna deconectare.
             }
         });
-        dropdown.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-    }
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (event) => __awaiter(this, void 0, void 0, function* () {
+        link.addEventListener('click', event => {
+            if (!authenticated || !dropdown)
+                return;
             event.preventDefault();
-            yield authFetch(`${API_BASE}/api/customers/logout`, { method: 'POST' });
-            localStorage.removeItem(CUSTOMER_NAME_KEY);
-            window.location.reload();
+            event.stopPropagation();
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+        window.addEventListener('click', event => {
+            if (dropdown
+                && !dropdown.contains(event.target)
+                && !link.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        (_a = document.getElementById('dropdown-logout-btn')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', (event) => __awaiter(this, void 0, void 0, function* () {
+            event.preventDefault();
+            try {
+                const response = yield authFetch(`${API_BASE}/api/customers/logout`, {
+                    method: 'POST'
+                });
+                if (!response.ok)
+                    throw new Error(yield responseError(response));
+                try {
+                    localStorage.removeItem(CUSTOMER_NAME_KEY);
+                }
+                catch (_a) { }
+                yield refresh();
+            }
+            catch (_b) {
+                showToast('Deconectarea nu a putut fi confirmată. Reîncearcă.');
+            }
         }));
-    }
+        window.addEventListener('focus', refresh);
+        yield refresh();
+    });
 }
 function showToast(message) {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.style.cssText = 'position:fixed; top:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:10px;';
+        container.style.cssText =
+            'position:fixed; top:20px; right:20px; z-index:1000; display:flex; flex-direction:column; gap:10px;';
         document.body.appendChild(container);
     }
     const toast = document.createElement('div');
-    toast.innerHTML = message;
-    toast.style.cssText = 'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
+    toast.textContent = message;
+    toast.style.cssText =
+        'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
 }
@@ -176,3 +246,4 @@ function initImageZoom() {
         }
     });
 }
+void initAccountDropdown();

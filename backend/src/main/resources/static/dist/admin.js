@@ -1,6 +1,4 @@
 "use strict";
-// Interfetele Cactus, Order, Category + constantele vin din shared.ts
-// authFetch, escapeHtml, starsDisplay vin din shared.ts
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10,9 +8,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// showToast vine din shared.ts — folosim adminToast ca alias
-function adminToast(msg) { showToast(msg); }
-// --- 1. LOGIN ---
+var _a;
+function adminToast(msg) {
+    showToast(msg);
+}
+function adminRequest(url_1) {
+    return __awaiter(this, arguments, void 0, function* (url, options = {}) {
+        try {
+            const response = yield authFetch(url, options);
+            if (response.ok)
+                return response;
+            alert(yield responseError(response));
+        }
+        catch (_a) {
+            alert('Operația nu a putut fi confirmată. Verifică rezultatul înainte de reîncercare.');
+        }
+        return null;
+    });
+}
+function showAdminPanel() {
+    return __awaiter(this, void 0, void 0, function* () {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'block';
+        yield fetchAdminCategories();
+        yield Promise.all([fetchAdminCacti(), fetchAdminOrders(), fetchPendingReviews()]);
+    });
+}
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
     loginBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -20,32 +41,26 @@ if (loginBtn) {
         const passInput = document.getElementById('admin-pass').value;
         try {
             const response = yield authFetch(`${API_BASE}/api/auth/login`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: userInput, password: passInput })
             });
-            if (response.ok) {
-                document.getElementById('login-container').style.display = "none";
-                document.getElementById('admin-panel').style.display = "block";
-                fetchAdminCategories();
-                fetchAdminCacti();
-                fetchAdminOrders();
-                fetchPendingReviews();
-            }
-            else {
-                alert("Date de autentificare incorecte!");
-            }
+            if (response.ok)
+                yield showAdminPanel();
+            else
+                alert(yield responseError(response));
         }
-        catch (error) {
+        catch (_a) {
             alert("Nu am putut contacta serverul.");
         }
     }));
 }
-// --- 2. CATEGORII ---
 let allCategoriesCache = [];
 function renderFilteredCategories() {
     var _a;
     const main = ((_a = document.getElementById('new-category-main')) === null || _a === void 0 ? void 0 : _a.value) || 'Cactuși';
-    const filtered = allCategoriesCache.filter(c => c.mainCategory === main).sort((a, b) => a.name.localeCompare(b.name));
+    const filtered = allCategoriesCache.filter(c => c.mainCategory === main)
+        .sort((a, b) => a.name.localeCompare(b.name));
     const container = document.getElementById('admin-categories-list');
     if (!container)
         return;
@@ -54,20 +69,20 @@ function renderFilteredCategories() {
         return;
     }
     container.innerHTML = filtered.map(cat => `
-        <span style="background: #2f694b; color: #fdf2b8; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; display: inline-flex; align-items: center; gap: 8px;">
+        <span style="background:#2f694b; color:#fdf2b8; padding:6px 12px; border-radius:20px; font-size:0.85em; display:inline-flex; align-items:center; gap:8px;">
             ${escapeHtml(cat.name)}
-            <button class="delete-category-btn" data-id="${cat.id}" style="background: none; border: none; color: #fdf2b8; cursor: pointer; font-size: 1.1em; padding: 0;">✕</button>
-        </span>
-    `).join("");
+            <button class="delete-category-btn" data-id="${cat.id}" style="background:none; border:none; color:#fdf2b8; cursor:pointer; font-size:1.1em; padding:0;">✕</button>
+        </span>`).join("");
     container.querySelectorAll('.delete-category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
-            if (confirm("Stergi aceasta subcategorie?")) {
-                yield authFetch(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' });
-                adminToast('Categorie stearsa');
-                fetchAdminCategories();
-            }
+            if (!confirm("Stergi aceasta subcategorie?"))
+                return;
+            if (!(yield adminRequest(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' })))
+                return;
+            adminToast('Categorie stearsa');
+            fetchAdminCategories();
         }));
     });
 }
@@ -75,8 +90,13 @@ function fetchAdminCategories() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const response = yield authFetch(`${API_BASE}/api/categories`);
+            if (!response.ok)
+                throw new Error(yield responseError(response));
             allCategoriesCache = yield response.json();
             renderFilteredCategories();
+            refreshSubcategories();
+            document.querySelectorAll('.edit-main-category')
+                .forEach(select => select.dispatchEvent(new Event('change')));
         }
         catch (error) {
             console.error("Eroare categorii:", error);
@@ -95,38 +115,38 @@ if (addCategoryBtn) {
             alert("Introdu un nume.");
             return;
         }
-        yield authFetch(`${API_BASE}/api/categories`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+        if (!(yield adminRequest(`${API_BASE}/api/categories`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, mainCategory: main })
-        });
+        })))
+            return;
         document.getElementById('new-category-name').value = "";
         fetchAdminCategories();
         adminToast('Categorie adaugata');
     }));
 }
-// Sincronizeaza subcategoriile cu categoria principala selectata
-const mainCatSelect = document.getElementById('new-cactus-main-category');
-if (mainCatSelect) {
-    function refreshSubcategories() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const main = document.getElementById('new-cactus-main-category').value;
-            const response = yield authFetch(`${API_BASE}/api/categories?mainCategory=${encodeURIComponent(main)}`);
-            const categories = yield response.json();
-            const subSelect = document.getElementById('new-cactus-category');
-            subSelect.innerHTML = categories.sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
-        });
-    }
-    mainCatSelect.addEventListener('change', refreshSubcategories);
-    refreshSubcategories();
+function refreshSubcategories() {
+    var _a;
+    const main = (_a = document.getElementById('new-cactus-main-category')) === null || _a === void 0 ? void 0 : _a.value;
+    const sub = document.getElementById('new-cactus-category');
+    if (!sub)
+        return;
+    const selected = sub.value;
+    const categories = allCategoriesCache.filter(c => c.mainCategory === main)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    sub.innerHTML = categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+    if (categories.some(c => c.name === selected))
+        sub.value = selected;
 }
-// --- 3. PRODUSE ---
+(_a = document.getElementById('new-cactus-main-category')) === null || _a === void 0 ? void 0 : _a.addEventListener('change', refreshSubcategories);
 let allCactiCache = [];
 let allOrdersCache = [];
 let pendingReviewsCount = 0;
 function updateStats() {
     const active = allCactiCache.filter(c => c.active).length;
     const oos = allCactiCache.filter(c => c.active && c.stock <= 0).length;
-    const activeOrders = allOrdersCache.filter(o => o.status !== 'Livrată').length;
+    const activeOrders = allOrdersCache.filter(o => !['Livrată', 'Anulată'].includes(o.status)).length;
     const el = (id) => document.getElementById(id);
     if (el('stat-products'))
         el('stat-products').innerText = String(active);
@@ -149,7 +169,7 @@ function getFilteredCacti() {
     const q = ((_a = document.getElementById('admin-search')) === null || _a === void 0 ? void 0 : _a.value.toLowerCase()) || '';
     const f = ((_b = document.getElementById('admin-filter-status')) === null || _b === void 0 ? void 0 : _b.value) || 'all';
     const s = ((_c = document.getElementById('admin-sort')) === null || _c === void 0 ? void 0 : _c.value) || 'name-asc';
-    let result = allCactiCache.filter(c => {
+    const result = allCactiCache.filter(c => {
         const matchQ = c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q);
         let matchF = true;
         if (f === 'active')
@@ -188,10 +208,8 @@ function renderAdminCacti(cacti) {
         container.innerHTML = '<p style="color:#999; font-style:italic; grid-column:1/-1;">Niciun produs gasit.</p>';
         return;
     }
-    // Grupăm produsele în rânduri de câte 4 pentru a insera edit panel-ul pe tot rândul
     let html = '';
-    for (let i = 0; i < cacti.length; i++) {
-        const c = cacti[i];
+    for (const c of cacti) {
         const img = c.imageUrl || "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
         html += `
         <div class="product-card ${c.active ? '' : 'inactive'}" data-card-id="${c.id}">
@@ -199,7 +217,7 @@ function renderAdminCacti(cacti) {
             <img src="${escapeHtml(img)}" alt="${escapeHtml(c.name)}">
             <h4 style="margin:8px 0 4px; color:#2f694b; font-size:0.95em;">${escapeHtml(c.name)}</h4>
             <p style="margin:2px 0; color:#888; font-size:0.75em;">${escapeHtml(c.productType)} · ${escapeHtml(c.mainCategory)} — ${escapeHtml(c.category)}</p>
-            <p style="margin:0; color:#d32f2f; font-weight:bold;">${c.price} RON</p>
+            <p style="margin:0; color:#d32f2f; font-weight:bold;">${formatPrice(c.price)} RON</p>
             <p style="margin:4px 0 0; color:${c.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size:0.85em; font-weight:bold;">Stoc: ${c.stock}</p>
             ${c.location ? `<p style="margin:2px 0 0; font-size:0.75em; color:#666;"><i class="fa-solid fa-location-dot" style="color:#FF9800;"></i> ${escapeHtml(c.location)}</p>` : ''}
             ${c.description ? `<p style="margin:4px 0 0; font-size:0.75em; color:#999; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(c.description)}</p>` : ''}
@@ -210,9 +228,7 @@ function renderAdminCacti(cacti) {
             : `<button class="reactivate-cactus-btn admin-btn btn-success btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-rotate-left"></i></button>
                        <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
-        </div>`;
-        // Edit panel pe tot rândul — inserat ca element separat cu grid-column: 1 / -1
-        html += `
+        </div>
         <div class="edit-panel" data-id="${c.id}" style="display:none; grid-column:1/-1; background:#f8f4e0; border-radius:10px; padding:20px; border:1px solid #ddd; text-align:left;">
             <h4 style="margin:0 0 14px; color:#2f694b; font-size:1em;">Editare: ${escapeHtml(c.name)}</h4>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px;">
@@ -240,13 +256,13 @@ function renderAdminCacti(cacti) {
                         ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
                     </select>
                 </div>
-                <div style="grid-column: span 2;">
+                <div style="grid-column:span 2;">
                     <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Subcategorie (gen)</label>
                     <select class="edit-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
                         ${allCategoriesCache.filter(cat => cat.mainCategory === c.mainCategory).sort((a, b) => a.name.localeCompare(b.name)).map(cat => `<option value="${escapeHtml(cat.name)}" ${cat.name === c.category ? 'selected' : ''}>${escapeHtml(cat.name)}</option>`).join("")}
                     </select>
                 </div>
-                <div style="grid-column: span 2;">
+                <div style="grid-column:span 2;">
                     <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Descriere</label>
                     <input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
                 </div>
@@ -265,59 +281,75 @@ function renderAdminCacti(cacti) {
         </div>`;
     }
     container.innerHTML = html;
-    container.querySelectorAll('.edit-cactus-btn').forEach(b => b.addEventListener('click', (e) => {
+    container.querySelectorAll('.edit-cactus-btn').forEach(b => b.addEventListener('click', e => {
         var _a;
         const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`);
         if (!p)
             return;
         const opening = p.style.display === 'none';
-        // Închide toate celelalte panouri
-        container.querySelectorAll('.edit-panel').forEach((panel) => {
+        container.querySelectorAll('.edit-panel').forEach(panel => {
             panel.style.display = 'none';
         });
         if (opening)
             p.style.display = 'block';
     }));
-    // Când schimbă categoria principală în edit, actualizează subcategoriile
-    container.querySelectorAll('.edit-main-category').forEach(sel => sel.addEventListener('change', (e) => {
+    container.querySelectorAll('.edit-main-category').forEach(sel => sel.addEventListener('change', e => {
         const select = e.target;
         const id = select.getAttribute('data-id');
         const panel = document.querySelector(`.edit-panel[data-id="${id}"]`);
         if (!panel)
             return;
         const subSelect = panel.querySelector('.edit-category');
-        const filtered = allCategoriesCache.filter(cat => cat.mainCategory === select.value).sort((a, b) => a.name.localeCompare(b.name));
+        const filtered = allCategoriesCache.filter(cat => cat.mainCategory === select.value)
+            .sort((a, b) => a.name.localeCompare(b.name));
+        const previous = subSelect.value;
         subSelect.innerHTML = filtered.map(cat => `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`).join("");
+        if (filtered.some(cat => cat.name === previous))
+            subSelect.value = previous;
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`);
         if (!p)
             return;
-        const u = { name: p.querySelector('.edit-name').value.trim(), price: Number(p.querySelector('.edit-price').value), stock: Number(p.querySelector('.edit-stock').value) || 0, description: p.querySelector('.edit-desc').value.trim(), imageUrl: p.querySelector('.edit-image').value.trim(), productType: p.querySelector('.edit-product-type').value, mainCategory: p.querySelector('.edit-main-category').value, category: p.querySelector('.edit-category').value, location: p.querySelector('.edit-location').value.trim() };
-        const r = yield authFetch(`${API_BASE}/api/cacti/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(u) });
-        if (r.ok) {
+        const u = {
+            version: (_b = allCactiCache.find(c => c.id === Number(id))) === null || _b === void 0 ? void 0 : _b.version,
+            name: p.querySelector('.edit-name').value.trim(),
+            price: Number(p.querySelector('.edit-price').value),
+            stock: Number(p.querySelector('.edit-stock').value) || 0,
+            description: p.querySelector('.edit-desc').value.trim(),
+            imageUrl: p.querySelector('.edit-image').value.trim(),
+            productType: p.querySelector('.edit-product-type').value,
+            mainCategory: p.querySelector('.edit-main-category').value,
+            category: p.querySelector('.edit-category').value,
+            location: p.querySelector('.edit-location').value.trim()
+        };
+        const r = yield adminRequest(`${API_BASE}/api/cacti/${id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(u)
+        });
+        if (r && r.ok) {
             fetchAdminCacti();
             adminToast('Produs actualizat');
         }
-        else
-            alert("Eroare la salvare.");
     })));
     container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
-        if (confirm("Dezactivezi acest produs?")) {
-            yield authFetch(`${API_BASE}/api/cacti/${id}`, { method: 'DELETE' });
-            fetchAdminCacti();
-            adminToast('Produs dezactivat');
-        }
+        if (!confirm("Dezactivezi acest produs?"))
+            return;
+        if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}`, { method: 'DELETE' })))
+            return;
+        fetchAdminCacti();
+        adminToast('Produs dezactivat');
     })));
     container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
-        yield authFetch(`${API_BASE}/api/cacti/${id}/reactivate`, { method: 'PUT' });
+        if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}/reactivate`, { method: 'PUT' })))
+            return;
         fetchAdminCacti();
         adminToast('Produs reactivat');
     })));
@@ -328,7 +360,8 @@ function renderAdminCacti(cacti) {
             return;
         if (!confirm("Absolut sigur? Ireversibil."))
             return;
-        yield authFetch(`${API_BASE}/api/cacti/${id}/permanent`, { method: 'DELETE' });
+        if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}/permanent`, { method: 'DELETE' })))
+            return;
         fetchAdminCacti();
         adminToast('Produs sters definitiv');
     })));
@@ -337,6 +370,8 @@ function fetchAdminCacti() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const r = yield authFetch(`${API_BASE}/api/cacti/all`);
+            if (!r.ok)
+                throw new Error(yield responseError(r));
             allCactiCache = yield r.json();
             renderAdminCacti(getFilteredCacti());
             updateStats();
@@ -355,22 +390,11 @@ if (adminFilter)
     adminFilter.addEventListener('change', () => renderAdminCacti(getFilteredCacti()));
 if (adminSort)
     adminSort.addEventListener('change', () => renderAdminCacti(getFilteredCacti()));
-// --- ADAUGARE PRODUS ---
 const addCactusBtn = document.getElementById('add-new-cactus-btn');
 if (addCactusBtn) {
     addCactusBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
         let imageUrl = document.getElementById('new-cactus-image').value.trim();
         const fileInput = document.getElementById('new-cactus-file');
-        if (fileInput.files && fileInput.files.length > 0) {
-            const fd = new FormData();
-            fd.append('file', fileInput.files[0]);
-            const ur = yield authFetch(`${API_BASE}/api/images/upload`, { method: 'POST', body: fd });
-            if (!ur.ok) {
-                alert("Eroare upload: " + (yield ur.text()));
-                return;
-            }
-            imageUrl = (yield ur.json()).imageUrl;
-        }
         const newCactus = {
             name: document.getElementById('new-cactus-name').value.trim(),
             price: Number(document.getElementById('new-cactus-price').value),
@@ -378,22 +402,42 @@ if (addCactusBtn) {
             mainCategory: document.getElementById('new-cactus-main-category').value,
             category: document.getElementById('new-cactus-category').value,
             description: document.getElementById('new-cactus-desc').value.trim(),
-            imageUrl, stock: Number(document.getElementById('new-cactus-stock').value) || 0,
+            imageUrl,
+            stock: Number(document.getElementById('new-cactus-stock').value) || 0,
             location: document.getElementById('new-cactus-location').value.trim()
         };
         if (!newCactus.name || !newCactus.price || !newCactus.category) {
             alert("Completeaza campurile obligatorii!");
             return;
         }
-        yield authFetch(`${API_BASE}/api/cacti`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newCactus) });
-        ['new-cactus-name', 'new-cactus-price', 'new-cactus-desc', 'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'].forEach(id => document.getElementById(id).value = "");
+        if (fileInput.files && fileInput.files.length > 0) {
+            const fd = new FormData();
+            fd.append('file', fileInput.files[0]);
+            const ur = yield adminRequest(`${API_BASE}/api/images/upload`, {
+                method: 'POST', body: fd
+            });
+            if (!ur)
+                return;
+            imageUrl = (yield ur.json()).imageUrl;
+            newCactus.imageUrl = imageUrl;
+            document.getElementById('new-cactus-image').value = imageUrl;
+            fileInput.value = '';
+        }
+        if (!(yield adminRequest(`${API_BASE}/api/cacti`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCactus)
+        })))
+            return;
+        [
+            'new-cactus-name', 'new-cactus-price', 'new-cactus-desc',
+            'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'
+        ].forEach(id => document.getElementById(id).value = "");
         if (fileInput)
             fileInput.value = "";
         fetchAdminCacti();
         adminToast('Produs adaugat');
     }));
 }
-// --- 4. COMENZI ---
 function renderOrderRows(orders) {
     const tb = document.getElementById('admin-orders-list');
     if (!tb)
@@ -404,24 +448,29 @@ function renderOrderRows(orders) {
     }
     tb.innerHTML = orders.map(o => `
         <tr>
-            <td>#${o.id}</td>
+            <td>#${o.id}<br><small>${escapeHtml(formatOrderDate(o.createdAt))}</small></td>
             <td>${escapeHtml(o.customerName)}<br><span style="font-size:0.8em; color:#999;">${escapeHtml(o.email)}</span></td>
             <td>${escapeHtml(o.address)}</td>
             <td>${escapeHtml(o.purchasedItems)}</td>
-            <td style="color:#d32f2f; font-weight:bold;">${o.totalPrice} RON</td>
+            <td style="color:#d32f2f; font-weight:bold;">${formatPrice(o.totalPrice)} RON</td>
             <td><select class="order-status-select admin-input" data-id="${o.id}" style="padding:6px;">
                 ${ORDER_STATUSES.map(s => `<option value="${escapeHtml(s)}" ${s === o.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
             </select></td>
         </tr>`).join("");
     tb.querySelectorAll('.order-status-select').forEach(s => s.addEventListener('change', (e) => __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const t = e.target;
-        const r = yield authFetch(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: t.value }) });
-        if (r.ok) {
+        const previous = (_a = orders.find(order => order.id === Number(t.getAttribute('data-id')))) === null || _a === void 0 ? void 0 : _a.status;
+        const r = yield adminRequest(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: t.value })
+        });
+        if (r && r.ok) {
+            yield fetchAdminOrders();
             adminToast('Status actualizat');
         }
-        else {
-            alert("Eroare status.");
-            fetchAdminOrders();
+        else if (previous) {
+            t.value = previous;
         }
     })));
 }
@@ -430,12 +479,15 @@ function getFilteredOrders() {
     const q = ((_a = document.getElementById('admin-order-search')) === null || _a === void 0 ? void 0 : _a.value.toLowerCase()) || '';
     const f = ((_b = document.getElementById('admin-order-filter')) === null || _b === void 0 ? void 0 : _b.value) || 'active';
     return allOrdersCache.filter(o => {
-        const matchQ = o.customerName.toLowerCase().includes(q) || o.email.toLowerCase().includes(q) || o.purchasedItems.toLowerCase().includes(q) || String(o.id).includes(q);
+        const matchQ = o.customerName.toLowerCase().includes(q)
+            || o.email.toLowerCase().includes(q)
+            || o.purchasedItems.toLowerCase().includes(q)
+            || String(o.id).includes(q);
         let matchF = true;
         if (f === 'active')
-            matchF = o.status !== 'Livrată';
+            matchF = !['Livrată', 'Anulată'].includes(o.status);
         else if (f === 'archived')
-            matchF = o.status === 'Livrată';
+            matchF = ['Livrată', 'Anulată'].includes(o.status);
         return matchQ && matchF;
     });
 }
@@ -467,6 +519,8 @@ function fetchPendingReviews() {
             return;
         try {
             const r = yield authFetch(`${API_BASE}/api/reviews/pending`);
+            if (!r.ok)
+                throw new Error(yield responseError(r));
             const reviews = yield r.json();
             pendingReviewsCount = reviews.length;
             updateStats();
@@ -477,8 +531,13 @@ function fetchPendingReviews() {
             container.innerHTML = reviews.map(rv => `
             <div class="review-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div><strong style="color:#2f694b;">${escapeHtml(rv.customerName)}</strong> <span style="color:#999; font-size:0.85em;">(${escapeHtml(rv.customerEmail)})</span>
-                    ${rv.cactusId ? `<span style="color:#666; font-size:0.85em;"> — Produs #${rv.cactusId}</span>` : '<span style="color:#666; font-size:0.85em;"> — Generala</span>'}</div>
+                    <div>
+                        <strong style="color:#2f694b;">${escapeHtml(rv.customerName)}</strong>
+                        <span style="color:#999; font-size:0.85em;">(${escapeHtml(rv.customerEmail)})</span>
+                        ${rv.cactusId
+                ? `<span style="color:#666; font-size:0.85em;"> — Produs #${rv.cactusId}</span>`
+                : '<span style="color:#666; font-size:0.85em;"> — Generala</span>'}
+                    </div>
                     <div style="color:#FF9800; font-size:1.2em;">${starsDisplay(rv.rating)}</div>
                 </div>
                 <p style="margin:10px 0; color:#333; font-style:italic;">"${escapeHtml(rv.comment)}"</p>
@@ -489,16 +548,20 @@ function fetchPendingReviews() {
             </div>`).join("");
             container.querySelectorAll('.approve-review-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                yield authFetch(`${API_BASE}/api/reviews/${(_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id")}/approve`, { method: 'PUT' });
+                const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
+                if (!(yield adminRequest(`${API_BASE}/api/reviews/${id}/approve`, { method: 'PUT' })))
+                    return;
                 fetchPendingReviews();
             })));
             container.querySelectorAll('.reject-review-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                if (confirm("Respingi recenzia?")) {
-                    yield authFetch(`${API_BASE}/api/reviews/${(_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id")}`, { method: 'DELETE' });
-                    fetchPendingReviews();
-                    adminToast('Recenzie respinsa');
-                }
+                if (!confirm("Respingi recenzia?"))
+                    return;
+                const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
+                if (!(yield adminRequest(`${API_BASE}/api/reviews/${id}`, { method: 'DELETE' })))
+                    return;
+                fetchPendingReviews();
+                adminToast('Recenzie respinsa');
             })));
         }
         catch (e) {
@@ -506,3 +569,8 @@ function fetchPendingReviews() {
         }
     });
 }
+authFetch(`${API_BASE}/api/auth/me`).then(response => {
+    if (response.ok)
+        return showAdminPanel();
+}).catch(() => {
+});

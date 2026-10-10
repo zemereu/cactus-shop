@@ -93,7 +93,6 @@ function fetchCacti() {
         }
     });
 }
-initAccountDropdown();
 // UI coș
 function updateCartUI(persist = true) {
     const saved = !persist || saveCartToStorage();
