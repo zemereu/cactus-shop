@@ -1,5 +1,4 @@
 "use strict";
-// Functiile comune si constantele vin din shared.ts.
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+let passwordResetToken = new URLSearchParams(window.location.hash.slice(1)).get('reset');
+if (passwordResetToken)
+    window.history.replaceState(null, '', 'account.html');
 const REDIRECT_FALLBACK = "shop.html";
 function getRedirectTarget() {
     const referrer = document.referrer;
@@ -23,7 +25,7 @@ function getRedirectTarget() {
     }
     return REDIRECT_FALLBACK;
 }
-// --- Tab-uri Login / Inregistrare ---
+// --- Comutare tab-uri Login / Inregistrare ---
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
 const loginPanel = document.getElementById('login-panel');
@@ -35,19 +37,15 @@ function activateTab(tab) {
     loginPanel.style.display = isLogin ? 'block' : 'none';
     registerPanel.style.display = isLogin ? 'none' : 'block';
     tabLogin.style.color = isLogin ? '#2f694b' : '#999';
-    tabLogin.style.borderBottom =
-        isLogin ? '3px solid #2f694b' : '3px solid transparent';
+    tabLogin.style.borderBottom = isLogin ? '3px solid #2f694b' : '3px solid transparent';
     tabRegister.style.color = isLogin ? '#999' : '#2f694b';
-    tabRegister.style.borderBottom =
-        isLogin ? '3px solid transparent' : '3px solid #2f694b';
+    tabRegister.style.borderBottom = isLogin ? '3px solid transparent' : '3px solid #2f694b';
 }
-if (tabLogin) {
+if (tabLogin)
     tabLogin.addEventListener('click', () => activateTab('login'));
-}
-if (tabRegister) {
+if (tabRegister)
     tabRegister.addEventListener('click', () => activateTab('register'));
-}
-// --- Incarcarea contului autentificat ---
+// --- Daca e deja logat, arata panoul de cont ---
 function checkLoggedInState() {
     return __awaiter(this, void 0, void 0, function* () {
         const loggedInPanel = document.getElementById('logged-in-panel');
@@ -83,35 +81,28 @@ function checkLoggedInState() {
             const verifyBanner = document.getElementById('verify-banner');
             if (verifyBanner) {
                 if (profile.verified) {
-                    verifyBanner.innerHTML = `
-                    <div style="background:#e8f5e9; color:#2f694b; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
-                        <i class="fa-solid fa-circle-check"></i> Cont verificat
-                    </div>`;
+                    verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <i class="fa-solid fa-circle-check"></i> Cont verificat
+                </div>`;
                 }
                 else {
-                    verifyBanner.innerHTML = `
-                    <div style="background:#fff3e0; color:#e65100; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
-                        <button id="resend-verify-btn" style="margin-left:8px; background:#e65100; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85em;">
-                            Retrimite codul
-                        </button>
-                    </div>`;
+                    verifyBanner.innerHTML = `<div style="background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
+                    <button id="resend-verify-btn" style="margin-left: 8px; background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85em;">Retrimite codul</button>
+                </div>`;
                     const resendBtn = document.getElementById('resend-verify-btn');
                     if (resendBtn) {
                         resendBtn.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
                             resendBtn.setAttribute('disabled', 'true');
                             try {
                                 const response = yield authFetch(`${API_BASE}/api/customers/resend-verification`, { method: 'POST' });
-                                if (!response.ok) {
+                                if (!response.ok)
                                     throw new Error(yield responseError(response));
-                                }
                                 const data = yield response.json();
                                 showToast(data.message);
                             }
                             catch (error) {
-                                showToast(error instanceof Error
-                                    ? error.message
-                                    : 'Nu am putut trimite emailul.');
+                                showToast(error instanceof Error ? error.message : 'Nu am putut trimite emailul.');
                             }
                             finally {
                                 resendBtn.removeAttribute('disabled');
@@ -126,7 +117,8 @@ function checkLoggedInState() {
         }
     });
 }
-checkLoggedInState();
+if (!passwordResetToken)
+    checkLoggedInState();
 // --- Login ---
 const loginSubmitBtn = document.getElementById('login-submit-btn');
 if (loginSubmitBtn) {
@@ -220,10 +212,8 @@ if (registerSubmitBtn) {
                 notice.setAttribute('role', 'status');
                 (_a = tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement) === null || _a === void 0 ? void 0 : _a.insertAdjacentElement('beforebegin', notice);
             }
-            notice.style.cssText =
-                'padding:12px; border-radius:8px; background:#fff3e0; color:#333; margin-bottom:15px;';
-            notice.textContent = data.message
-                || 'Cont creat. Verifică emailul sau cere retrimiterea din cont.';
+            notice.style.cssText = 'padding:12px; border-radius:8px; background:#fff3e0; color:#333; margin-bottom:15px;';
+            notice.textContent = data.message || 'Cont creat. Verifică emailul sau cere retrimiterea din cont.';
             document.getElementById('register-password').value = '';
             yield checkLoggedInState();
             window.dispatchEvent(new Event('focus'));
@@ -252,9 +242,7 @@ if (saveAddressBtn) {
             const response = yield authFetch(`${API_BASE}/api/customers/me`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    address: addressInput.value.trim()
-                })
+                body: JSON.stringify({ address: addressInput.value.trim() })
             });
             messageEl.style.display = 'block';
             if (response.ok) {
@@ -283,17 +271,99 @@ if (logoutBtn) {
         window.location.href = REDIRECT_FALLBACK;
     }));
 }
-// --- Verificare email din link ---
+// --- Verificare email ---
 const verifyToken = new URLSearchParams(window.location.search).get('verify');
 if (verifyToken) {
     window.history.replaceState(null, '', 'account.html');
     authFetch(`${API_BASE}/api/customers/verify?token=${encodeURIComponent(verifyToken)}`)
         .then((response) => __awaiter(void 0, void 0, void 0, function* () {
-        if (!response.ok) {
+        if (!response.ok)
             throw new Error(yield responseError(response));
-        }
         showToast('Adresa de email a fost verificată.');
         yield checkLoggedInState();
     }))
         .catch(error => showToast(error instanceof Error ? error.message : 'Verificarea a eșuat.'));
+}
+// --- Cerere resetare parola ---
+const recoveryForm = document.getElementById('forgot-password-form');
+recoveryForm === null || recoveryForm === void 0 ? void 0 : recoveryForm.addEventListener('submit', (event) => __awaiter(void 0, void 0, void 0, function* () {
+    event.preventDefault();
+    const button = recoveryForm.querySelector('button');
+    const message = document.getElementById('recovery-message');
+    if (button.disabled)
+        return;
+    button.disabled = true;
+    try {
+        const response = yield authFetch(`${API_BASE}/api/customers/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: document.getElementById('recovery-email').value.trim()
+            })
+        });
+        if (!response.ok)
+            throw new Error(yield responseError(response));
+        message.textContent = (yield response.json()).message;
+    }
+    catch (error) {
+        message.textContent = error instanceof Error ? error.message : 'Nu am putut contacta serverul.';
+    }
+    finally {
+        button.disabled = false;
+    }
+}));
+// --- Parola noua ---
+const resetForm = document.getElementById('reset-password-form');
+if (passwordResetToken && resetForm) {
+    resetForm.style.display = 'block';
+    if (loginPanel)
+        loginPanel.style.display = 'none';
+    if (registerPanel)
+        registerPanel.style.display = 'none';
+    if (tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement)
+        tabLogin.parentElement.style.display = 'none';
+    resetForm.addEventListener('submit', (event) => __awaiter(void 0, void 0, void 0, function* () {
+        event.preventDefault();
+        const button = resetForm.querySelector('button');
+        if (button.disabled)
+            return;
+        const password = document.getElementById('reset-password');
+        const confirm = document.getElementById('reset-password-confirm');
+        const message = document.getElementById('reset-message');
+        if (password.value !== confirm.value) {
+            message.textContent = 'Parolele nu coincid.';
+            return;
+        }
+        if (new TextEncoder().encode(password.value).length > 72) {
+            message.textContent = 'Parola poate avea maximum 72 de octeți UTF-8.';
+            return;
+        }
+        button.disabled = true;
+        try {
+            const response = yield authFetch(`${API_BASE}/api/customers/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: passwordResetToken,
+                    password: password.value
+                })
+            });
+            if (!response.ok)
+                throw new Error(yield responseError(response));
+            message.textContent = (yield response.json()).message;
+            passwordResetToken = null;
+            password.value = confirm.value = '';
+            resetForm.querySelectorAll('input, label, button')
+                .forEach(el => el.style.display = 'none');
+            localStorage.removeItem(CUSTOMER_NAME_KEY);
+            if (tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement)
+                tabLogin.parentElement.style.display = 'flex';
+            activateTab('login');
+            window.dispatchEvent(new Event('focus'));
+        }
+        catch (error) {
+            message.textContent = error instanceof Error ? error.message : 'Nu am putut contacta serverul.';
+            button.disabled = false;
+        }
+    }));
 }

@@ -14,6 +14,9 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.cactusshop.backend.repository.CustomerRepository customers;
+
     private final SecretKey key;
 
     @Value("${ADMIN_TOKEN_VERSION:0}")
@@ -22,24 +25,19 @@ public class JwtUtil {
     private final long expirationMs = 7 * 24 * 3600000;
 
     public JwtUtil(@Value("${JWT_SECRET}") String secret) {
-        this.key = Keys.hmacShaKeyFor(
-                secret.getBytes(StandardCharsets.UTF_8)
-        );
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String subject, String role) {
         return Jwts.builder()
                 .subject(subject)
                 .claim("role", role)
-                .claim(
-                        "adminVersion",
-                        "ADMIN".equals(role) ? adminTokenVersion : null
-                )
+                .claim("sessionVersion", "CUSTOMER".equals(role)
+                        ? customers.findByEmail(subject).orElseThrow().getSessionVersion() : null)
+                .claim("adminVersion", "ADMIN".equals(role) ? adminTokenVersion : null)
                 .issuedAt(new Date())
-                .expiration(new Date(
-                        System.currentTimeMillis()
-                                + ("ADMIN".equals(role) ? 3600000L : expirationMs)
-                ))
+                .expiration(new Date(System.currentTimeMillis()
+                        + ("ADMIN".equals(role) ? 3600000L : expirationMs)))
                 .signWith(key)
                 .compact();
     }
@@ -50,11 +48,8 @@ public class JwtUtil {
                 .secure(true)
                 .sameSite("Lax")
                 .path("/api")
-                .maxAge(Math.max(
-                        0,
-                        (parseClaims(token).getExpiration().getTime()
-                                - System.currentTimeMillis()) / 1000
-                ))
+                .maxAge(Math.max(0,
+                        (parseClaims(token).getExpiration().getTime() - System.currentTimeMillis()) / 1000))
                 .build();
     }
 
@@ -79,21 +74,24 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             Claims claims = parseClaims(token);
-            return !"ADMIN".equals(claims.get("role", String.class))
-                    || java.util.Objects.equals(
-                    adminTokenVersion,
-                    claims.get("adminVersion", String.class)
-            );
+
+            if ("CUSTOMER".equals(claims.get("role", String.class))) {
+                Number version = claims.get("sessionVersion", Number.class);
+                return version != null && customers.findByEmail(claims.getSubject())
+                        .map(c -> c.getSessionVersion() == version.longValue())
+                        .orElse(false);
+            }
+
+            return "ADMIN".equals(claims.get("role", String.class))
+                    && java.util.Objects.equals(
+                    adminTokenVersion, claims.get("adminVersion", String.class));
         } catch (Exception e) {
             return false;
         }
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload();
     }
 }

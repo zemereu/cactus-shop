@@ -18,72 +18,100 @@ public class CustomerService {
     @Autowired
     private VerificationEmailService verificationEmail;
 
-    private final BCryptPasswordEncoder passwordEncoder =
-            new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public Customer register(CustomerRegisterDTO request) {
-        String email = request.email().trim()
-                .toLowerCase(java.util.Locale.ROOT);
+        String email = request.email().trim().toLowerCase(java.util.Locale.ROOT);
 
-        if (request.password().getBytes(
-                java.nio.charset.StandardCharsets.UTF_8
-        ).length > 72) {
-            throw new IllegalArgumentException(
-                    "Parola poate avea maximum 72 de octeți UTF-8."
-            );
-        }
+        if (request.password().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+            throw new IllegalArgumentException("Parola poate avea maximum 72 de octeți UTF-8.");
 
         if (customerRepository.existsByEmail(email)) {
-            throw new IllegalStateException(
-                    "Exista deja un cont cu acest email."
-            );
+            throw new IllegalStateException("Exista deja un cont cu acest email.");
         }
 
         Customer customer = new Customer();
         customer.setName(request.name().trim());
         customer.setEmail(email);
-        customer.setPasswordHash(
-                passwordEncoder.encode(request.password())
-        );
+        customer.setPasswordHash(passwordEncoder.encode(request.password()));
         customer.setAddress(request.address().trim());
-        customer.setVerificationExpiresAt(
-                java.time.Instant.now().plusSeconds(86400)
-        );
+        customer.setVerificationExpiresAt(java.time.Instant.now().plusSeconds(86400));
 
         return customerRepository.save(customer);
     }
 
+    // Called after the account has been persisted.
     public boolean sendInitialVerification(Customer customer) {
         try {
-            verificationEmail.send(
-                    customer.getEmail(),
-                    customer.getVerificationToken()
-            );
+            verificationEmail.send(customer.getEmail(), customer.getVerificationToken());
             return true;
         } catch (org.springframework.web.server.ResponseStatusException ex) {
             org.slf4j.LoggerFactory.getLogger(CustomerService.class)
-                    .warn(
-                            "Initial verification email not confirmed; HTTP {}",
-                            ex.getStatusCode().value()
-                    );
+                    .warn("Initial verification email not confirmed; HTTP {}", ex.getStatusCode().value());
             return false;
         }
     }
 
-    public Customer authenticate(String email, String password) {
-        if (password.getBytes(
-                java.nio.charset.StandardCharsets.UTF_8
-        ).length > 72) {
-            return null;
+    @org.springframework.transaction.annotation.Transactional
+    public void requestPasswordReset(String email) {
+        Customer customer = customerRepository
+                .findLockedByEmail(email.trim().toLowerCase(java.util.Locale.ROOT))
+                .orElse(null);
+
+        if (customer == null) return;
+
+        byte[] bytes = new byte[32];
+        new java.security.SecureRandom().nextBytes(bytes);
+        String token = java.util.HexFormat.of().formatHex(bytes);
+
+        customer.setPasswordResetHash(resetHash(token));
+        customer.setPasswordResetExpiresAt(java.time.Instant.now().plusSeconds(1800));
+
+        try {
+            verificationEmail.sendPasswordReset(customer.getEmail(), token);
+        } catch (org.springframework.web.server.ResponseStatusException ex) {
+            org.slf4j.LoggerFactory.getLogger(CustomerService.class)
+                    .warn("Password reset email not confirmed; HTTP {}", ex.getStatusCode().value());
         }
 
-        Customer customer = customerRepository.findByEmail(
-                email.trim().toLowerCase(java.util.Locale.ROOT)
-        ).orElse(null);
+        customerRepository.save(customer);
+    }
 
-        if (customer == null
-                || !passwordEncoder.matches(
-                password, customer.getPasswordHash())) {
+    @org.springframework.transaction.annotation.Transactional
+    public void resetPassword(String token, String password) {
+        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+            throw new IllegalArgumentException("Parola poate avea maximum 72 de octeți UTF-8.");
+
+        Customer customer = customerRepository.findByPasswordResetHash(resetHash(token)).orElse(null);
+
+        if (customer == null || customer.getPasswordResetExpiresAt() == null
+                || !java.time.Instant.now().isBefore(customer.getPasswordResetExpiresAt()))
+            throw new IllegalArgumentException("Link invalid sau expirat. Cere un link nou.");
+
+        customer.setPasswordHash(passwordEncoder.encode(password));
+        customer.setPasswordResetHash(null);
+        customer.setPasswordResetExpiresAt(null);
+        customer.invalidateSessions();
+        customerRepository.save(customer);
+    }
+
+    private static String resetHash(String token) {
+        try {
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    public Customer authenticate(String email, String password) {
+        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) return null;
+
+        Customer customer = customerRepository
+                .findByEmail(email.trim().toLowerCase(java.util.Locale.ROOT))
+                .orElse(null);
+
+        if (customer == null || !passwordEncoder.matches(password, customer.getPasswordHash())) {
             return null;
         }
 
@@ -92,75 +120,49 @@ public class CustomerService {
 
     @org.springframework.transaction.annotation.Transactional
     public boolean verifyAccount(String token) {
-        Customer customer = customerRepository
-                .findByVerificationToken(token)
-                .orElse(null);
+        Customer customer = customerRepository.findByVerificationToken(token).orElse(null);
 
-        if (customer == null
-                || customer.isVerified()
-                || customer.getVerificationExpiresAt() == null
-                || !java.time.Instant.now().isBefore(
-                customer.getVerificationExpiresAt())) {
-            return false;
-        }
+        if (customer == null || customer.isVerified() || customer.getVerificationExpiresAt() == null
+                || !java.time.Instant.now().isBefore(customer.getVerificationExpiresAt())) return false;
 
         customer.markEmailVerified();
         customer.setVerificationToken(null);
         customerRepository.save(customer);
-
         return true;
     }
 
     @org.springframework.transaction.annotation.Transactional
     public String resendVerification(String email) {
         Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Cont inexistent."));
+                .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
 
-        if (customer.isVerified()) {
-            return null;
-        }
+        if (customer.isVerified()) return null;
 
         String newToken = java.util.UUID.randomUUID().toString();
-
         customer.setVerificationToken(newToken);
-        customer.setVerificationExpiresAt(
-                java.time.Instant.now().plusSeconds(86400)
-        );
+        customer.setVerificationExpiresAt(java.time.Instant.now().plusSeconds(86400));
 
         verificationEmail.send(customer.getEmail(), newToken);
         customerRepository.save(customer);
-
         return "Email trimis. Verifică inboxul și folderul Spam.";
     }
 
     public CustomerProfileDTO getProfile(String email) {
         Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Cont inexistent."));
+                .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
 
         return new CustomerProfileDTO(
-                customer.getName(),
-                customer.getEmail(),
-                customer.getAddress(),
-                customer.isVerified()
-        );
+                customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified());
     }
 
-    public CustomerProfileDTO updateAddress(
-            String email, CustomerUpdateDTO request) {
+    public CustomerProfileDTO updateAddress(String email, CustomerUpdateDTO request) {
         Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Cont inexistent."));
+                .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
 
         customer.setAddress(request.address().trim());
         customerRepository.save(customer);
 
         return new CustomerProfileDTO(
-                customer.getName(),
-                customer.getEmail(),
-                customer.getAddress(),
-                customer.isVerified()
-        );
+                customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified());
     }
 }

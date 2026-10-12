@@ -17,7 +17,6 @@ import tools.jackson.databind.json.JsonMapper;
 import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,15 +35,14 @@ public class OrderService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private VerificationEmailService emailService;
+
     private static final Set<String> VALID_STATUSES = Set.of(
-            "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată"
+            "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată", "Anulată"
     );
 
-    private static final DateTimeFormatter DATE_FORMAT =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
     // Only the authenticated principal can establish account ownership.
-    // Guest email addresses remain contact details, never account identifiers.
     @Transactional
     public Order placeOrder(
             OrderRequestDTO request,
@@ -72,10 +70,7 @@ public class OrderService {
         String email = customer != null ? customer.getEmail() : request.email().trim();
         String hash = requestHash(request, customer, email, quantityMap);
 
-        // PostgreSQL holds this per-key lock until commit/rollback,
-        // including across app instances.
-        // A hash collision only serializes unrelated requests;
-        // the full UUID remains unique in the DB.
+        // PostgreSQL holds this per-key lock until commit/rollback.
         jdbcTemplate.queryForList(
                 "SELECT pg_advisory_xact_lock(?)",
                 key.getMostSignificantBits() ^ key.getLeastSignificantBits());
@@ -92,9 +87,8 @@ public class OrderService {
         List<String> itemNames = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
-        // Un singur query în loc de N findById-uri
         Map<Long, Cactus> cactiMap = new HashMap<>();
-        for (Cactus c : cactusRepository.findAllById(quantityMap.keySet())) {
+        for (Cactus c : cactusRepository.findAllForOrder(quantityMap.keySet())) {
             cactiMap.put(c.getId(), c);
         }
 
@@ -108,9 +102,7 @@ public class OrderService {
                         "Produs indisponibil (id: " + id + ").");
             }
 
-            for (int i = 0; i < qty; i++) {
-                itemNames.add(cactus.getName());
-            }
+            itemNames.add(cactus.getName() + " ×" + qty);
             total = total.add(
                     cactus.getPrice().multiply(BigDecimal.valueOf(qty)));
         }
@@ -143,9 +135,25 @@ public class OrderService {
         order.setAddress(request.address().trim());
         order.setTotalPrice(total);
         order.setPurchasedItems(String.join(", ", itemNames));
+        order.setQuantities(quantityMap);
         order.setStatus("Neplătită");
 
-        return orderRepository.save(order);
+        Order saved = orderRepository.save(order);
+
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            emailService.sendOrderConfirmation(saved);
+                        } catch (RuntimeException ex) {
+                            org.slf4j.LoggerFactory.getLogger(OrderService.class)
+                                    .warn("Order confirmation email not confirmed for order {}", saved.getId());
+                        }
+                    }
+                });
+
+        return saved;
     }
 
     private String requestHash(
@@ -187,19 +195,40 @@ public class OrderService {
                 order.getPurchasedItems(),
                 order.getTotalPrice(),
                 order.getCreatedAt() != null
-                        ? order.getCreatedAt().format(DATE_FORMAT)
+                        ? order.getCreatedAt().atOffset(java.time.ZoneOffset.UTC).toString()
                         : "");
     }
 
+    @Transactional
     public Order updateStatus(Long id, String status) {
         if (!VALID_STATUSES.contains(status)) {
             throw new IllegalArgumentException(
                     "Status invalid. Valorile acceptate: " + VALID_STATUSES);
         }
 
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findLockedById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Comanda nu a fost găsită."));
+                        new java.util.NoSuchElementException("Comanda nu a fost găsită."));
+
+        if (order.getStatus().equals(status)) return order;
+
+        if (order.getStatus().equals("Anulată"))
+            throw new IllegalStateException("O comandă anulată nu poate fi redeschisă.");
+
+        if (status.equals("Anulată")) {
+            if (order.getStatus().equals("Livrată") || order.getStatus().equals("Expediată"))
+                throw new IllegalStateException("Comenzile expediate/livrate necesită gestionarea returului.");
+
+            if (order.getQuantities().isEmpty())
+                throw new IllegalStateException(
+                        "Comandă veche fără cantități salvate. Anularea necesită verificarea manuală a stocului.");
+
+            for (var entry : new java.util.TreeMap<>(order.getQuantities()).entrySet()) {
+                if (cactusRepository.restoreStock(entry.getKey(), entry.getValue()) != 1)
+                    throw new IllegalStateException(
+                            "Un produs a fost șters. Verifică manual stocul înainte de anulare.");
+            }
+        }
 
         order.setStatus(status);
         return orderRepository.save(order);
@@ -221,7 +250,7 @@ public class OrderService {
                 o.getPurchasedItems(),
                 o.getTotalPrice(),
                 o.getCreatedAt() != null
-                        ? o.getCreatedAt().format(DATE_FORMAT)
+                        ? o.getCreatedAt().atOffset(java.time.ZoneOffset.UTC).toString()
                         : ""
         )).collect(Collectors.toList());
     }

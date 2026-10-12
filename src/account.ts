@@ -1,4 +1,7 @@
-// Functiile comune si constantele vin din shared.ts.
+let passwordResetToken = new URLSearchParams(window.location.hash.slice(1)).get('reset');
+if (passwordResetToken) window.history.replaceState(null, '', 'account.html');
+
+// API_BASE, CUSTOMER_NAME_KEY, authFetch vin din shared.ts
 
 interface CustomerProfile {
     name: string;
@@ -11,7 +14,6 @@ const REDIRECT_FALLBACK = "shop.html";
 
 function getRedirectTarget(): string {
     const referrer = document.referrer;
-
     if (referrer && !referrer.includes('account.html')) {
         try {
             const referrerUrl = new URL(referrer);
@@ -20,11 +22,10 @@ function getRedirectTarget(): string {
             }
         } catch {}
     }
-
     return REDIRECT_FALLBACK;
 }
 
-// --- Tab-uri Login / Inregistrare ---
+// --- Comutare tab-uri Login / Inregistrare ---
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
 const loginPanel = document.getElementById('login-panel');
@@ -34,28 +35,19 @@ function activateTab(tab: 'login' | 'register') {
     if (!tabLogin || !tabRegister || !loginPanel || !registerPanel) return;
 
     const isLogin = tab === 'login';
-
     loginPanel.style.display = isLogin ? 'block' : 'none';
     registerPanel.style.display = isLogin ? 'none' : 'block';
 
     tabLogin.style.color = isLogin ? '#2f694b' : '#999';
-    tabLogin.style.borderBottom =
-        isLogin ? '3px solid #2f694b' : '3px solid transparent';
-
+    tabLogin.style.borderBottom = isLogin ? '3px solid #2f694b' : '3px solid transparent';
     tabRegister.style.color = isLogin ? '#999' : '#2f694b';
-    tabRegister.style.borderBottom =
-        isLogin ? '3px solid transparent' : '3px solid #2f694b';
+    tabRegister.style.borderBottom = isLogin ? '3px solid transparent' : '3px solid #2f694b';
 }
 
-if (tabLogin) {
-    tabLogin.addEventListener('click', () => activateTab('login'));
-}
+if (tabLogin) tabLogin.addEventListener('click', () => activateTab('login'));
+if (tabRegister) tabRegister.addEventListener('click', () => activateTab('register'));
 
-if (tabRegister) {
-    tabRegister.addEventListener('click', () => activateTab('register'));
-}
-
-// --- Incarcarea contului autentificat ---
+// --- Daca e deja logat, arata panoul de cont ---
 async function checkLoggedInState() {
     const loggedInPanel = document.getElementById('logged-in-panel');
     const loggedInName = document.getElementById('logged-in-name');
@@ -81,56 +73,38 @@ async function checkLoggedInState() {
 
         const profileName = document.getElementById('profile-name');
         const profileEmail = document.getElementById('profile-email');
-        const profileAddress = document.getElementById(
-            'profile-address'
-        ) as HTMLInputElement;
+        const profileAddress = document.getElementById('profile-address') as HTMLInputElement;
 
         if (profileName) profileName.innerText = profile.name;
         if (profileEmail) profileEmail.innerText = profile.email;
         if (profileAddress) profileAddress.value = profile.address;
 
         const verifyBanner = document.getElementById('verify-banner');
-
         if (verifyBanner) {
             if (profile.verified) {
-                verifyBanner.innerHTML = `
-                    <div style="background:#e8f5e9; color:#2f694b; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
-                        <i class="fa-solid fa-circle-check"></i> Cont verificat
-                    </div>`;
+                verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <i class="fa-solid fa-circle-check"></i> Cont verificat
+                </div>`;
             } else {
-                verifyBanner.innerHTML = `
-                    <div style="background:#fff3e0; color:#e65100; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
-                        <button id="resend-verify-btn" style="margin-left:8px; background:#e65100; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85em;">
-                            Retrimite codul
-                        </button>
-                    </div>`;
+                verifyBanner.innerHTML = `<div style="background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
+                    <button id="resend-verify-btn" style="margin-left: 8px; background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85em;">Retrimite codul</button>
+                </div>`;
 
                 const resendBtn = document.getElementById('resend-verify-btn');
-
                 if (resendBtn) {
                     resendBtn.addEventListener('click', async () => {
                         resendBtn.setAttribute('disabled', 'true');
-
                         try {
                             const response = await authFetch(
                                 `${API_BASE}/api/customers/resend-verification`,
-                                { method: 'POST' }
+                                {method: 'POST'}
                             );
-
-                            if (!response.ok) {
-                                throw new Error(await responseError(response));
-                            }
-
+                            if (!response.ok) throw new Error(await responseError(response));
                             const data = await response.json();
                             showToast(data.message);
-
                         } catch (error) {
-                            showToast(
-                                error instanceof Error
-                                    ? error.message
-                                    : 'Nu am putut trimite emailul.'
-                            );
+                            showToast(error instanceof Error ? error.message : 'Nu am putut trimite emailul.');
                         } finally {
                             resendBtn.removeAttribute('disabled');
                         }
@@ -143,21 +117,15 @@ async function checkLoggedInState() {
     }
 }
 
-checkLoggedInState();
+if (!passwordResetToken) checkLoggedInState();
 
 // --- Login ---
 const loginSubmitBtn = document.getElementById('login-submit-btn');
 
 if (loginSubmitBtn) {
     loginSubmitBtn.addEventListener('click', async () => {
-        const email = (
-            document.getElementById('login-email') as HTMLInputElement
-        ).value.trim();
-
-        const password = (
-            document.getElementById('login-password') as HTMLInputElement
-        ).value;
-
+        const email = (document.getElementById('login-email') as HTMLInputElement).value.trim();
+        const password = (document.getElementById('login-password') as HTMLInputElement).value;
         const errorEl = document.getElementById('login-error');
 
         if (!email || !password) {
@@ -169,18 +137,14 @@ if (loginSubmitBtn) {
         }
 
         try {
-            const response = await authFetch(
-                `${API_BASE}/api/customers/login`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                }
-            );
+            const response = await authFetch(`${API_BASE}/api/customers/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, password})
+            });
 
             if (!response.ok) {
                 const message = await responseError(response);
-
                 if (errorEl) {
                     errorEl.innerText = message || "Email sau parola incorecte.";
                     errorEl.style.display = 'block';
@@ -191,10 +155,8 @@ if (loginSubmitBtn) {
             const data = await response.json();
             saveLocalValue(CUSTOMER_NAME_KEY, data.name);
             window.location.href = getRedirectTarget();
-
         } catch (error) {
             console.error(error);
-
             if (errorEl) {
                 errorEl.innerText = "Nu am putut contacta serverul.";
                 errorEl.style.display = 'block';
@@ -210,22 +172,10 @@ if (registerSubmitBtn) {
     registerSubmitBtn.addEventListener('click', async () => {
         if (registerSubmitBtn.hasAttribute('disabled')) return;
 
-        const name = (
-            document.getElementById('register-name') as HTMLInputElement
-        ).value.trim();
-
-        const email = (
-            document.getElementById('register-email') as HTMLInputElement
-        ).value.trim();
-
-        const password = (
-            document.getElementById('register-password') as HTMLInputElement
-        ).value;
-
-        const address = (
-            document.getElementById('register-address') as HTMLInputElement
-        ).value.trim();
-
+        const name = (document.getElementById('register-name') as HTMLInputElement).value.trim();
+        const email = (document.getElementById('register-email') as HTMLInputElement).value.trim();
+        const password = (document.getElementById('register-password') as HTMLInputElement).value;
+        const address = (document.getElementById('register-address') as HTMLInputElement).value.trim();
         const errorEl = document.getElementById('register-error');
 
         if (!name || !email || !password || !address) {
@@ -248,18 +198,14 @@ if (registerSubmitBtn) {
         if (errorEl) errorEl.style.display = 'none';
 
         try {
-            const response = await authFetch(
-                `${API_BASE}/api/customers/register`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, address })
-                }
-            );
+            const response = await authFetch(`${API_BASE}/api/customers/register`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, email, password, address})
+            });
 
             if (!response.ok) {
                 const message = await responseError(response);
-
                 if (errorEl) {
                     errorEl.innerText = message || "Nu am putut crea contul.";
                     errorEl.style.display = 'block';
@@ -271,34 +217,21 @@ if (registerSubmitBtn) {
             saveLocalValue(CUSTOMER_NAME_KEY, data.name);
 
             let notice = document.getElementById('registration-notice');
-
             if (!notice) {
                 notice = document.createElement('p');
                 notice.id = 'registration-notice';
                 notice.setAttribute('role', 'status');
-
-                tabLogin?.parentElement?.insertAdjacentElement(
-                    'beforebegin',
-                    notice
-                );
+                tabLogin?.parentElement?.insertAdjacentElement('beforebegin', notice);
             }
 
-            notice.style.cssText =
-                'padding:12px; border-radius:8px; background:#fff3e0; color:#333; margin-bottom:15px;';
+            notice.style.cssText = 'padding:12px; border-radius:8px; background:#fff3e0; color:#333; margin-bottom:15px;';
+            notice.textContent = data.message || 'Cont creat. Verifică emailul sau cere retrimiterea din cont.';
 
-            notice.textContent = data.message
-                || 'Cont creat. Verifică emailul sau cere retrimiterea din cont.';
-
-            (
-                document.getElementById('register-password') as HTMLInputElement
-            ).value = '';
-
+            (document.getElementById('register-password') as HTMLInputElement).value = '';
             await checkLoggedInState();
             window.dispatchEvent(new Event('focus'));
-
         } catch (error) {
             console.error(error);
-
             if (errorEl) {
                 errorEl.innerText = "Nu am putut contacta serverul.";
                 errorEl.style.display = 'block';
@@ -314,27 +247,18 @@ const saveAddressBtn = document.getElementById('save-address-btn');
 
 if (saveAddressBtn) {
     saveAddressBtn.addEventListener('click', async () => {
-        const addressInput = document.getElementById(
-            'profile-address'
-        ) as HTMLInputElement;
-
+        const addressInput = document.getElementById('profile-address') as HTMLInputElement;
         const messageEl = document.getElementById('profile-message');
         if (!addressInput || !messageEl) return;
 
         try {
-            const response = await authFetch(
-                `${API_BASE}/api/customers/me`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        address: addressInput.value.trim()
-                    })
-                }
-            );
+            const response = await authFetch(`${API_BASE}/api/customers/me`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({address: addressInput.value.trim()})
+            });
 
             messageEl.style.display = 'block';
-
             if (response.ok) {
                 messageEl.style.color = '#2f694b';
                 messageEl.innerText = "Adresa a fost salvata.";
@@ -342,7 +266,6 @@ if (saveAddressBtn) {
                 messageEl.style.color = '#d32f2f';
                 messageEl.innerText = "Nu am putut salva adresa.";
             }
-
         } catch (error) {
             console.error(error);
             messageEl.style.display = 'block';
@@ -357,36 +280,114 @@ const logoutBtn = document.getElementById('logout-btn');
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
-        await authFetch(
-            `${API_BASE}/api/customers/logout`,
-            { method: 'POST' }
-        );
-
+        await authFetch(`${API_BASE}/api/customers/logout`, {method: 'POST'});
         localStorage.removeItem(CUSTOMER_NAME_KEY);
         window.location.href = REDIRECT_FALLBACK;
     });
 }
 
-// --- Verificare email din link ---
-const verifyToken = new URLSearchParams(
-    window.location.search
-).get('verify');
+// --- Verificare email ---
+const verifyToken = new URLSearchParams(window.location.search).get('verify');
 
 if (verifyToken) {
     window.history.replaceState(null, '', 'account.html');
-
-    authFetch(
-        `${API_BASE}/api/customers/verify?token=${encodeURIComponent(verifyToken)}`
-    )
+    authFetch(`${API_BASE}/api/customers/verify?token=${encodeURIComponent(verifyToken)}`)
         .then(async response => {
-            if (!response.ok) {
-                throw new Error(await responseError(response));
-            }
-
+            if (!response.ok) throw new Error(await responseError(response));
             showToast('Adresa de email a fost verificată.');
             await checkLoggedInState();
         })
-        .catch(error => showToast(
-            error instanceof Error ? error.message : 'Verificarea a eșuat.'
-        ));
+        .catch(error => showToast(error instanceof Error ? error.message : 'Verificarea a eșuat.'));
+}
+
+// --- Cerere resetare parola ---
+const recoveryForm = document.getElementById('forgot-password-form') as HTMLFormElement | null;
+
+recoveryForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const button = recoveryForm.querySelector('button')!;
+    const message = document.getElementById('recovery-message')!;
+    if (button.disabled) return;
+
+    button.disabled = true;
+
+    try {
+        const response = await authFetch(`${API_BASE}/api/customers/forgot-password`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                email: (document.getElementById('recovery-email') as HTMLInputElement).value.trim()
+            })
+        });
+
+        if (!response.ok) throw new Error(await responseError(response));
+        message.textContent = (await response.json()).message;
+    } catch (error) {
+        message.textContent = error instanceof Error ? error.message : 'Nu am putut contacta serverul.';
+    } finally {
+        button.disabled = false;
+    }
+});
+
+// --- Parola noua ---
+const resetForm = document.getElementById('reset-password-form') as HTMLFormElement | null;
+
+if (passwordResetToken && resetForm) {
+    resetForm.style.display = 'block';
+    if (loginPanel) loginPanel.style.display = 'none';
+    if (registerPanel) registerPanel.style.display = 'none';
+    if (tabLogin?.parentElement) tabLogin.parentElement.style.display = 'none';
+
+    resetForm.addEventListener('submit', async event => {
+        event.preventDefault();
+
+        const button = resetForm.querySelector('button')!;
+        if (button.disabled) return;
+
+        const password = document.getElementById('reset-password') as HTMLInputElement;
+        const confirm = document.getElementById('reset-password-confirm') as HTMLInputElement;
+        const message = document.getElementById('reset-message')!;
+
+        if (password.value !== confirm.value) {
+            message.textContent = 'Parolele nu coincid.';
+            return;
+        }
+
+        if (new TextEncoder().encode(password.value).length > 72) {
+            message.textContent = 'Parola poate avea maximum 72 de octeți UTF-8.';
+            return;
+        }
+
+        button.disabled = true;
+
+        try {
+            const response = await authFetch(`${API_BASE}/api/customers/reset-password`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    token: passwordResetToken,
+                    password: password.value
+                })
+            });
+
+            if (!response.ok) throw new Error(await responseError(response));
+            message.textContent = (await response.json()).message;
+
+            passwordResetToken = null;
+            password.value = confirm.value = '';
+
+            resetForm.querySelectorAll('input, label, button')
+                .forEach(el => (el as HTMLElement).style.display = 'none');
+
+            localStorage.removeItem(CUSTOMER_NAME_KEY);
+
+            if (tabLogin?.parentElement) tabLogin.parentElement.style.display = 'flex';
+            activateTab('login');
+            window.dispatchEvent(new Event('focus'));
+        } catch (error) {
+            message.textContent = error instanceof Error ? error.message : 'Nu am putut contacta serverul.';
+            button.disabled = false;
+        }
+    });
 }
