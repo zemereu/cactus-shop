@@ -14,10 +14,16 @@ const productId = produsParams.get('id');
 function produsLoadCart() {
     try {
         const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
-        return Array.isArray(data) ? data.filter(item => item &&
-            Number.isSafeInteger(item.id) && item.id > 0 && typeof item.name === 'string' &&
-            Number.isFinite(item.price) && item.price >= 0 &&
-            Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
+        return Array.isArray(data)
+            ? data.filter(item => item &&
+                Number.isSafeInteger(item.id) &&
+                item.id > 0 &&
+                typeof item.name === 'string' &&
+                Number.isFinite(item.price) &&
+                item.price >= 0 &&
+                Number.isSafeInteger(item.stock) &&
+                item.stock >= 0)
+            : [];
     }
     catch (_a) {
         return [];
@@ -28,6 +34,7 @@ function produsSaveCart(cart) {
 }
 function loadProduct() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         if (!productId) {
             showError();
             return;
@@ -46,34 +53,57 @@ function loadProduct() {
             document.title = `${product.name} - Cactus Shop`;
             const metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc) {
-                metaDesc.setAttribute('content', `${product.name} — ${product.price} RON. ${product.description || 'Cactus Shop'}`);
+                metaDesc.setAttribute('content', `${product.name} — ${formatPrice(product.price)} RON. ${product.description || 'Cactus Shop'}`);
             }
-            const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement('meta');
+            const ogTitle = document.querySelector('meta[property="og:title"]') ||
+                document.createElement('meta');
             ogTitle.setAttribute('property', 'og:title');
             ogTitle.setAttribute('content', product.name);
             if (!ogTitle.parentNode)
                 document.head.appendChild(ogTitle);
-            const ogDesc = document.querySelector('meta[property="og:description"]') || document.createElement('meta');
+            const ogDesc = document.querySelector('meta[property="og:description"]') ||
+                document.createElement('meta');
             ogDesc.setAttribute('property', 'og:description');
-            ogDesc.setAttribute('content', `${product.price} RON — ${product.description || ''}`);
+            ogDesc.setAttribute('content', `${formatPrice(product.price)} RON — ${product.description || ''}`);
             if (!ogDesc.parentNode)
                 document.head.appendChild(ogDesc);
-            const ogImg = document.querySelector('meta[property="og:image"]') || document.createElement('meta');
+            const ogImg = document.querySelector('meta[property="og:image"]') ||
+                document.createElement('meta');
             ogImg.setAttribute('property', 'og:image');
             ogImg.setAttribute('content', product.imageUrl || '');
             if (!ogImg.parentNode)
                 document.head.appendChild(ogImg);
-            document.getElementById('product-image').src = product.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=600&q=80';
+            const productImage = document.getElementById('product-image');
+            productImage.src = product.imageUrl ||
+                'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=600&q=80';
+            productImage.alt = product.name;
             document.getElementById('product-name').innerText = product.name;
-            document.getElementById('product-category').innerText = `${product.mainCategory} — ${product.category}`;
-            document.getElementById('product-price').innerText = `${product.price} RON`;
-            document.getElementById('product-desc').innerText = product.description || 'Fără descriere.';
+            const categoryEl = document.getElementById('product-category');
+            categoryEl.textContent = [
+                product.productType,
+                product.mainCategory,
+                product.category
+            ].filter(value => value === null || value === void 0 ? void 0 : value.trim()).join(' · ') || 'Categorie nespecificată';
+            categoryEl.style.display = 'inline-block';
+            categoryEl.style.maxWidth = '100%';
+            categoryEl.style.overflowWrap = 'anywhere';
+            document.getElementById('product-price').innerText =
+                `${formatPrice(product.price)} RON`;
+            document.getElementById('product-location').textContent =
+                `Locație: ${((_a = product.location) === null || _a === void 0 ? void 0 : _a.trim()) || 'Nespecificată'}`;
+            const descriptionEl = document.getElementById('product-desc');
+            descriptionEl.textContent = ((_b = product.description) === null || _b === void 0 ? void 0 : _b.trim()) || 'Fără descriere.';
+            descriptionEl.style.whiteSpace = 'pre-line';
             const stockEl = document.getElementById('product-stock');
             if (product.stock > 0) {
-                stockEl.innerHTML = `<i class="fa-solid fa-check" style="color:#2f694b;"></i> <strong style="color:#2f694b;">${product.stock} în stoc</strong>`;
+                stockEl.innerHTML = `
+                <i class="fa-solid fa-check" style="color:#2f694b;"></i>
+                <strong style="color:#2f694b;">${product.stock} în stoc</strong>`;
             }
             else {
-                stockEl.innerHTML = `<i class="fa-solid fa-xmark" style="color:#d32f2f;"></i> <strong style="color:#d32f2f;">Stoc epuizat</strong>`;
+                stockEl.innerHTML = `
+                <i class="fa-solid fa-xmark" style="color:#d32f2f;"></i>
+                <strong style="color:#d32f2f;">Stoc epuizat</strong>`;
             }
             // Adăugare în coș cu verificarea stocului actual.
             const addBtn = document.getElementById('product-add-cart');
@@ -94,18 +124,19 @@ function loadProduct() {
                         if (!response.ok)
                             throw new Error();
                         const fresh = yield response.json();
-                        if (!Number.isSafeInteger(fresh.stock) || fresh.stock < 0)
+                        if (!Number.isSafeInteger(fresh.stock) || fresh.stock < 0) {
                             throw new Error();
+                        }
                         const cart = produsLoadCart();
                         const inCart = cart.filter(c => c.id === product.id).length;
                         if (fresh.active === false || inCart >= fresh.stock) {
-                            showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Stoc insuficient!');
+                            showToast('Stoc insuficient!');
                             return;
                         }
                         cart.push(product);
                         if (!produsSaveCart(cart))
                             return;
-                        showToast('<i class="fa-solid fa-check" style="color:#2f694b;"></i> Adăugat în coș!');
+                        showToast('Adăugat în coș!');
                     }
                     catch (_a) {
                         showToast('Nu am putut verifica stocul. Reîncearcă.');
@@ -173,7 +204,9 @@ function loadProduct() {
 }
 function updateWishBtn(btn, id) {
     const liked = wishlist.includes(id);
-    btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart" style="color: ${liked ? '#d32f2f' : '#666'};"></i>`;
+    btn.innerHTML = `
+        <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"
+           style="color: ${liked ? '#d32f2f' : '#666'};"></i>`;
 }
 function showError() {
     document.getElementById('product-loading').style.display = 'none';
@@ -186,7 +219,8 @@ function loadProductReviews(cactusId) {
             const response = yield fetch(`${API_BASE}/api/reviews/product/${cactusId}`);
             const reviews = yield response.json();
             if (reviews.length === 0) {
-                container.innerHTML = '<p style="color:#999; font-style:italic;">Nicio recenzie pentru acest produs.</p>';
+                container.innerHTML =
+                    '<p style="color:#999; font-style:italic;">Nicio recenzie pentru acest produs.</p>';
                 return;
             }
             container.innerHTML = reviews.map(r => `
@@ -198,7 +232,8 @@ function loadProductReviews(cactusId) {
             </div>`).join('');
         }
         catch (_a) {
-            container.innerHTML = '<p style="color:#d32f2f;">Nu am putut încărca recenziile.</p>';
+            container.innerHTML =
+                '<p style="color:#d32f2f;">Nu am putut încărca recenziile.</p>';
         }
     });
 }
@@ -217,25 +252,28 @@ function loadSimilarProducts(product) {
         }
         catch (_a) {
             const container = document.getElementById('similar-products');
-            if (container)
+            if (container) {
                 container.textContent = 'Nu am putut încărca produsele similare.';
+            }
         }
     });
 }
 function renderSimilar(products) {
     const container = document.getElementById('similar-products');
     if (products.length === 0) {
-        container.innerHTML = '<p style="color:#999; font-style:italic; grid-column: span 4;">Niciun produs similar găsit.</p>';
+        container.innerHTML =
+            '<p style="color:#999; font-style:italic; grid-column: span 4;">Niciun produs similar găsit.</p>';
         return;
     }
     container.innerHTML = products.map(p => {
-        const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
+        const img = p.imageUrl ||
+            'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
         return `
-        <a href="product.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
-            <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
-            <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
-            <p style="color:#d32f2f; font-weight:bold; margin:0;">${p.price} RON</p>
-        </a>`;
+            <a href="product.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
+                <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
+                <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
+                <p style="color:#d32f2f; font-weight:bold; margin:0;">${formatPrice(p.price)} RON</p>
+            </a>`;
     }).join('');
 }
 initImageZoom();
