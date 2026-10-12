@@ -1,6 +1,7 @@
 package com.cactusshop.backend.model;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -13,63 +14,118 @@ public class Cactus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private long version;
+
     private String name;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
-    // "Plante" | "Semințe" — nivelul de sus, tip de produs
     private String productType;
-
-    // "Cactuși" | "Suculente" — nivelul din mijloc
     private String mainCategory;
-
-    // genul, ex: "Mammillaria", "Lithops" — nivelul de jos
     private String category;
-
     private String description;
 
     @Column(length = 1000)
     private String imageUrl;
 
     private int stock = 0;
-
     private String location;
-
     private boolean active = true;
 
     public Cactus() {}
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public long getVersion() {
+        return version;
+    }
 
-    public String getProductType() { return productType; }
-    public void setProductType(String productType) { this.productType = productType; }
+    public String getName() {
+        return name;
+    }
 
-    public String getMainCategory() { return mainCategory; }
-    public void setMainCategory(String mainCategory) { this.mainCategory = mainCategory; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public BigDecimal getPrice() {
+        return price;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getProductType() {
+        return productType;
+    }
 
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
+    public void setProductType(String productType) {
+        this.productType = productType;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public String getMainCategory() {
+        return mainCategory;
+    }
 
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
+    public void setMainCategory(String mainCategory) {
+        this.mainCategory = mainCategory;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }
