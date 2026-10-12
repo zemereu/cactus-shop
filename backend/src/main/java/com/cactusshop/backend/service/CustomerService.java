@@ -46,8 +46,28 @@ public class CustomerService {
                 passwordEncoder.encode(request.password())
         );
         customer.setAddress(request.address().trim());
+        customer.setVerificationExpiresAt(
+                java.time.Instant.now().plusSeconds(86400)
+        );
 
         return customerRepository.save(customer);
+    }
+
+    public boolean sendInitialVerification(Customer customer) {
+        try {
+            verificationEmail.send(
+                    customer.getEmail(),
+                    customer.getVerificationToken()
+            );
+            return true;
+        } catch (org.springframework.web.server.ResponseStatusException ex) {
+            org.slf4j.LoggerFactory.getLogger(CustomerService.class)
+                    .warn(
+                            "Initial verification email not confirmed; HTTP {}",
+                            ex.getStatusCode().value()
+                    );
+            return false;
+        }
     }
 
     public Customer authenticate(String email, String password) {

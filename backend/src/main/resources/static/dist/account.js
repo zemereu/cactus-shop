@@ -1,4 +1,5 @@
 "use strict";
+// Functiile comune si constantele vin din shared.ts.
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -22,6 +23,7 @@ function getRedirectTarget() {
     }
     return REDIRECT_FALLBACK;
 }
+// --- Tab-uri Login / Inregistrare ---
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
 const loginPanel = document.getElementById('login-panel');
@@ -33,14 +35,19 @@ function activateTab(tab) {
     loginPanel.style.display = isLogin ? 'block' : 'none';
     registerPanel.style.display = isLogin ? 'none' : 'block';
     tabLogin.style.color = isLogin ? '#2f694b' : '#999';
-    tabLogin.style.borderBottom = isLogin ? '3px solid #2f694b' : '3px solid transparent';
+    tabLogin.style.borderBottom =
+        isLogin ? '3px solid #2f694b' : '3px solid transparent';
     tabRegister.style.color = isLogin ? '#999' : '#2f694b';
-    tabRegister.style.borderBottom = isLogin ? '3px solid transparent' : '3px solid #2f694b';
+    tabRegister.style.borderBottom =
+        isLogin ? '3px solid transparent' : '3px solid #2f694b';
 }
-if (tabLogin)
+if (tabLogin) {
     tabLogin.addEventListener('click', () => activateTab('login'));
-if (tabRegister)
+}
+if (tabRegister) {
     tabRegister.addEventListener('click', () => activateTab('register'));
+}
+// --- Incarcarea contului autentificat ---
 function checkLoggedInState() {
     return __awaiter(this, void 0, void 0, function* () {
         const loggedInPanel = document.getElementById('logged-in-panel');
@@ -95,8 +102,9 @@ function checkLoggedInState() {
                             resendBtn.setAttribute('disabled', 'true');
                             try {
                                 const response = yield authFetch(`${API_BASE}/api/customers/resend-verification`, { method: 'POST' });
-                                if (!response.ok)
+                                if (!response.ok) {
                                     throw new Error(yield responseError(response));
+                                }
                                 const data = yield response.json();
                                 showToast(data.message);
                             }
@@ -119,6 +127,7 @@ function checkLoggedInState() {
     });
 }
 checkLoggedInState();
+// --- Login ---
 const loginSubmitBtn = document.getElementById('login-submit-btn');
 if (loginSubmitBtn) {
     loginSubmitBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -159,9 +168,13 @@ if (loginSubmitBtn) {
         }
     }));
 }
+// --- Inregistrare ---
 const registerSubmitBtn = document.getElementById('register-submit-btn');
 if (registerSubmitBtn) {
     registerSubmitBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        if (registerSubmitBtn.hasAttribute('disabled'))
+            return;
         const name = document.getElementById('register-name').value.trim();
         const email = document.getElementById('register-email').value.trim();
         const password = document.getElementById('register-password').value;
@@ -181,6 +194,9 @@ if (registerSubmitBtn) {
             }
             return;
         }
+        registerSubmitBtn.setAttribute('disabled', 'true');
+        if (errorEl)
+            errorEl.style.display = 'none';
         try {
             const response = yield authFetch(`${API_BASE}/api/customers/register`, {
                 method: 'POST',
@@ -197,7 +213,20 @@ if (registerSubmitBtn) {
             }
             const data = yield response.json();
             saveLocalValue(CUSTOMER_NAME_KEY, data.name);
-            window.location.href = getRedirectTarget();
+            let notice = document.getElementById('registration-notice');
+            if (!notice) {
+                notice = document.createElement('p');
+                notice.id = 'registration-notice';
+                notice.setAttribute('role', 'status');
+                (_a = tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement) === null || _a === void 0 ? void 0 : _a.insertAdjacentElement('beforebegin', notice);
+            }
+            notice.style.cssText =
+                'padding:12px; border-radius:8px; background:#fff3e0; color:#333; margin-bottom:15px;';
+            notice.textContent = data.message
+                || 'Cont creat. Verifică emailul sau cere retrimiterea din cont.';
+            document.getElementById('register-password').value = '';
+            yield checkLoggedInState();
+            window.dispatchEvent(new Event('focus'));
         }
         catch (error) {
             console.error(error);
@@ -206,8 +235,12 @@ if (registerSubmitBtn) {
                 errorEl.style.display = 'block';
             }
         }
+        finally {
+            registerSubmitBtn.removeAttribute('disabled');
+        }
     }));
 }
+// --- Salvare adresa ---
 const saveAddressBtn = document.getElementById('save-address-btn');
 if (saveAddressBtn) {
     saveAddressBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -219,7 +252,9 @@ if (saveAddressBtn) {
             const response = yield authFetch(`${API_BASE}/api/customers/me`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ address: addressInput.value.trim() })
+                body: JSON.stringify({
+                    address: addressInput.value.trim()
+                })
             });
             messageEl.style.display = 'block';
             if (response.ok) {
@@ -239,6 +274,7 @@ if (saveAddressBtn) {
         }
     }));
 }
+// --- Deconectare ---
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -247,13 +283,15 @@ if (logoutBtn) {
         window.location.href = REDIRECT_FALLBACK;
     }));
 }
+// --- Verificare email din link ---
 const verifyToken = new URLSearchParams(window.location.search).get('verify');
 if (verifyToken) {
     window.history.replaceState(null, '', 'account.html');
     authFetch(`${API_BASE}/api/customers/verify?token=${encodeURIComponent(verifyToken)}`)
         .then((response) => __awaiter(void 0, void 0, void 0, function* () {
-        if (!response.ok)
+        if (!response.ok) {
             throw new Error(yield responseError(response));
+        }
         showToast('Adresa de email a fost verificată.');
         yield checkLoggedInState();
     }))

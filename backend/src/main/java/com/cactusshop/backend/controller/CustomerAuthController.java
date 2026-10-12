@@ -49,16 +49,26 @@ public class CustomerAuthController {
 
         try {
             Customer customer = customerService.register(request);
+
             String jwt = jwtUtil.generateToken(
                     customer.getEmail(), "CUSTOMER"
             );
+
+            boolean emailSent =
+                    customerService.sendInitialVerification(customer);
 
             return ResponseEntity.ok()
                     .header(
                             HttpHeaders.SET_COOKIE,
                             jwtUtil.createJwtCookie(jwt).toString()
                     )
-                    .body(Map.of("name", customer.getName()));
+                    .body(Map.of(
+                            "name", customer.getName(),
+                            "verificationEmailSent", emailSent,
+                            "message", emailSent
+                                    ? "Cont creat. Verifică emailul și folderul Spam pentru activare."
+                                    : "Cont creat. Trimiterea emailului nu a putut fi confirmată. Verifică inboxul sau apasă Retrimite codul."
+                    ));
 
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
