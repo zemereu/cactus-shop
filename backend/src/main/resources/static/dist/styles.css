@@ -1,6 +1,4 @@
-/* ======================================================
-   CACTUS SHOP — HOVER, TRANSITIONS & CONSISTENCY
-   ====================================================== */
+/* Cactus Shop: shared components, then responsive overrides. */
 
 body, button, input, select, textarea {
     font-family: 'Poppins', sans-serif;
@@ -9,17 +7,15 @@ body, button, input, select, textarea {
 a, button, input, select, textarea,
 .hover-card, .product-card, .stat-card, .review-card,
 .admin-tab, .header-btn, .account-tab {
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
-/* Focus */
 input:focus, select:focus, textarea:focus {
     outline: none !important;
     border-color: #FF9800 !important;
     box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.25) !important;
 }
 
-/* Butoane */
 button[style*="background-color: #2f694b"]:hover,
 button[style*="background:#2f694b"]:hover,
 .admin-btn.btn-primary:hover,
@@ -70,7 +66,6 @@ button[style*="background-color: #d32f2f"]:hover,
     color: white !important;
 }
 
-/* Header */
 .header-btn:hover {
     background-color: #2f694b !important;
     color: #fdf2b8 !important;
@@ -78,14 +73,12 @@ button[style*="background-color: #d32f2f"]:hover,
     box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
 }
 
-/* Dropdown */
 .dropdown-link:hover,
 #account-dropdown a:hover {
     background: rgba(255, 152, 0, 0.15) !important;
     color: #FF9800 !important;
 }
 
-/* Landing */
 .cta-button.primary:hover {
     background-color: #e68a00 !important;
     transform: scale(1.05);
@@ -98,18 +91,13 @@ button[style*="background-color: #d32f2f"]:hover,
     border-bottom-color: #FF9800 !important;
 }
 
-/* Produse admin */
 .product-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 16px rgba(255, 152, 0, 0.2) !important;
     border-color: #FF9800 !important;
 }
 
-/* Grila magazin */
-#cacti-list {
-    grid-template-columns: repeat(3, 1fr);
-}
-
+#cacti-list,
 body.view-grid #cacti-list {
     grid-template-columns: repeat(3, 1fr);
 }
@@ -120,7 +108,6 @@ body.view-grid #cacti-list {
     border-color: #FF9800 !important;
 }
 
-/* Admin */
 .admin-tab:hover {
     background: #ffc107 !important;
     color: #333 !important;
@@ -156,7 +143,6 @@ body.view-grid #cacti-list {
     border-color: #FF9800 !important;
 }
 
-/* Paginare */
 .page-btn:hover:not(:disabled) {
     background: #FF9800 !important;
     color: white !important;
@@ -167,7 +153,6 @@ body.view-grid #cacti-list {
     color: #FF9800 !important;
 }
 
-/* Linkuri */
 a[style*="color: #2f694b"]:hover {
     color: #FF9800 !important;
 }
@@ -187,35 +172,18 @@ a[style*="border-bottom: 1px solid #2f694b"]:hover {
     border-radius: 4px;
 }
 
-/* Toast */
 @keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
+::-webkit-scrollbar { width: 8px; }
 
-::-webkit-scrollbar-track {
-    background: #fdf2b8;
-}
+::-webkit-scrollbar-track { background: #fdf2b8; }
 
-::-webkit-scrollbar-thumb {
-    background: #2f694b;
-    border-radius: 4px;
-}
+::-webkit-scrollbar-thumb { background: #2f694b; border-radius: 4px; }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #FF9800;
-}
+::-webkit-scrollbar-thumb:hover { background: #FF9800; }
 
 ::selection {
     background: rgba(255, 152, 0, 0.3);
@@ -228,9 +196,247 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
     border-bottom-color: #FF9800 !important;
 }
 
-/* ======================================================
-   TABLETA
-   ====================================================== */
+.view-toggle-btn:hover {
+    background-color: #2f694b !important;
+    color: #fdf2b8 !important;
+}
+
+body.view-compact #cacti-list {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 12px !important;
+}
+
+body.view-compact .cactus-card {
+    padding: 8px !important;
+}
+
+body.view-compact .cactus-image {
+    height: 100px !important;
+    margin-bottom: 6px !important;
+}
+
+body.view-compact .cactus-desc,
+body.view-list .cactus-desc {
+    display: none !important;
+}
+
+body.view-compact .cactus-details h2 {
+    font-size: 0.95em !important;
+    margin-top: 4px !important;
+}
+
+body.view-compact .cactus-details p {
+    font-size: 0.8em !important;
+    margin: 2px 0 !important;
+}
+
+body.view-compact .cactus-card > button {
+    padding: 6px !important;
+    font-size: 0.85em !important;
+    margin-top: 8px !important;
+}
+
+body.view-list #cacti-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+body.view-list .cactus-card {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 15px !important;
+    padding: 10px !important;
+}
+
+body.view-list .cactus-image {
+    width: 90px !important;
+    height: 90px !important;
+    flex-shrink: 0;
+    margin-bottom: 0 !important;
+}
+
+body.view-list .cactus-details {
+    flex: 1;
+    min-width: 0;
+}
+
+body.view-list .cactus-details h2 {
+    font-size: 1.1em !important;
+    margin: 0 !important;
+}
+
+body.view-list .cactus-details p {
+    margin: 2px 0 !important;
+}
+
+body.view-list .cactus-card > button {
+    width: auto !important;
+    margin-top: 0 !important;
+    flex-shrink: 0;
+    padding: 10px 20px !important;
+    white-space: nowrap;
+}
+
+.card-action-btn {
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.85);
+    border: none; border-radius: 6px;
+    cursor: pointer; font-size: 0.85em; color: #999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.cactus-card:hover .card-action-btn { opacity: 1; }
+
+.card-action-btn:hover {
+    background: white; transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.wishlist-btn:hover { color: #d32f2f !important; }
+
+.zoom-btn:hover { color: #2f694b !important; }
+
+.wishlist-btn[style*="#d32f2f"] { opacity: 1 !important; }
+
+#scroll-top-btn {
+    display: none; position: fixed; bottom: 25px; right: 25px;
+    width: 45px; height: 45px; background: #2f694b; color: #fdf2b8;
+    border: none; border-radius: 50%; font-size: 1.2em; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 900;
+}
+
+#scroll-top-btn:hover { background: #FF9800 !important; transform: scale(1.1); }
+
+.breadcrumbs { padding: 10px 0; font-size: 0.85em; color: #666; }
+
+.breadcrumbs a { color: #2f694b; text-decoration: none; }
+
+.breadcrumbs a:hover { color: #FF9800 !important; }
+
+.breadcrumbs span { color: #999; margin: 0 6px; }
+
+a:focus-visible, button:focus-visible {
+    outline: 3px solid #2f694b;
+    outline-offset: 3px;
+}
+
+.cactus-card:focus-within .card-action-btn { opacity: 1; }
+
+#password-recovery {
+    margin: 20px 0 0 !important;
+    padding-top: 16px;
+    border-top: 1px solid #e4e9df;
+}
+
+#password-recovery > summary {
+    min-height: 44px;
+    padding: 10px 0;
+    color: #2f694b;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+#password-recovery > summary:focus-visible {
+    outline: 3px solid #2f694b;
+    outline-offset: 3px;
+}
+
+#forgot-password-form {
+    gap: 10px !important;
+    margin-top: 12px !important;
+}
+
+#reset-password-form {
+    padding-top: 16px;
+    border-top: 1px solid #e4e9df;
+}
+
+#reset-password-form h2 {
+    margin: 0 0 18px;
+    color: #2f694b;
+    font-size: 1.35rem;
+}
+
+#forgot-password-form label,
+#reset-password-form label {
+    color: #2f694b;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+#forgot-password-form input,
+#reset-password-form input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid #cbd6cc;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+#forgot-password-form button,
+#reset-password-form button {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 6px;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #2f694b;
+    color: #fdf2b8;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: normal;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+#forgot-password-form button:hover:not(:disabled),
+#reset-password-form button:hover:not(:disabled) {
+    background: #24543c;
+}
+
+#forgot-password-form button:disabled,
+#reset-password-form button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+#recovery-message,
+#reset-message {
+    box-sizing: border-box;
+    margin: 16px 0 0;
+    padding: 12px 14px;
+    border: 1px solid #e5dfbb;
+    border-radius: 8px;
+    background: #faf7e8;
+    color: #444;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+#recovery-message:empty,
+#reset-message:empty {
+    display: none;
+}
+
+#similar-products > p { grid-column: 1 / -1 !important; }
 
 @media (max-width: 1024px) {
     header[style*="grid-template-columns"] {
@@ -266,18 +472,10 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
     }
 }
 
-/* ======================================================
-   MOBIL
-   ====================================================== */
-
 @media (max-width: 768px) {
-    *, *::before, *::after {
-        box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
 
-    body {
-        font-size: 16px;
-    }
+    body { font-size: 16px; }
 
     body:has(#search-bar),
     body:has(#admin-panel) {
@@ -295,10 +493,7 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         flex-wrap: wrap;
     }
 
-    header > *,
-    main > *,
-    .cactus-card,
-    .cactus-details {
+    header > *, main > *, .cactus-card, .cactus-details {
         min-width: 0;
     }
 
@@ -313,15 +508,12 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         object-fit: contain;
     }
 
-    header a {
-        overflow-wrap: anywhere;
-    }
+    header a { overflow-wrap: anywhere; }
 
     header > a:last-child:not(:first-child) {
         line-height: 1.5;
     }
 
-    /* Header magazin */
     header:has(#search-bar) {
         display: flex !important;
         flex-wrap: wrap;
@@ -345,9 +537,7 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         gap: 8px !important;
     }
 
-    .header-btn,
-    #account-link,
-    #cart-button {
+    .header-btn, #account-link, #cart-button {
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
@@ -366,12 +556,7 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         overflow-wrap: anywhere;
     }
 
-    /* Zone de apasare */
-    button,
-    .header-btn,
-    #account-link,
-    .cta-button,
-    summary {
+    button, .header-btn, #account-link, .cta-button, summary {
         min-height: 44px;
         touch-action: manipulation;
     }
@@ -383,22 +568,17 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         min-height: 44px;
     }
 
-    textarea {
-        min-height: 120px;
-    }
+    textarea { min-height: 120px; }
 
     h1, h2, h3, p, code, strong {
         overflow-wrap: anywhere;
     }
 
-    #menu-btn,
-    #close-sidebar-btn,
-    #zoom-close {
+    #menu-btn, #close-sidebar-btn, #zoom-close {
         min-width: 44px;
         min-height: 44px;
     }
 
-    /* Categorii */
     #sidebar {
         width: min(320px, 88vw) !important;
         height: 100dvh !important;
@@ -411,7 +591,6 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         text-align: left;
     }
 
-    /* Cont */
     #account-dropdown {
         width: min(280px, calc(100vw - 32px)) !important;
         max-height: 65dvh;
@@ -420,11 +599,8 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         top: calc(100% + 8px) !important;
     }
 
-    #account-dropdown a {
-        min-height: 44px;
-    }
+    #account-dropdown a { min-height: 44px; }
 
-    /* Cos */
     #cart-modal {
         position: fixed !important;
         top: auto !important;
@@ -468,7 +644,6 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         overflow-wrap: anywhere;
     }
 
-    /* Produse si filtre */
     #cacti-list,
     body.view-grid #cacti-list {
         grid-template-columns: minmax(0, 1fr);
@@ -492,23 +667,19 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         flex: 1 1 100%;
     }
 
-    #price-min,
-    #price-max {
+    #price-min, #price-max {
         flex: 1;
         width: 0 !important;
     }
 
-    #view-toggles {
-        margin-left: auto;
-    }
+    #view-toggles { margin-left: auto; }
 
     #pagination-container {
         flex-wrap: wrap !important;
         gap: 8px;
     }
 
-    .page-btn,
-    .view-toggle-btn {
+    .page-btn, .view-toggle-btn {
         min-width: 44px;
     }
 
@@ -516,12 +687,11 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         overscroll-behavior-x: contain;
     }
 
-    /* Pagina produsului */
-    #product-content > div:first-child {
+    #product-content > div:has(#product-image) {
         gap: 20px !important;
     }
 
-    #product-content > div:first-child > div {
+    #product-content > div:has(#product-image) > div {
         flex: 1 1 100% !important;
         min-width: 0;
     }
@@ -545,7 +715,6 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         overflow-wrap: anywhere;
     }
 
-    /* Checkout */
     #checkout-items > div {
         gap: 12px;
         align-items: flex-start !important;
@@ -568,7 +737,6 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         padding: 20px !important;
     }
 
-    /* Formulare */
     div[style*="max-width: 440px"],
     div[style*="max-width: 420px"],
     div[style*="max-width: 500px"],
@@ -586,25 +754,6 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         padding: 20px !important;
     }
 
-    #forgot-password-form input,
-    #reset-password-form input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #bbb;
-        border-radius: 8px;
-    }
-
-    #forgot-password-form button,
-    #reset-password-form button {
-        width: 100%;
-        padding: 12px;
-        border: 0;
-        border-radius: 8px;
-        background: #2f694b;
-        color: #fff;
-        font-weight: bold;
-    }
-
     .account-tab {
         font-size: 14px !important;
         padding: 10px 6px !important;
@@ -619,7 +768,6 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         gap: 8px !important;
     }
 
-    /* Admin */
     .toolbar {
         flex-direction: column !important;
     }
@@ -662,11 +810,8 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         overscroll-behavior-x: contain;
     }
 
-    .orders-table {
-        min-width: 650px;
-    }
+    .orders-table { min-width: 650px; }
 
-    /* Landing */
     section[style*="padding: 60px"],
     section[style*="padding: 80px"] {
         padding: 32px 16px !important;
@@ -725,248 +870,11 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
         right: 16px;
         bottom: max(16px, env(safe-area-inset-bottom));
     }
-}
-
-@media (max-width: 380px) {
-    #admin-cacti-list,
-    #similar-products {
-        grid-template-columns: minmax(0, 1fr) !important;
-    }
-
-    .stat-card {
-        flex-basis: 100% !important;
-    }
-}
-
-/* ======================================================
-   MODURI DE AFISARE
-   ====================================================== */
-
-.view-toggle-btn:hover {
-    background-color: #2f694b !important;
-    color: #fdf2b8 !important;
-}
-
-/* Grila compacta */
-body.view-compact #cacti-list {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
-    gap: 12px !important;
-}
-
-body.view-compact .cactus-card {
-    padding: 8px !important;
-}
-
-body.view-compact .cactus-image {
-    height: 100px !important;
-    margin-bottom: 6px !important;
-}
-
-body.view-compact .cactus-desc {
-    display: none !important;
-}
-
-body.view-compact .cactus-details h2 {
-    font-size: 0.95em !important;
-    margin-top: 4px !important;
-}
-
-body.view-compact .cactus-details p {
-    font-size: 0.8em !important;
-    margin: 2px 0 !important;
-}
-
-body.view-compact .cactus-card button {
-    padding: 6px !important;
-    font-size: 0.85em !important;
-    margin-top: 8px !important;
-}
-
-/* Lista */
-body.view-list #cacti-list {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-}
-
-body.view-list .cactus-card {
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 15px !important;
-    padding: 10px !important;
-}
-
-body.view-list .cactus-image {
-    width: 90px !important;
-    height: 90px !important;
-    flex-shrink: 0;
-    margin-bottom: 0 !important;
-}
-
-body.view-list .cactus-details {
-    flex: 1;
-    min-width: 0;
-}
-
-body.view-list .cactus-desc {
-    display: none !important;
-}
-
-body.view-list .cactus-details h2 {
-    font-size: 1.1em !important;
-    margin: 0 !important;
-}
-
-body.view-list .cactus-details p {
-    margin: 2px 0 !important;
-}
-
-body.view-list .cactus-card button {
-    width: auto !important;
-    margin-top: 0 !important;
-    flex-shrink: 0;
-    padding: 10px 20px !important;
-    white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    body.view-compact #cacti-list {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    body.view-list .cactus-image {
-        width: 60px !important;
-        height: 60px !important;
-    }
 
     body.view-list .cactus-details h2 {
         font-size: 0.95em !important;
     }
 
-    body.view-list .cactus-card button {
-        padding: 8px 12px !important;
-        font-size: 0.85em !important;
-    }
-}
-
-/* Favorite si zoom */
-.card-action-btn {
-    width: 30px;
-    height: 30px;
-    background: rgba(255,255,255,0.85);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    color: #999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: all 0.2s ease;
-}
-
-.cactus-card:hover .card-action-btn {
-    opacity: 1;
-}
-
-.card-action-btn:hover {
-    background: white;
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.wishlist-btn:hover {
-    color: #d32f2f !important;
-}
-
-.zoom-btn:hover {
-    color: #2f694b !important;
-}
-
-.wishlist-btn[style*="#d32f2f"] {
-    opacity: 1 !important;
-}
-
-/* Inapoi sus */
-#scroll-top-btn {
-    display: none;
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 45px;
-    height: 45px;
-    background: #2f694b;
-    color: #fdf2b8;
-    border: none;
-    border-radius: 50%;
-    font-size: 1.2em;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 900;
-}
-
-#scroll-top-btn:hover {
-    background: #FF9800 !important;
-    transform: scale(1.1);
-}
-
-/* Breadcrumbs */
-.breadcrumbs {
-    padding: 10px 0;
-    font-size: 0.85em;
-    color: #666;
-}
-
-.breadcrumbs a {
-    color: #2f694b;
-    text-decoration: none;
-}
-
-.breadcrumbs a:hover {
-    color: #FF9800 !important;
-}
-
-.breadcrumbs span {
-    color: #999;
-    margin: 0 6px;
-}
-
-/* Navigare cu tastatura */
-a:focus-visible,
-button:focus-visible {
-    outline: 3px solid #2f694b;
-    outline-offset: 3px;
-}
-
-.cactus-card:focus-within .card-action-btn {
-    opacity: 1;
-}
-
-@media (max-width: 480px) {
-    #cart-button {
-        font-size: 13px !important;
-        padding: 8px 10px !important;
-    }
-}
-
-/* Dispozitive tactile */
-@media (hover: none), (pointer: coarse) {
-    .card-action-btn {
-        opacity: 1;
-    }
-
-    .cactus-card:hover,
-    .hover-card:hover,
-    .product-card:hover,
-    button:hover,
-    .cta-button:hover {
-        transform: none !important;
-    }
-}
-
-/* Ajustari finale pentru carduri pe mobil */
-@media (max-width: 768px) {
     body.view-compact #cacti-list {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
@@ -1019,6 +927,8 @@ button:focus-visible {
         width: 100% !important;
         white-space: normal;
         min-height: 44px;
+        padding: 8px 12px !important;
+        font-size: 0.85em !important;
     }
 
     .cactus-card .card-actions .card-action-btn {
@@ -1044,7 +954,37 @@ button:focus-visible {
     }
 }
 
-/* Respecta preferinta pentru animatii reduse */
+@media (max-width: 480px) {
+    #cart-button {
+        font-size: 13px !important;
+        padding: 8px 10px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    #admin-cacti-list,
+    #similar-products {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .stat-card {
+        flex-basis: 100% !important;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    .card-action-btn { opacity: 1; }
+
+    #cacti-list > div:hover,
+    .cactus-card:hover,
+    .hover-card:hover,
+    .product-card:hover,
+    button:hover,
+    .cta-button:hover {
+        transform: none !important;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation: none !important;
