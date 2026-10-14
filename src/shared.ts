@@ -73,6 +73,7 @@ function starsDisplay(rating: number): string {
 
 async function responseError(response: Response): Promise<string> {
     const text = await response.text();
+
     try {
         const body = JSON.parse(text);
         const details = body.details && typeof body.details === 'object'
@@ -80,6 +81,7 @@ async function responseError(response: Response): Promise<string> {
                 .map(key => body.details[key])
                 .filter(value => typeof value === 'string')
             : [];
+
         return [
             typeof body.error === 'string'
                 ? body.error
@@ -97,9 +99,11 @@ function formatPrice(value: number): string {
 
 function formatOrderDate(value?: string): string {
     if (!value) return '';
+
     const date = new Date(
         /Z$|[+-]\d\d:\d\d$/.test(value) ? value : value + 'Z'
     );
+
     return Number.isNaN(date.getTime())
         ? value
         : date.toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' });
@@ -109,33 +113,45 @@ async function initAccountDropdown() {
     if (document.getElementById('login-container')) return;
 
     let accountLink = document.getElementById('account-link') as HTMLAnchorElement | null;
+
     if (!accountLink) {
         const header = document.querySelector('header');
         if (!header) return;
+
         accountLink = document.createElement('a');
         accountLink.id = 'account-link';
         accountLink.href = 'account.html';
-        accountLink.textContent = 'Cont';
         header.appendChild(accountLink);
     }
 
     const link = accountLink;
+    link.innerHTML = '<i class="fa-solid fa-user" aria-hidden="true"></i>';
+    link.setAttribute('aria-label', 'Cont');
+    link.title = 'Cont';
+
     const dropdown = document.getElementById('account-dropdown');
     let authenticated = false;
 
     const refresh = async () => {
         try {
             const response = await authFetch(`${API_BASE}/api/customers/me`);
-            if (!response.ok && response.status !== 401 && response.status !== 403) return;
+
+            if (!response.ok && response.status !== 401 && response.status !== 403) {
+                return;
+            }
 
             authenticated = response.ok;
+
             if (authenticated) {
-                const profile = await response.json();
-                link.textContent = profile.name;
+                link.title = 'Contul meu';
             } else {
-                link.textContent = 'Cont';
+                link.title = 'Autentificare';
+
                 if (dropdown) dropdown.style.display = 'none';
-                try { localStorage.removeItem(CUSTOMER_NAME_KEY); } catch {}
+
+                try {
+                    localStorage.removeItem(CUSTOMER_NAME_KEY);
+                } catch {}
             }
 
             const lookup = document.getElementById('header-verifica-btn');
@@ -147,27 +163,37 @@ async function initAccountDropdown() {
 
     link.addEventListener('click', event => {
         if (!authenticated || !dropdown) return;
+
         event.preventDefault();
         event.stopPropagation();
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        dropdown.style.display =
+            dropdown.style.display === 'block' ? 'none' : 'block';
     });
 
     window.addEventListener('click', event => {
-        if (dropdown
-            && !dropdown.contains(event.target as Node)
-            && !link.contains(event.target as Node)) {
+        if (
+            dropdown &&
+            !dropdown.contains(event.target as Node) &&
+            !link.contains(event.target as Node)
+        ) {
             dropdown.style.display = 'none';
         }
     });
 
     document.getElementById('dropdown-logout-btn')?.addEventListener('click', async event => {
         event.preventDefault();
+
         try {
             const response = await authFetch(`${API_BASE}/api/customers/logout`, {
                 method: 'POST'
             });
+
             if (!response.ok) throw new Error(await responseError(response));
-            try { localStorage.removeItem(CUSTOMER_NAME_KEY); } catch {}
+
+            try {
+                localStorage.removeItem(CUSTOMER_NAME_KEY);
+            } catch {}
+
             await refresh();
         } catch {
             showToast('Deconectarea nu a putut fi confirmată. Reîncearcă.');
@@ -180,6 +206,7 @@ async function initAccountDropdown() {
 
 function showToast(message: string) {
     let container = document.getElementById('toast-container');
+
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
@@ -192,6 +219,7 @@ function showToast(message: string) {
     toast.textContent = message;
     toast.style.cssText =
         'background:#2f694b; color:#fdf2b8; padding:12px 20px; border-radius:8px; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.2); animation:slideIn 0.3s ease;';
+
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
 }
@@ -199,6 +227,7 @@ function showToast(message: string) {
 function readStoredProductIds(key: string): number[] {
     try {
         const data: unknown = JSON.parse(localStorage.getItem(key) || '[]');
+
         return Array.isArray(data)
             ? [...new Set(data.filter(
                 (id): id is number => Number.isSafeInteger(id) && id > 0
@@ -215,10 +244,12 @@ let wishlist: number[] = readStoredProductIds(WISHLIST_KEY);
 function toggleWishlist(id: number) {
     const next = readStoredProductIds(WISHLIST_KEY);
     const idx = next.indexOf(id);
+
     if (idx === -1) next.push(id);
     else next.splice(idx, 1);
 
     if (!saveLocalValue(WISHLIST_KEY, JSON.stringify(next))) return;
+
     wishlist = next;
     showToast(idx === -1 ? 'Adăugat la favorite' : 'Eliminat din favorite');
 }
@@ -243,6 +274,7 @@ function initImageZoom() {
     if (!modal || !close) return;
 
     let opener: HTMLElement | null = null;
+
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-label', 'Imagine mărită');
@@ -259,16 +291,19 @@ function initImageZoom() {
     });
 
     close.addEventListener('click', hide);
+
     modal.addEventListener('click', event => {
         if (event.target === modal) hide();
     });
 
     document.addEventListener('keydown', event => {
         if (modal.style.display !== 'flex') return;
+
         if (event.key === 'Escape') {
             event.preventDefault();
             hide();
         }
+
         if (event.key === 'Tab') {
             event.preventDefault();
             close.focus();
@@ -276,4 +311,110 @@ function initImageZoom() {
     });
 }
 
+function initCompactShopControls() {
+    const cart = document.getElementById('cart-button');
+
+    if (cart) {
+        const count = document.getElementById('cart-count');
+
+        cart.innerHTML = '<i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>';
+
+        if (count) {
+            count.hidden = true;
+            cart.appendChild(count);
+        }
+
+        cart.setAttribute('aria-label', 'Deschide coșul');
+        cart.title = 'Coș';
+    }
+
+    const search = document.getElementById('search-bar') as HTMLInputElement | null;
+
+    if (search && !document.getElementById('search-disclosure')) {
+        const host = search.parentElement!;
+        const details = document.createElement('details');
+
+        details.id = 'search-disclosure';
+        details.className = 'shop-disclosure';
+        details.innerHTML = `
+            <summary class="shop-icon-button"
+                     aria-label="Caută produse"
+                     title="Caută produse">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            </summary>
+            <div class="shop-control-panel"></div>
+        `;
+
+        host.classList.add('compact-search-host');
+        host.appendChild(details);
+        details.querySelector('.shop-control-panel')!.appendChild(search);
+
+        search.setAttribute('aria-label', 'Caută produse după nume');
+        search.closest('header')?.classList.add('compact-shop-header');
+
+        details.addEventListener('toggle', () => {
+            if (details.open) search.focus();
+        });
+
+        search.addEventListener('input', () => {
+            details.classList.toggle(
+                'has-active-filter',
+                search.value.trim() !== ''
+            );
+        });
+    }
+
+    const min = document.getElementById('price-min') as HTMLInputElement | null;
+    const max = document.getElementById('price-max') as HTMLInputElement | null;
+
+    if (min && max && !document.getElementById('price-disclosure')) {
+        const fields = min.parentElement!;
+        const details = document.createElement('details');
+
+        details.id = 'price-disclosure';
+        details.className = 'shop-disclosure price-disclosure';
+        details.innerHTML = `
+            <summary>
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                <span>Filtre</span>
+            </summary>
+        `;
+
+        fields.before(details);
+        details.appendChild(fields);
+        fields.classList.add('shop-control-panel', 'price-fields');
+
+        min.setAttribute('aria-label', 'Preț minim în RON');
+        max.setAttribute('aria-label', 'Preț maxim în RON');
+
+        const update = () => {
+            const active = min.value !== '' || max.value !== '';
+
+            details.classList.toggle('has-active-filter', active);
+            details.querySelector('summary span')!.textContent =
+                active ? 'Filtre • active' : 'Filtre';
+        };
+
+        min.addEventListener('input', update);
+        max.addEventListener('input', update);
+        update();
+    }
+
+    document.querySelectorAll<HTMLDetailsElement>('.shop-disclosure').forEach(details => {
+        document.addEventListener('click', event => {
+            if (details.open && !details.contains(event.target as Node)) {
+                details.open = false;
+            }
+        });
+
+        details.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && details.open) {
+                details.open = false;
+                details.querySelector('summary')?.focus();
+            }
+        });
+    });
+}
+
 void initAccountDropdown();
+initCompactShopControls();

@@ -86,24 +86,26 @@ function initAccountDropdown() {
             accountLink = document.createElement('a');
             accountLink.id = 'account-link';
             accountLink.href = 'account.html';
-            accountLink.textContent = 'Cont';
             header.appendChild(accountLink);
         }
         const link = accountLink;
+        link.innerHTML = '<i class="fa-solid fa-user" aria-hidden="true"></i>';
+        link.setAttribute('aria-label', 'Cont');
+        link.title = 'Cont';
         const dropdown = document.getElementById('account-dropdown');
         let authenticated = false;
         const refresh = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield authFetch(`${API_BASE}/api/customers/me`);
-                if (!response.ok && response.status !== 401 && response.status !== 403)
+                if (!response.ok && response.status !== 401 && response.status !== 403) {
                     return;
+                }
                 authenticated = response.ok;
                 if (authenticated) {
-                    const profile = yield response.json();
-                    link.textContent = profile.name;
+                    link.title = 'Contul meu';
                 }
                 else {
-                    link.textContent = 'Cont';
+                    link.title = 'Autentificare';
                     if (dropdown)
                         dropdown.style.display = 'none';
                     try {
@@ -124,12 +126,13 @@ function initAccountDropdown() {
                 return;
             event.preventDefault();
             event.stopPropagation();
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            dropdown.style.display =
+                dropdown.style.display === 'block' ? 'none' : 'block';
         });
         window.addEventListener('click', event => {
-            if (dropdown
-                && !dropdown.contains(event.target)
-                && !link.contains(event.target)) {
+            if (dropdown &&
+                !dropdown.contains(event.target) &&
+                !link.contains(event.target)) {
                 dropdown.style.display = 'none';
             }
         });
@@ -246,4 +249,88 @@ function initImageZoom() {
         }
     });
 }
+function initCompactShopControls() {
+    var _a;
+    const cart = document.getElementById('cart-button');
+    if (cart) {
+        const count = document.getElementById('cart-count');
+        cart.innerHTML = '<i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>';
+        if (count) {
+            count.hidden = true;
+            cart.appendChild(count);
+        }
+        cart.setAttribute('aria-label', 'Deschide coșul');
+        cart.title = 'Coș';
+    }
+    const search = document.getElementById('search-bar');
+    if (search && !document.getElementById('search-disclosure')) {
+        const host = search.parentElement;
+        const details = document.createElement('details');
+        details.id = 'search-disclosure';
+        details.className = 'shop-disclosure';
+        details.innerHTML = `
+            <summary class="shop-icon-button"
+                     aria-label="Caută produse"
+                     title="Caută produse">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            </summary>
+            <div class="shop-control-panel"></div>
+        `;
+        host.classList.add('compact-search-host');
+        host.appendChild(details);
+        details.querySelector('.shop-control-panel').appendChild(search);
+        search.setAttribute('aria-label', 'Caută produse după nume');
+        (_a = search.closest('header')) === null || _a === void 0 ? void 0 : _a.classList.add('compact-shop-header');
+        details.addEventListener('toggle', () => {
+            if (details.open)
+                search.focus();
+        });
+        search.addEventListener('input', () => {
+            details.classList.toggle('has-active-filter', search.value.trim() !== '');
+        });
+    }
+    const min = document.getElementById('price-min');
+    const max = document.getElementById('price-max');
+    if (min && max && !document.getElementById('price-disclosure')) {
+        const fields = min.parentElement;
+        const details = document.createElement('details');
+        details.id = 'price-disclosure';
+        details.className = 'shop-disclosure price-disclosure';
+        details.innerHTML = `
+            <summary>
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                <span>Filtre</span>
+            </summary>
+        `;
+        fields.before(details);
+        details.appendChild(fields);
+        fields.classList.add('shop-control-panel', 'price-fields');
+        min.setAttribute('aria-label', 'Preț minim în RON');
+        max.setAttribute('aria-label', 'Preț maxim în RON');
+        const update = () => {
+            const active = min.value !== '' || max.value !== '';
+            details.classList.toggle('has-active-filter', active);
+            details.querySelector('summary span').textContent =
+                active ? 'Filtre • active' : 'Filtre';
+        };
+        min.addEventListener('input', update);
+        max.addEventListener('input', update);
+        update();
+    }
+    document.querySelectorAll('.shop-disclosure').forEach(details => {
+        document.addEventListener('click', event => {
+            if (details.open && !details.contains(event.target)) {
+                details.open = false;
+            }
+        });
+        details.addEventListener('keydown', event => {
+            var _a;
+            if (event.key === 'Escape' && details.open) {
+                details.open = false;
+                (_a = details.querySelector('summary')) === null || _a === void 0 ? void 0 : _a.focus();
+            }
+        });
+    });
+}
 void initAccountDropdown();
+initCompactShopControls();

@@ -1,4 +1,4 @@
-/* Cactus Shop: shared components, then responsive overrides. */
+/* Cactus Shop: shared components and responsive overrides. */
 
 body, button, input, select, textarea {
     font-family: 'Poppins', sans-serif;
@@ -7,7 +7,9 @@ body, button, input, select, textarea {
 a, button, input, select, textarea,
 .hover-card, .product-card, .stat-card, .review-card,
 .admin-tab, .header-btn, .account-tab {
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease, opacity 0.2s ease;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -97,9 +99,10 @@ button[style*="background-color: #d32f2f"]:hover,
     border-color: #FF9800 !important;
 }
 
+/* Normal desktop grid: five products per row. */
 #cacti-list,
 body.view-grid #cacti-list {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 #cacti-list > div:hover {
@@ -178,11 +181,8 @@ a[style*="border-bottom: 1px solid #2f694b"]:hover {
 }
 
 ::-webkit-scrollbar { width: 8px; }
-
 ::-webkit-scrollbar-track { background: #fdf2b8; }
-
 ::-webkit-scrollbar-thumb { background: #2f694b; border-radius: 4px; }
-
 ::-webkit-scrollbar-thumb:hover { background: #FF9800; }
 
 ::selection {
@@ -279,43 +279,65 @@ body.view-list .cactus-card > button {
 }
 
 .card-action-btn {
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
     background: rgba(255,255,255,0.85);
-    border: none; border-radius: 6px;
-    cursor: pointer; font-size: 0.85em; color: #999;
-    display: flex; align-items: center; justify-content: center;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease, opacity 0.2s ease;
 }
 
 .cactus-card:hover .card-action-btn { opacity: 1; }
 
 .card-action-btn:hover {
-    background: white; transform: scale(1.1);
+    background: white;
+    transform: scale(1.1);
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .wishlist-btn:hover { color: #d32f2f !important; }
-
 .zoom-btn:hover { color: #2f694b !important; }
-
 .wishlist-btn[style*="#d32f2f"] { opacity: 1 !important; }
 
 #scroll-top-btn {
-    display: none; position: fixed; bottom: 25px; right: 25px;
-    width: 45px; height: 45px; background: #2f694b; color: #fdf2b8;
-    border: none; border-radius: 50%; font-size: 1.2em; cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 900;
+    display: none;
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 45px;
+    height: 45px;
+    background: #2f694b;
+    color: #fdf2b8;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 900;
 }
 
-#scroll-top-btn:hover { background: #FF9800 !important; transform: scale(1.1); }
+#scroll-top-btn:hover {
+    background: #FF9800 !important;
+    transform: scale(1.1);
+}
 
-.breadcrumbs { padding: 10px 0; font-size: 0.85em; color: #666; }
+.breadcrumbs {
+    padding: 10px 0;
+    font-size: 0.85em;
+    color: #666;
+}
 
 .breadcrumbs a { color: #2f694b; text-decoration: none; }
-
 .breadcrumbs a:hover { color: #FF9800 !important; }
-
 .breadcrumbs span { color: #999; margin: 0 6px; }
 
 a:focus-visible, button:focus-visible {
@@ -436,7 +458,9 @@ a:focus-visible, button:focus-visible {
     display: none;
 }
 
-#similar-products > p { grid-column: 1 / -1 !important; }
+#similar-products > p {
+    grid-column: 1 / -1 !important;
+}
 
 @media (max-width: 1024px) {
     header[style*="grid-template-columns"] {
@@ -473,9 +497,13 @@ a:focus-visible, button:focus-visible {
 }
 
 @media (max-width: 768px) {
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
 
-    body { font-size: 16px; }
+    body {
+        font-size: 16px;
+    }
 
     body:has(#search-bar),
     body:has(#admin-panel) {
@@ -493,7 +521,10 @@ a:focus-visible, button:focus-visible {
         flex-wrap: wrap;
     }
 
-    header > *, main > *, .cactus-card, .cactus-details {
+    header > *,
+    main > *,
+    .cactus-card,
+    .cactus-details {
         min-width: 0;
     }
 
@@ -508,7 +539,9 @@ a:focus-visible, button:focus-visible {
         object-fit: contain;
     }
 
-    header a { overflow-wrap: anywhere; }
+    header a {
+        overflow-wrap: anywhere;
+    }
 
     header > a:last-child:not(:first-child) {
         line-height: 1.5;
@@ -537,7 +570,9 @@ a:focus-visible, button:focus-visible {
         gap: 8px !important;
     }
 
-    .header-btn, #account-link, #cart-button {
+    .header-btn,
+    #account-link,
+    #cart-button {
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
@@ -556,7 +591,11 @@ a:focus-visible, button:focus-visible {
         overflow-wrap: anywhere;
     }
 
-    button, .header-btn, #account-link, .cta-button, summary {
+    button,
+    .header-btn,
+    #account-link,
+    .cta-button,
+    summary {
         min-height: 44px;
         touch-action: manipulation;
     }
@@ -568,13 +607,17 @@ a:focus-visible, button:focus-visible {
         min-height: 44px;
     }
 
-    textarea { min-height: 120px; }
+    textarea {
+        min-height: 120px;
+    }
 
     h1, h2, h3, p, code, strong {
         overflow-wrap: anywhere;
     }
 
-    #menu-btn, #close-sidebar-btn, #zoom-close {
+    #menu-btn,
+    #close-sidebar-btn,
+    #zoom-close {
         min-width: 44px;
         min-height: 44px;
     }
@@ -599,7 +642,9 @@ a:focus-visible, button:focus-visible {
         top: calc(100% + 8px) !important;
     }
 
-    #account-dropdown a { min-height: 44px; }
+    #account-dropdown a {
+        min-height: 44px;
+    }
 
     #cart-modal {
         position: fixed !important;
@@ -667,19 +712,23 @@ a:focus-visible, button:focus-visible {
         flex: 1 1 100%;
     }
 
-    #price-min, #price-max {
+    #price-min,
+    #price-max {
         flex: 1;
         width: 0 !important;
     }
 
-    #view-toggles { margin-left: auto; }
+    #view-toggles {
+        margin-left: auto;
+    }
 
     #pagination-container {
         flex-wrap: wrap !important;
         gap: 8px;
     }
 
-    .page-btn, .view-toggle-btn {
+    .page-btn,
+    .view-toggle-btn {
         min-width: 44px;
     }
 
@@ -810,7 +859,9 @@ a:focus-visible, button:focus-visible {
         overscroll-behavior-x: contain;
     }
 
-    .orders-table { min-width: 650px; }
+    .orders-table {
+        min-width: 650px;
+    }
 
     section[style*="padding: 60px"],
     section[style*="padding: 80px"] {
@@ -973,7 +1024,9 @@ a:focus-visible, button:focus-visible {
 }
 
 @media (hover: none), (pointer: coarse) {
-    .card-action-btn { opacity: 1; }
+    .card-action-btn {
+        opacity: 1;
+    }
 
     #cacti-list > div:hover,
     .cactus-card:hover,
@@ -990,5 +1043,169 @@ a:focus-visible, button:focus-visible {
         animation: none !important;
         transition: none !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* Compact header and collapsible catalog controls. */
+
+#account-link,
+#cart-button,
+.shop-icon-button {
+    box-sizing: border-box;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0 !important;
+    border: 2px solid #2f694b;
+    border-radius: 8px;
+    background: transparent;
+    color: #2f694b;
+    font-size: 18px !important;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#cart-count {
+    display: none !important;
+}
+
+.cactus-card,
+.cactus-details {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+header.compact-shop-header:has(#search-bar) {
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
+    gap: 12px !important;
+}
+
+header.compact-shop-header:has(#search-bar) > .compact-search-host {
+    width: auto !important;
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: end;
+}
+
+.shop-disclosure {
+    position: relative;
+}
+
+.shop-disclosure > summary {
+    list-style: none;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.shop-disclosure > summary::-webkit-details-marker {
+    display: none;
+}
+
+.shop-disclosure > summary:focus-visible {
+    outline: 3px solid #FF9800;
+    outline-offset: 3px;
+}
+
+.shop-disclosure[open] > summary,
+.shop-disclosure.has-active-filter > summary {
+    background: #2f694b;
+    color: #fdf2b8;
+}
+
+.shop-control-panel {
+    box-sizing: border-box;
+    position: absolute;
+    top: calc(100% + 8px);
+    z-index: 50;
+    width: min(320px, calc(100vw - 40px));
+    padding: 14px;
+    border: 1px solid #2f694b;
+    border-radius: 10px;
+    background: #fffdf4;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#search-disclosure .shop-control-panel {
+    right: 0;
+}
+
+#search-bar {
+    min-width: 0;
+    font-size: 16px !important;
+}
+
+.price-disclosure > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid #2f694b;
+    border-radius: 8px;
+    color: #2f694b;
+    font-size: 0.9rem;
+}
+
+.price-disclosure .price-fields {
+    left: 50%;
+    transform: translateX(-50%);
+    gap: 8px !important;
+}
+
+.price-fields > label {
+    display: none;
+}
+
+.price-fields input {
+    flex: 1;
+    min-width: 0;
+    width: 0 !important;
+}
+
+@media (max-width: 768px) {
+    header.compact-shop-header:has(#search-bar) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto auto !important;
+    }
+
+    header.compact-shop-header:has(#search-bar) > div:first-child {
+        grid-column: 1 / -1;
+    }
+
+    header.compact-shop-header:has(#search-bar) > .compact-search-host {
+        grid-column: 2;
+        grid-row: 2;
+        order: 0;
+    }
+
+    header.compact-shop-header:has(#search-bar) > div:last-child {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    .compact-search-host,
+    .price-disclosure {
+        position: static;
+    }
+
+    header.compact-shop-header:has(#search-bar),
+    div:has(> .price-disclosure) {
+        position: relative;
+    }
+
+    #search-disclosure {
+        position: static;
+    }
+
+    #search-disclosure .shop-control-panel,
+    .price-disclosure .price-fields {
+        left: 0;
+        right: 0;
+        width: 100%;
+        transform: none;
     }
 }

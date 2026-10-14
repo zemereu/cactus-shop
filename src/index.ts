@@ -1,4 +1,4 @@
-// Interfețele Cactus și Category vin din shared.ts
+// Interfetele Cactus si Category vin din shared.ts.
 
 let cactiForSale: Cactus[] = [];
 let allCategories: Category[] = [];
@@ -9,9 +9,8 @@ let expandedMainCategory: string = "Cactuși";
 let searchQuery: string = "";
 let currentPage: number = 0;
 let totalPages: number = 0;
-const PAGE_SIZE: number = 12;
+const PAGE_SIZE: number = 20;
 
-// Coșul persistă când navighezi între pagini.
 function loadCartFromStorage(): Cactus[] {
     try {
         const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
@@ -29,15 +28,14 @@ function saveCartToStorage() {
 }
 
 let shoppingCart: Cactus[] = loadCartFromStorage();
-
-// Filtrare, sortare și paginare pe server.
 let catalogRequestId = 0;
 
 async function fetchCacti() {
     const requestId = ++catalogRequestId;
     const container = document.getElementById('cacti-list');
+
     if (container) {
-        container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
+        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 2em; color: #2f694b;"></i>
             <p style="color: #666; margin-top: 10px;">Se încarcă produsele...</p>
         </div>`;
@@ -73,8 +71,9 @@ async function fetchCacti() {
     } catch (error) {
         if (requestId !== catalogRequestId) return;
         console.error("Eroare:", error);
+
         if (container) {
-            container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 40px;">
+            container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
                 <i class="fa-solid fa-triangle-exclamation" style="font-size: 2em; color: #d32f2f;"></i>
                 <p style="color: #d32f2f; margin-top: 10px;">Nu am putut încărca produsele.</p>
                 <button onclick="fetchCacti()" style="margin-top: 10px; padding: 8px 20px; background: #2f694b; color: #fdf2b8; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
@@ -85,7 +84,6 @@ async function fetchCacti() {
     }
 }
 
-// UI coș
 function updateCartUI(persist = true): boolean {
     const saved = !persist || saveCartToStorage();
     if (!saved) shoppingCart = loadCartFromStorage();
@@ -106,7 +104,6 @@ function updateCartUI(persist = true): boolean {
     return saved;
 }
 
-// Categorii
 async function fetchAndRenderCategories() {
     try {
         const response = await fetch(`${API_BASE}/api/categories`);
@@ -222,7 +219,6 @@ function renderSidebar() {
     });
 }
 
-// Deschidere/închidere sidebar
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 const menuBtn = document.getElementById('menu-btn');
@@ -246,28 +242,32 @@ if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
         menuBtn.setAttribute("aria-expanded", "true");
         closeSidebarBtn.focus();
     });
+
     closeSidebarBtn.addEventListener('click', closeSidebar);
     sidebarOverlay.addEventListener('click', closeSidebar);
 }
 
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && sidebar?.style.visibility === 'visible') closeSidebar();
+    if (event.key === 'Escape' && sidebar?.style.visibility === 'visible') {
+        closeSidebar();
+    }
 });
 
 fetchAndRenderCategories();
 
-// Mod afișare
 type ViewMode = 'grid' | 'compact' | 'list';
 const VIEW_MODE_KEY = 'cactusViewMode';
 let viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || 'grid';
 
 const viewTogglesContainer = document.getElementById('view-toggles');
+
 if (viewTogglesContainer) {
     const views = [
         { key: 'grid', icon: 'fa-table-cells-large', title: 'Grilă normală' },
         { key: 'compact', icon: 'fa-grip', title: 'Grilă compactă' },
         { key: 'list', icon: 'fa-list', title: 'Listă' }
     ];
+
     viewTogglesContainer.innerHTML = views.map(v => `
         <button class="view-toggle-btn" data-view="${v.key}" title="${v.title}" style="background: transparent; border: 2px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px;">
             <i class="fa-solid ${v.icon}"></i>
@@ -292,9 +292,9 @@ document.querySelectorAll('.view-toggle-btn').forEach(btn => {
         applyViewMode();
     });
 });
+
 applyViewMode();
 
-// Sortare
 let currentSort = 'name-asc';
 const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
@@ -315,9 +315,10 @@ function renderCacti() {
 
     if (cactiForSale.length === 0) {
         if (countEl) countEl.innerText = '';
-        htmlContent = `<p style="grid-column: span 3; color: red; font-size: 1.2em;">Nu am găsit niciun cactus conform căutării.</p>`;
+        htmlContent = `<p style="grid-column: 1 / -1; color: red; font-size: 1.2em;">Nu am găsit niciun cactus conform căutării.</p>`;
     } else {
         const sorted = cactiForSale;
+
         if (countEl) {
             const showing = sorted.length;
             const pageInfo = totalPages > 1 ? ` (pagina ${currentPage + 1} din ${totalPages})` : '';
@@ -366,9 +367,11 @@ function renderCacti() {
 
     document.querySelectorAll('.cactus-image').forEach(img => {
         (img as HTMLElement).style.cursor = 'zoom-in';
+
         img.addEventListener('click', (event) => {
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img') as HTMLImageElement;
+
             if (modal && zoomImg) {
                 event.preventDefault();
                 zoomImg.src = (img as HTMLImageElement).src;
@@ -383,9 +386,11 @@ function renderCacti() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+
             const src = (e.target as HTMLElement).closest('[data-img]')?.getAttribute('data-img');
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img') as HTMLImageElement;
+
             if (modal && zoomImg && src) {
                 zoomImg.src = src;
                 modal.style.display = 'flex';
@@ -398,12 +403,14 @@ function renderCacti() {
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
+
             if (id) {
                 toggleWishlist(id);
                 const liked = isWishlisted(id);
                 (btn as HTMLElement).style.color = liked ? '#d32f2f' : '#999';
                 btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>`;
                 btn.setAttribute('aria-pressed', String(liked));
+
                 if (currentSort === 'favorites') {
                     currentPage = 0;
                     fetchCacti();
@@ -413,6 +420,7 @@ function renderCacti() {
     });
 
     const addButtons = document.querySelectorAll('.add-to-cart-btn');
+
     addButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             const clickedButton = event.target as HTMLButtonElement;
@@ -422,12 +430,15 @@ function renderCacti() {
             if (cactusToAdd) {
                 shoppingCart = loadCartFromStorage();
                 const alreadyInCart = shoppingCart.filter(c => c.id === cactusId).length;
+
                 if (alreadyInCart >= cactusToAdd.stock) {
                     showToast(`<i class="fa-solid fa-triangle-exclamation" style="color: #FF9800;"></i> Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
                     return;
                 }
+
                 shoppingCart.push(cactusToAdd);
                 if (!updateCartUI()) return;
+
                 showToast(`<i class="fa-solid fa-check" style="color: #2f694b;"></i> ${cactusToAdd.name} a fost adăugat în coș!`);
             }
         });
@@ -436,7 +447,6 @@ function renderCacti() {
 
 const pendingCartAdds = new Set<number>();
 
-// Produsele din coș
 function renderCartItems() {
     const cartItemsContainer = document.getElementById('cart-items-container');
     const cartTotalElement = document.getElementById('cart-total');
@@ -452,11 +462,13 @@ function renderCartItems() {
     if (shoppingCart.length === 0) {
         cartItemsContainer.innerHTML = '<div style="text-align:center; padding:15px;"><i class="fa-solid fa-cart-shopping" style="font-size:2em; color:#ccc;"></i><p style="color:#999; margin-top:8px;">Coșul e gol. Explorează <a href="shop.html" style="color:#2f694b; font-weight:bold;">magazinul</a>!</p></div>';
         cartTotalElement.innerText = "0";
+
         if (focusSelector) document.getElementById('cart-button')?.focus();
         return;
     }
 
     const grouped = new Map<number, { item: Cactus; qty: number }>();
+
     shoppingCart.forEach(item => {
         const existing = grouped.get(item.id);
         if (existing) existing.qty++;
@@ -469,6 +481,7 @@ function renderCartItems() {
     grouped.forEach(({ item, qty }) => {
         const lineTotal = item.price * qty;
         totalPrice += lineTotal;
+
         htmlContent += `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
                 <div style="flex: 1; min-width: 0;">
@@ -492,15 +505,18 @@ function renderCartItems() {
         const next = cartItemsContainer.querySelector<HTMLElement>(focusSelector)
             || cartItemsContainer.querySelector<HTMLElement>('button')
             || document.getElementById('cart-button');
+
         next?.focus();
     }
 
     cartItemsContainer.querySelectorAll('.cart-minus-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
+
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
             shoppingCart = loadCartFromStorage();
             const idx = shoppingCart.findIndex(c => c.id === id);
+
             if (idx !== -1) {
                 shoppingCart.splice(idx, 1);
                 updateCartUI();
@@ -508,10 +524,10 @@ function renderCartItems() {
         });
     });
 
-    // Verifică stocul actual inclusiv pentru produse de pe alte pagini.
     cartItemsContainer.querySelectorAll('.cart-plus-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
+
             const id = Number(btn.getAttribute('data-id'));
             shoppingCart = loadCartFromStorage();
             const item = shoppingCart.find(c => c.id === id);
@@ -522,7 +538,9 @@ function renderCartItems() {
 
             try {
                 const response = await fetch(`${API_BASE}/api/cacti/${id}`);
-                if (!response.ok) throw new Error('Nu am putut verifica stocul. Reîncearcă.');
+                if (!response.ok) {
+                    throw new Error('Nu am putut verifica stocul. Reîncearcă.');
+                }
 
                 const fresh = await response.json();
                 shoppingCart = loadCartFromStorage();
@@ -533,6 +551,7 @@ function renderCartItems() {
                 }
 
                 const qty = shoppingCart.filter(c => c.id === id).length;
+
                 if (fresh.active === false || qty >= fresh.stock) {
                     showToast('Stoc insuficient pentru încă o bucată.');
                     return;
@@ -552,6 +571,7 @@ function renderCartItems() {
     cartItemsContainer.querySelectorAll('.cart-remove-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
+
             const id = Number((e.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id'));
             shoppingCart = loadCartFromStorage().filter(c => c.id !== id);
             updateCartUI();
@@ -559,7 +579,6 @@ function renderCartItems() {
     });
 }
 
-// Deschidere/închidere coș
 const cartButton = document.getElementById('cart-button');
 const cartModal = document.getElementById('cart-modal');
 
@@ -573,6 +592,7 @@ if (cartButton && cartModal) {
     window.addEventListener('click', (event) => {
         if (cartModal.style.display === "block") {
             const target = event.target as Node;
+
             if (!cartModal.contains(target) && !cartButton.contains(target)) {
                 cartModal.style.display = "none";
                 cartButton.setAttribute("aria-expanded", "false");
@@ -593,26 +613,29 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Checkout
 const checkoutBtn = document.getElementById('checkout-btn');
+
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
         if (shoppingCart.length === 0) {
             showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Coșul este gol!');
             return;
         }
+
         window.location.href = 'checkout.html';
     });
 }
 
-// Paginare
 function renderPagination() {
     let container = document.getElementById('pagination-container');
+
     if (!container) {
         container = document.createElement('div');
         container.id = 'pagination-container';
         container.style.cssText = 'display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px; margin-bottom: 20px;';
+
         const cactiList = document.getElementById('cacti-list');
+
         if (cactiList && cactiList.parentNode) {
             cactiList.parentNode.insertBefore(container, cactiList.nextSibling);
         }
@@ -643,6 +666,7 @@ function renderPagination() {
         btn.addEventListener('click', (e) => {
             const target = e.currentTarget as HTMLButtonElement;
             if (target.disabled) return;
+
             currentPage = Number(target.getAttribute('data-page'));
             fetchCacti();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -650,7 +674,6 @@ function renderPagination() {
     });
 }
 
-// Căutare
 const searchBar = document.getElementById('search-bar') as HTMLInputElement;
 let searchTimeout: ReturnType<typeof setTimeout>;
 
@@ -659,48 +682,58 @@ if (searchBar) {
         catalogRequestId++;
         searchQuery = (event.target as HTMLInputElement).value.toLowerCase();
         currentPage = 0;
+
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => fetchCacti(), 300);
     });
 }
 
-// Filtru preț
 let priceTimeout: ReturnType<typeof setTimeout>;
 const priceMinInput = document.getElementById('price-min');
 const priceMaxInput = document.getElementById('price-max');
 
 [priceMinInput, priceMaxInput].forEach(input => {
-    if (input) input.addEventListener('input', () => {
-        catalogRequestId++;
-        currentPage = 0;
-        clearTimeout(priceTimeout);
-        priceTimeout = setTimeout(() => fetchCacti(), 500);
-    });
+    if (input) {
+        input.addEventListener('input', () => {
+            catalogRequestId++;
+            currentPage = 0;
+            clearTimeout(priceTimeout);
+            priceTimeout = setTimeout(() => fetchCacti(), 500);
+        });
+    }
 });
 
-// Produse vizualizate recent
 function renderRecentlyViewed() {
     const container = document.getElementById('recent-products');
     const wrapper = document.getElementById('recently-viewed');
     if (!container || !wrapper) return;
 
     const recent: number[] = readStoredProductIds('recentlyViewed');
+
     if (recent.length === 0) {
         wrapper.style.display = 'none';
         return;
     }
 
-    Promise.all(recent.slice(0, 4).map(id => fetch(`${API_BASE}/api/cacti/${id}`)
-        .then(r => r.ok ? r.json() : null).catch(() => null))).then(products => {
+    Promise.all(
+        recent.slice(0, 4).map(id =>
+            fetch(`${API_BASE}/api/cacti/${id}`)
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+        )
+    ).then(products => {
         const valid = products.filter(Boolean);
+
         if (valid.length === 0) {
             wrapper.style.display = 'none';
             return;
         }
 
         wrapper.style.display = 'block';
+
         container.innerHTML = valid.map((p: any) => {
             const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
+
             return `<a href="product.html?id=${p.id}" style="flex: 0 0 140px; text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:8px; text-align:center;">
                 <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
                 <p style="color:#2f694b; font-weight:bold; margin:6px 0 2px; font-size:0.8em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</p>
@@ -711,8 +744,6 @@ function renderRecentlyViewed() {
 }
 
 renderRecentlyViewed();
-
-// Zoom și sincronizarea coșului între taburi
 initImageZoom();
 
 window.addEventListener('storage', event => {
