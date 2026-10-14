@@ -63,7 +63,10 @@ function responseError(response) {
     });
 }
 function formatPrice(value) {
-    return Number(value).toFixed(2);
+    return Number(value).toLocaleString('ro-RO', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 function formatOrderDate(value) {
     if (!value)
@@ -71,7 +74,9 @@ function formatOrderDate(value) {
     const date = new Date(/Z$|[+-]\d\d:\d\d$/.test(value) ? value : value + 'Z');
     return Number.isNaN(date.getTime())
         ? value
-        : date.toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' });
+        : date.toLocaleString('ro-RO', {
+            timeZone: 'Europe/Bucharest'
+        });
 }
 function initAccountDropdown() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -250,7 +255,7 @@ function initImageZoom() {
     });
 }
 function initCompactShopControls() {
-    var _a;
+    var _a, _b;
     const cart = document.getElementById('cart-button');
     if (cart) {
         const count = document.getElementById('cart-count');
@@ -302,7 +307,17 @@ function initCompactShopControls() {
                 <span>Filtre</span>
             </summary>
         `;
-        fields.before(details);
+        const toolbar = fields.parentElement;
+        toolbar.classList.add('catalog-toolbar');
+        toolbar.prepend(details);
+        const sort = document.getElementById('sort-select');
+        (_b = sort === null || sort === void 0 ? void 0 : sort.parentElement) === null || _b === void 0 ? void 0 : _b.classList.add('catalog-sort');
+        const count = document.getElementById('products-count');
+        if (count) {
+            count.setAttribute('role', 'status');
+            count.setAttribute('aria-live', 'polite');
+            details.after(count);
+        }
         details.appendChild(fields);
         fields.classList.add('shop-control-panel', 'price-fields');
         min.setAttribute('aria-label', 'Preț minim în RON');
@@ -311,7 +326,7 @@ function initCompactShopControls() {
             const active = min.value !== '' || max.value !== '';
             details.classList.toggle('has-active-filter', active);
             details.querySelector('summary span').textContent =
-                active ? 'Filtre • active' : 'Filtre';
+                active ? 'Filtre •' : 'Filtre';
         };
         min.addEventListener('input', update);
         max.addEventListener('input', update);

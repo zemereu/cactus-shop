@@ -18,12 +18,14 @@ let expandedMainCategory = "Cactuși";
 let searchQuery = "";
 let currentPage = 0;
 let totalPages = 0;
+let totalProducts = 0;
 const PAGE_SIZE = 20;
 function loadCartFromStorage() {
     try {
         const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
         return Array.isArray(data) ? data.filter(item => item &&
-            Number.isSafeInteger(item.id) && item.id > 0 && typeof item.name === 'string' &&
+            Number.isSafeInteger(item.id) && item.id > 0 &&
+            typeof item.name === 'string' &&
             Number.isFinite(item.price) && item.price >= 0 &&
             Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
     }
@@ -39,13 +41,19 @@ let catalogRequestId = 0;
 function fetchCacti() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
+        var _c;
+        renderActiveFilters();
         const requestId = ++catalogRequestId;
+        const count = document.getElementById('products-count');
+        if (count)
+            count.textContent = 'Se încarcă…';
         const container = document.getElementById('cacti-list');
         if (container) {
-            container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2em; color: #2f694b;"></i>
-            <p style="color: #666; margin-top: 10px;">Se încarcă produsele...</p>
-        </div>`;
+            container.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:40px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:2em; color:#2f694b;"></i>
+                <p style="color:#666; margin-top:10px;">Se încarcă produsele...</p>
+            </div>`;
         }
         try {
             const params = new URLSearchParams();
@@ -62,8 +70,9 @@ function fetchCacti() {
             params.append('page', currentPage.toString());
             params.append('size', PAGE_SIZE.toString());
             params.append('sort', currentSort);
-            if (currentSort === 'favorites')
+            if (currentSort === 'favorites') {
                 params.append('ids', wishlist.join(','));
+            }
             const response = yield fetch(`${API_BASE}/api/cacti?${params.toString()}`);
             if (!response.ok)
                 throw new Error('Eroare conectare server!');
@@ -72,6 +81,7 @@ function fetchCacti() {
                 return;
             cactiForSale = data.content;
             totalPages = data.totalPages;
+            totalProducts = (_c = data.totalElements) !== null && _c !== void 0 ? _c : cactiForSale.length;
             renderCacti();
             renderPagination();
         }
@@ -79,14 +89,17 @@ function fetchCacti() {
             if (requestId !== catalogRequestId)
                 return;
             console.error("Eroare:", error);
+            if (count)
+                count.textContent = 'Produsele nu au putut fi încărcate';
             if (container) {
-                container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <i class="fa-solid fa-triangle-exclamation" style="font-size: 2em; color: #d32f2f;"></i>
-                <p style="color: #d32f2f; margin-top: 10px;">Nu am putut încărca produsele.</p>
-                <button onclick="fetchCacti()" style="margin-top: 10px; padding: 8px 20px; background: #2f694b; color: #fdf2b8; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                    <i class="fa-solid fa-rotate-right"></i> Încearcă din nou
-                </button>
-            </div>`;
+                container.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:40px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:2em; color:#d32f2f;"></i>
+                    <p style="color:#d32f2f; margin-top:10px;">Nu am putut încărca produsele.</p>
+                    <button onclick="fetchCacti()" style="margin-top:10px; padding:8px 20px; background:#2f694b; color:#fdf2b8; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
+                        <i class="fa-solid fa-rotate-right"></i> Încearcă din nou
+                    </button>
+                </div>`;
             }
         }
     });
@@ -124,17 +137,17 @@ function renderSidebar() {
     const container = document.getElementById('sidebar-categories-list');
     if (!container)
         return;
-    let html = "";
-    html += `<div style="display: flex; gap: 8px; margin-bottom: 15px;">`;
+    let html = `<div style="display:flex; gap:8px; margin-bottom:15px;">`;
     for (const type of PRODUCT_TYPES) {
         const isActive = selectedProductType === type;
         html += `
             <button class="product-type-btn" data-type="${escapeHtml(type)}"
-                style="flex: 1; background: ${isActive ? '#FF9800' : 'transparent'}; color: ${isActive ? '#fdf2b8' : '#2f694b'};
-                       border: 2px solid #FF9800; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                style="flex:1; background:${isActive ? '#FF9800' : 'transparent'};
+                color:${isActive ? '#fdf2b8' : '#2f694b'};
+                border:2px solid #FF9800; padding:10px; border-radius:5px;
+                cursor:pointer; font-weight:bold;">
                 ${escapeHtml(type)}
-            </button>
-        `;
+            </button>`;
     }
     html += `</div>`;
     for (const main of MAIN_CATEGORIES) {
@@ -145,38 +158,41 @@ function renderSidebar() {
             .sort((a, b) => a.name.localeCompare(b.name));
         html += `
             <button class="main-cat-btn" data-main="${escapeHtml(main)}"
-                style="background: ${isMainActive ? '#2f694b' : 'transparent'}; color: ${isMainActive ? '#fdf2b8' : '#2f694b'};
-                       border: 2px solid #2f694b; padding: 10px; border-radius: 5px; cursor: pointer;
-                       font-weight: bold; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                style="background:${isMainActive ? '#2f694b' : 'transparent'};
+                color:${isMainActive ? '#fdf2b8' : '#2f694b'};
+                border:2px solid #2f694b; padding:10px; border-radius:5px;
+                cursor:pointer; font-weight:bold; text-align:left;
+                display:flex; justify-content:space-between; align-items:center;">
                 <span>${escapeHtml(main)}</span>
                 <span>${isExpanded ? '▾' : '▸'}</span>
-            </button>
-        `;
+            </button>`;
         if (isExpanded) {
-            html += `<div style="display: flex; flex-direction: column; gap: 6px; margin: 4px 0 8px 15px;">`;
+            html += `<div style="display:flex; flex-direction:column; gap:6px; margin:4px 0 8px 15px;">`;
             const isAllActive = isMainActive && selectedSubCategory === 'Toți';
             html += `
                 <button class="sub-cat-btn" data-main="${escapeHtml(main)}" data-sub="Toți"
-                    style="background: ${isAllActive ? '#2f694b' : 'transparent'}; color: ${isAllActive ? '#fdf2b8' : '#2f694b'};
-                           border: 1px solid #2f694b; padding: 8px; border-radius: 5px; cursor: pointer;
-                           font-weight: normal; text-align: left; font-size: 0.9em;">
+                    style="background:${isAllActive ? '#2f694b' : 'transparent'};
+                    color:${isAllActive ? '#fdf2b8' : '#2f694b'};
+                    border:1px solid #2f694b; padding:8px; border-radius:5px;
+                    cursor:pointer; font-weight:normal; text-align:left; font-size:0.9em;">
                     Toate
-                </button>
-            `;
+                </button>`;
             if (subcats.length === 0) {
-                html += `<span style="color: #999; font-style: italic; font-size: 0.85em; padding: 4px;">Momentan nimic aici</span>`;
+                html += `<span style="color:#999; font-style:italic; font-size:0.85em; padding:4px;">Momentan nimic aici</span>`;
             }
             else {
                 for (const sub of subcats) {
                     const isSubActive = isMainActive && selectedSubCategory === sub.name;
                     html += `
-                        <button class="sub-cat-btn" data-main="${escapeHtml(main)}" data-sub="${escapeHtml(sub.name)}"
-                            style="background: ${isSubActive ? '#2f694b' : 'transparent'}; color: ${isSubActive ? '#fdf2b8' : '#2f694b'};
-                                   border: 1px solid #2f694b; padding: 8px; border-radius: 5px; cursor: pointer;
-                                   font-weight: normal; text-align: left; font-size: 0.9em;">
+                        <button class="sub-cat-btn"
+                            data-main="${escapeHtml(main)}"
+                            data-sub="${escapeHtml(sub.name)}"
+                            style="background:${isSubActive ? '#2f694b' : 'transparent'};
+                            color:${isSubActive ? '#fdf2b8' : '#2f694b'};
+                            border:1px solid #2f694b; padding:8px; border-radius:5px;
+                            cursor:pointer; font-weight:normal; text-align:left; font-size:0.9em;">
                             ${escapeHtml(sub.name)}
-                        </button>
-                    `;
+                        </button>`;
                 }
             }
             html += `</div>`;
@@ -184,16 +200,17 @@ function renderSidebar() {
     }
     container.innerHTML = html;
     document.querySelectorAll('.product-type-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            selectedProductType = e.currentTarget.getAttribute('data-type') || "Plante";
+        btn.addEventListener('click', event => {
+            selectedProductType =
+                event.currentTarget.getAttribute('data-type') || "Plante";
             currentPage = 0;
             renderSidebar();
             fetchCacti();
         });
     });
     document.querySelectorAll('.main-cat-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const main = e.currentTarget.getAttribute('data-main') || "Cactuși";
+        btn.addEventListener('click', event => {
+            const main = event.currentTarget.getAttribute('data-main') || "Cactuși";
             expandedMainCategory = expandedMainCategory === main ? "" : main;
             selectedMainCategory = main;
             selectedSubCategory = "Toți";
@@ -203,8 +220,8 @@ function renderSidebar() {
         });
     });
     document.querySelectorAll('.sub-cat-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const target = e.currentTarget;
+        btn.addEventListener('click', event => {
+            const target = event.currentTarget;
             selectedMainCategory = target.getAttribute('data-main') || "Cactuși";
             selectedSubCategory = target.getAttribute('data-sub') || "Toți";
             currentPage = 0;
@@ -238,7 +255,7 @@ if (menuBtn && sidebarOverlay && closeSidebarBtn && sidebar) {
     closeSidebarBtn.addEventListener('click', closeSidebar);
     sidebarOverlay.addEventListener('click', closeSidebar);
 }
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && (sidebar === null || sidebar === void 0 ? void 0 : sidebar.style.visibility) === 'visible') {
         closeSidebar();
     }
@@ -253,9 +270,11 @@ if (viewTogglesContainer) {
         { key: 'compact', icon: 'fa-grip', title: 'Grilă compactă' },
         { key: 'list', icon: 'fa-list', title: 'Listă' }
     ];
-    viewTogglesContainer.innerHTML = views.map(v => `
-        <button class="view-toggle-btn" data-view="${v.key}" title="${v.title}" style="background: transparent; border: 2px solid #2f694b; color: #2f694b; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 16px;">
-            <i class="fa-solid ${v.icon}"></i>
+    viewTogglesContainer.innerHTML = views.map(view => `
+        <button class="view-toggle-btn" data-view="${view.key}" title="${view.title}"
+            style="background:transparent; border:2px solid #2f694b; color:#2f694b;
+            padding:8px 12px; border-radius:6px; cursor:pointer; font-size:16px;">
+            <i class="fa-solid ${view.icon}"></i>
         </button>`).join('');
 }
 function applyViewMode() {
@@ -292,55 +311,73 @@ function renderCacti() {
     let htmlContent = "";
     if (cactiForSale.length === 0) {
         if (countEl)
-            countEl.innerText = '';
-        htmlContent = `<p style="grid-column: 1 / -1; color: red; font-size: 1.2em;">Nu am găsit niciun cactus conform căutării.</p>`;
+            countEl.innerText = '0 produse';
+        htmlContent = `
+            <p style="grid-column:1/-1; color:red; font-size:1.2em;">
+                Nu am găsit niciun cactus conform căutării.
+            </p>`;
     }
     else {
-        const sorted = cactiForSale;
         if (countEl) {
-            const showing = sorted.length;
             const pageInfo = totalPages > 1 ? ` (pagina ${currentPage + 1} din ${totalPages})` : '';
-            countEl.innerText = `${showing} produse afișate${pageInfo}`;
+            countEl.innerText =
+                `${cactiForSale.length} din ${totalProducts} ${totalProducts === 1 ? 'produs' : 'produse'}${pageInfo}`;
         }
-        for (let cactus of sorted) {
-            const categoryTag = `<span style="border: 1px solid #2f694b; color: #2f694b; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">${escapeHtml(cactus.category)}</span>`;
-            const validImage = cactus.imageUrl ? cactus.imageUrl : "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
+        for (const cactus of cactiForSale) {
+            const validImage = cactus.imageUrl ||
+                "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
             const hearted = isWishlisted(cactus.id);
+            const stockLabel = cactus.stock === 1
+                ? '1 exemplar rămas'
+                : cactus.stock > 1
+                    ? `${cactus.stock} exemplare rămase`
+                    : 'Stoc epuizat';
             htmlContent += `
-                <div class="cactus-card" style="border: 2px solid #2f694b; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent; position: relative;">
-                    <div class="card-actions" style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 2;">
-                        <button class="wishlist-btn card-action-btn" data-id="${cactus.id}" style="color: ${hearted ? '#d32f2f' : '#999'};" title="Favorite" aria-pressed="${hearted}">
-                            <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart"></i>
+                <article class="cactus-card">
+                    <div class="card-actions">
+                        <button class="wishlist-btn card-action-btn"
+                            data-id="${cactus.id}"
+                            style="color:${hearted ? '#d32f2f' : '#607568'};"
+                            title="Favorite"
+                            aria-label="Favorite"
+                            aria-pressed="${hearted}">
+                            <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>
                         </button>
-                        <button class="zoom-btn card-action-btn" data-img="${escapeHtml(validImage)}" title="Zoom">
-                            <i class="fa-solid fa-expand"></i>
+                        <button class="zoom-btn card-action-btn"
+                            data-img="${escapeHtml(validImage)}"
+                            title="Mărește imaginea"
+                            aria-label="Mărește imaginea">
+                            <i class="fa-solid fa-expand" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <a href="product.html?id=${cactus.id}"><img loading="lazy" class="cactus-image" src="${escapeHtml(validImage)}" alt="${escapeHtml(cactus.name)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;"></a>
+
+                    <a class="cactus-photo" href="product.html?id=${cactus.id}">
+                        <img loading="lazy"
+                            class="cactus-image"
+                            src="${escapeHtml(validImage)}"
+                            alt="${escapeHtml(cactus.name)}">
+                    </a>
+
                     <div class="cactus-details">
-                        ${categoryTag}
-                        <a href="product.html?id=${cactus.id}" style="text-decoration:none;"><h2 style="color: #2f694b; margin-top: 10px;"><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i>${escapeHtml(cactus.name)}</h2></a>
-                        <p><strong>Preț:</strong> <span style="color: #d32f2f; font-size: 1.2em;">${cactus.price} RON</span></p>
-                        <p class="cactus-stock" style="color: ${cactus.stock > 0 ? '#2f694b' : '#d32f2f'}; font-weight: bold; font-size: 0.9em;">
-                            ${cactus.stock > 0 ? `${cactus.stock} exemplare rămase` : 'Stoc epuizat'}
-                        </p>
-                        <p class="cactus-desc"><em>${escapeHtml(cactus.description)}</em></p>
+                        <span class="cactus-category">${escapeHtml(cactus.category)}</span>
+                        <a class="cactus-name-link" href="product.html?id=${cactus.id}">
+                            <h2 title="${escapeHtml(cactus.name)}">${escapeHtml(cactus.name)}</h2>
+                        </a>
+                        <p class="cactus-price">${formatPrice(cactus.price)} <span>RON</span></p>
+                        <p class="cactus-stock ${cactus.stock > 0 ? '' : 'is-unavailable'}">${stockLabel}</p>
                     </div>
-                    ${cactus.stock > 0
-                ? `<button class="add-to-cart-btn" data-id="${cactus.id}" style="background-color: #2f694b; color: #fdf2b8; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;">
-                            Adaugă în coș
-                          </button>`
-                : `<button disabled style="background-color: #999; color: white; padding: 10px; border: none; border-radius: 4px; width: 100%; margin-top: 15px; font-weight: bold; cursor: not-allowed;">
-                            Stoc epuizat
-                          </button>`}
-                </div>
-            `;
+
+                    <button class="${cactus.stock > 0 ? 'add-to-cart-btn' : 'sold-out-btn'}"
+                        data-id="${cactus.id}" ${cactus.stock > 0 ? '' : 'disabled'}>
+                        ${cactus.stock > 0 ? 'Adaugă în coș' : 'Stoc epuizat'}
+                    </button>
+                </article>`;
         }
     }
     container.innerHTML = htmlContent;
     document.querySelectorAll('.cactus-image').forEach(img => {
         img.style.cursor = 'zoom-in';
-        img.addEventListener('click', (event) => {
+        img.addEventListener('click', event => {
             var _a;
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img');
@@ -354,11 +391,12 @@ function renderCacti() {
         });
     });
     document.querySelectorAll('.zoom-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', event => {
             var _a;
-            e.preventDefault();
-            e.stopPropagation();
-            const src = (_a = e.target.closest('[data-img]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-img');
+            event.preventDefault();
+            event.stopPropagation();
+            const src = (_a = event.target
+                .closest('[data-img]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-img');
             const modal = document.getElementById('zoom-modal');
             const zoomImg = document.getElementById('zoom-img');
             if (modal && zoomImg && src) {
@@ -370,40 +408,39 @@ function renderCacti() {
         });
     });
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', event => {
             var _a;
-            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
-            if (id) {
-                toggleWishlist(id);
-                const liked = isWishlisted(id);
-                btn.style.color = liked ? '#d32f2f' : '#999';
-                btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>`;
-                btn.setAttribute('aria-pressed', String(liked));
-                if (currentSort === 'favorites') {
-                    currentPage = 0;
-                    fetchCacti();
-                }
+            const id = Number((_a = event.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            if (!id)
+                return;
+            toggleWishlist(id);
+            const liked = isWishlisted(id);
+            btn.style.color = liked ? '#d32f2f' : '#999';
+            btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>`;
+            btn.setAttribute('aria-pressed', String(liked));
+            if (currentSort === 'favorites') {
+                currentPage = 0;
+                fetchCacti();
             }
         });
     });
-    const addButtons = document.querySelectorAll('.add-to-cart-btn');
-    addButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', event => {
             const clickedButton = event.target;
             const cactusId = Number(clickedButton.getAttribute('data-id'));
             const cactusToAdd = cactiForSale.find(c => c.id === cactusId);
-            if (cactusToAdd) {
-                shoppingCart = loadCartFromStorage();
-                const alreadyInCart = shoppingCart.filter(c => c.id === cactusId).length;
-                if (alreadyInCart >= cactusToAdd.stock) {
-                    showToast(`<i class="fa-solid fa-triangle-exclamation" style="color: #FF9800;"></i> Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
-                    return;
-                }
-                shoppingCart.push(cactusToAdd);
-                if (!updateCartUI())
-                    return;
-                showToast(`<i class="fa-solid fa-check" style="color: #2f694b;"></i> ${cactusToAdd.name} a fost adăugat în coș!`);
+            if (!cactusToAdd)
+                return;
+            shoppingCart = loadCartFromStorage();
+            const alreadyInCart = shoppingCart.filter(c => c.id === cactusId).length;
+            if (alreadyInCart >= cactusToAdd.stock) {
+                showToast(`Nu mai sunt suficiente exemplare din ${cactusToAdd.name}!`);
+                return;
             }
+            shoppingCart.push(cactusToAdd);
+            if (!updateCartUI())
+                return;
+            showToast(`${cactusToAdd.name} a fost adăugat în coș!`);
         });
     });
 }
@@ -419,10 +456,18 @@ function renderCartItems() {
     const focusedClass = ['cart-minus-btn', 'cart-plus-btn', 'cart-remove-btn']
         .find(name => focused === null || focused === void 0 ? void 0 : focused.classList.contains(name));
     const focusSelector = focusedId && focusedClass && cartItemsContainer.contains(focused)
-        ? `.${focusedClass}[data-id="${Number(focusedId)}"]` : null;
+        ? `.${focusedClass}[data-id="${Number(focusedId)}"]`
+        : null;
     if (shoppingCart.length === 0) {
-        cartItemsContainer.innerHTML = '<div style="text-align:center; padding:15px;"><i class="fa-solid fa-cart-shopping" style="font-size:2em; color:#ccc;"></i><p style="color:#999; margin-top:8px;">Coșul e gol. Explorează <a href="shop.html" style="color:#2f694b; font-weight:bold;">magazinul</a>!</p></div>';
-        cartTotalElement.innerText = "0";
+        cartItemsContainer.innerHTML = `
+            <div style="text-align:center; padding:15px;">
+                <i class="fa-solid fa-cart-shopping" style="font-size:2em; color:#ccc;"></i>
+                <p style="color:#999; margin-top:8px;">
+                    Coșul e gol. Explorează
+                    <a href="shop.html" style="color:#2f694b; font-weight:bold;">magazinul</a>!
+                </p>
+            </div>`;
+        cartTotalElement.innerText = formatPrice(0);
         if (focusSelector)
             (_a = document.getElementById('cart-button')) === null || _a === void 0 ? void 0 : _a.focus();
         return;
@@ -438,25 +483,36 @@ function renderCartItems() {
     let htmlContent = "";
     let totalPrice = 0;
     grouped.forEach(({ item, qty }) => {
-        const lineTotal = item.price * qty;
+        const lineTotal = Math.round(item.price * 100) * qty;
         totalPrice += lineTotal;
         htmlContent += `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
-                <div style="flex: 1; min-width: 0;">
-                    <i class="fa-solid fa-leaf" style="color: #2f694b; margin-right: 4px;"></i>
-                    <span style="font-weight: 600;">${escapeHtml(item.name)}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center;
+                margin-bottom:8px; font-size:0.9em; border-bottom:1px dashed #eee; padding-bottom:8px;">
+                <div style="flex:1; min-width:0;">
+                    <i class="fa-solid fa-leaf" style="color:#2f694b; margin-right:4px;"></i>
+                    <span style="font-weight:600;">${escapeHtml(item.name)}</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                    <button class="cart-minus-btn" data-id="${item.id}" style="width:26px; height:26px; border:1px solid #2f694b; background:transparent; border-radius:4px; cursor:pointer; color:#2f694b; font-weight:bold; font-size:1em;">−</button>
+                <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                    <button class="cart-minus-btn" data-id="${item.id}"
+                        style="width:26px; height:26px; border:1px solid #2f694b;
+                        background:transparent; border-radius:4px; cursor:pointer;
+                        color:#2f694b; font-weight:bold; font-size:1em;">−</button>
                     <span style="min-width:20px; text-align:center; font-weight:bold;">${qty}</span>
-                    <button class="cart-plus-btn" data-id="${item.id}" style="width:26px; height:26px; border:1px solid #2f694b; background:transparent; border-radius:4px; cursor:pointer; color:#2f694b; font-weight:bold; font-size:1em;">+</button>
-                    <strong style="min-width:55px; text-align:right;">${lineTotal.toFixed(2)}</strong>
-                    <button class="cart-remove-btn" data-id="${item.id}" style="background:#d32f2f; color:white; border:none; border-radius:4px; padding:2px 6px; cursor:pointer; font-size:0.8em;" title="Elimină tot"><i class="fa-solid fa-trash"></i></button>
+                    <button class="cart-plus-btn" data-id="${item.id}"
+                        style="width:26px; height:26px; border:1px solid #2f694b;
+                        background:transparent; border-radius:4px; cursor:pointer;
+                        color:#2f694b; font-weight:bold; font-size:1em;">+</button>
+                    <strong style="min-width:55px; text-align:right;">${formatPrice(lineTotal / 100)}</strong>
+                    <button class="cart-remove-btn" data-id="${item.id}"
+                        style="background:#d32f2f; color:white; border:none; border-radius:4px;
+                        padding:2px 6px; cursor:pointer; font-size:0.8em;" title="Elimină tot">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
             </div>`;
     });
     cartItemsContainer.innerHTML = htmlContent;
-    cartTotalElement.innerText = totalPrice.toFixed(2);
+    cartTotalElement.innerText = formatPrice(totalPrice / 100);
     if (focusSelector) {
         const next = cartItemsContainer.querySelector(focusSelector)
             || cartItemsContainer.querySelector('button')
@@ -464,10 +520,10 @@ function renderCartItems() {
         next === null || next === void 0 ? void 0 : next.focus();
     }
     cartItemsContainer.querySelectorAll('.cart-minus-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', event => {
             var _a;
-            e.stopPropagation();
-            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            event.stopPropagation();
+            const id = Number((_a = event.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
             shoppingCart = loadCartFromStorage();
             const idx = shoppingCart.findIndex(c => c.id === id);
             if (idx !== -1) {
@@ -477,8 +533,8 @@ function renderCartItems() {
         });
     });
     cartItemsContainer.querySelectorAll('.cart-plus-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-            e.stopPropagation();
+        btn.addEventListener('click', (event) => __awaiter(this, void 0, void 0, function* () {
+            event.stopPropagation();
             const id = Number(btn.getAttribute('data-id'));
             shoppingCart = loadCartFromStorage();
             const item = shoppingCart.find(c => c.id === id);
@@ -516,10 +572,10 @@ function renderCartItems() {
         }));
     });
     cartItemsContainer.querySelectorAll('.cart-remove-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', event => {
             var _a;
-            e.stopPropagation();
-            const id = Number((_a = e.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
+            event.stopPropagation();
+            const id = Number((_a = event.target.closest('[data-id]')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id'));
             shoppingCart = loadCartFromStorage().filter(c => c.id !== id);
             updateCartUI();
         });
@@ -528,25 +584,26 @@ function renderCartItems() {
 const cartButton = document.getElementById('cart-button');
 const cartModal = document.getElementById('cart-modal');
 if (cartButton && cartModal) {
-    cartButton.addEventListener('click', (event) => {
+    cartButton.addEventListener('click', event => {
         event.stopPropagation();
-        cartModal.style.display = cartModal.style.display === "none" ? "block" : "none";
+        cartModal.style.display =
+            cartModal.style.display === "none" ? "block" : "none";
         cartButton.setAttribute("aria-expanded", String(cartModal.style.display === "block"));
     });
-    window.addEventListener('click', (event) => {
-        if (cartModal.style.display === "block") {
-            const target = event.target;
-            if (!cartModal.contains(target) && !cartButton.contains(target)) {
-                cartModal.style.display = "none";
-                cartButton.setAttribute("aria-expanded", "false");
-            }
+    window.addEventListener('click', event => {
+        if (cartModal.style.display !== "block")
+            return;
+        const target = event.target;
+        if (!cartModal.contains(target) && !cartButton.contains(target)) {
+            cartModal.style.display = "none";
+            cartButton.setAttribute("aria-expanded", "false");
         }
     });
-    cartModal.addEventListener('click', (event) => {
+    cartModal.addEventListener('click', event => {
         event.stopPropagation();
     });
 }
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && (cartModal === null || cartModal === void 0 ? void 0 : cartModal.style.display) === 'block') {
         cartModal.style.display = 'none';
         cartButton === null || cartButton === void 0 ? void 0 : cartButton.setAttribute('aria-expanded', 'false');
@@ -557,7 +614,7 @@ const checkoutBtn = document.getElementById('checkout-btn');
 if (checkoutBtn) {
     checkoutBtn.addEventListener('click', () => {
         if (shoppingCart.length === 0) {
-            showToast('<i class="fa-solid fa-triangle-exclamation" style="color:#FF9800;"></i> Coșul este gol!');
+            showToast('Coșul este gol!');
             return;
         }
         window.location.href = 'checkout.html';
@@ -568,9 +625,10 @@ function renderPagination() {
     if (!container) {
         container = document.createElement('div');
         container.id = 'pagination-container';
-        container.style.cssText = 'display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px; margin-bottom: 20px;';
+        container.style.cssText =
+            'display:flex; justify-content:center; align-items:center; gap:10px; margin-top:30px; margin-bottom:20px;';
         const cactiList = document.getElementById('cacti-list');
-        if (cactiList && cactiList.parentNode) {
+        if (cactiList === null || cactiList === void 0 ? void 0 : cactiList.parentNode) {
             cactiList.parentNode.insertBefore(container, cactiList.nextSibling);
         }
     }
@@ -578,20 +636,29 @@ function renderPagination() {
         container.innerHTML = '';
         return;
     }
-    let html = '';
-    html += `<button class="page-btn" data-page="${currentPage - 1}" ${currentPage === 0 ? 'disabled' : ''}
-        style="padding: 8px 15px; border: 2px solid #2f694b; border-radius: 5px; background: ${currentPage === 0 ? '#e0e0e0' : 'transparent'}; color: #2f694b; font-weight: bold; cursor: ${currentPage === 0 ? 'not-allowed' : 'pointer'};">
-        ◀ Înapoi
-    </button>`;
-    html += `<span style="color: #2f694b; font-weight: bold;">Pagina ${currentPage + 1} din ${totalPages}</span>`;
-    html += `<button class="page-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages - 1 ? 'disabled' : ''}
-        style="padding: 8px 15px; border: 2px solid #2f694b; border-radius: 5px; background: ${currentPage >= totalPages - 1 ? '#e0e0e0' : 'transparent'}; color: #2f694b; font-weight: bold; cursor: ${currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer'};">
-        Înainte ▶
-    </button>`;
-    container.innerHTML = html;
+    container.innerHTML = `
+        <button class="page-btn" data-page="${currentPage - 1}"
+            ${currentPage === 0 ? 'disabled' : ''}
+            style="padding:8px 15px; border:2px solid #2f694b; border-radius:5px;
+            background:${currentPage === 0 ? '#e0e0e0' : 'transparent'};
+            color:#2f694b; font-weight:bold;
+            cursor:${currentPage === 0 ? 'not-allowed' : 'pointer'};">
+            ◀ Înapoi
+        </button>
+        <span style="color:#2f694b; font-weight:bold;">
+            Pagina ${currentPage + 1} din ${totalPages}
+        </span>
+        <button class="page-btn" data-page="${currentPage + 1}"
+            ${currentPage >= totalPages - 1 ? 'disabled' : ''}
+            style="padding:8px 15px; border:2px solid #2f694b; border-radius:5px;
+            background:${currentPage >= totalPages - 1 ? '#e0e0e0' : 'transparent'};
+            color:#2f694b; font-weight:bold;
+            cursor:${currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer'};">
+            Înainte ▶
+        </button>`;
     document.querySelectorAll('.page-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const target = e.currentTarget;
+        btn.addEventListener('click', event => {
+            const target = event.currentTarget;
             if (target.disabled)
                 return;
             currentPage = Number(target.getAttribute('data-page'));
@@ -603,7 +670,7 @@ function renderPagination() {
 const searchBar = document.getElementById('search-bar');
 let searchTimeout;
 if (searchBar) {
-    searchBar.addEventListener('input', (event) => {
+    searchBar.addEventListener('input', event => {
         catalogRequestId++;
         searchQuery = event.target.value.toLowerCase();
         currentPage = 0;
@@ -615,15 +682,126 @@ let priceTimeout;
 const priceMinInput = document.getElementById('price-min');
 const priceMaxInput = document.getElementById('price-max');
 [priceMinInput, priceMaxInput].forEach(input => {
-    if (input) {
-        input.addEventListener('input', () => {
-            catalogRequestId++;
-            currentPage = 0;
-            clearTimeout(priceTimeout);
-            priceTimeout = setTimeout(() => fetchCacti(), 500);
+    input === null || input === void 0 ? void 0 : input.addEventListener('input', () => {
+        catalogRequestId++;
+        currentPage = 0;
+        clearTimeout(priceTimeout);
+        priceTimeout = setTimeout(() => fetchCacti(), 500);
+    });
+});
+function renderActiveFilters() {
+    const toolbar = document.querySelector('.catalog-toolbar');
+    if (!toolbar)
+        return;
+    let chips = document.getElementById('active-filters');
+    if (!chips) {
+        chips = document.createElement('div');
+        chips.id = 'active-filters';
+        chips.setAttribute('aria-label', 'Filtre active');
+        toolbar.after(chips);
+    }
+    const filters = [];
+    if (selectedProductType) {
+        filters.push({
+            label: selectedProductType,
+            clear: () => { selectedProductType = ''; }
         });
     }
-});
+    if (selectedMainCategory) {
+        filters.push({
+            label: selectedMainCategory,
+            clear: () => {
+                selectedMainCategory = '';
+                selectedSubCategory = 'Toți';
+            }
+        });
+    }
+    if (selectedSubCategory !== 'Toți') {
+        filters.push({
+            label: selectedSubCategory,
+            clear: () => { selectedSubCategory = 'Toți'; }
+        });
+    }
+    if (searchQuery) {
+        filters.push({
+            label: `Căutare: ${searchQuery}`,
+            clear: () => {
+                searchQuery = '';
+                searchBar.value = '';
+            }
+        });
+    }
+    const min = priceMinInput;
+    const max = priceMaxInput;
+    if ((min === null || min === void 0 ? void 0 : min.value) || (max === null || max === void 0 ? void 0 : max.value)) {
+        const label = (min === null || min === void 0 ? void 0 : min.value) && (max === null || max === void 0 ? void 0 : max.value)
+            ? `${formatPrice(Number(min.value))}–${formatPrice(Number(max.value))} RON`
+            : (min === null || min === void 0 ? void 0 : min.value)
+                ? `De la ${formatPrice(Number(min.value))} RON`
+                : `Până la ${formatPrice(Number(max.value))} RON`;
+        filters.push({
+            label,
+            clear: () => {
+                if (min)
+                    min.value = '';
+                if (max)
+                    max.value = '';
+            }
+        });
+    }
+    if (currentSort === 'favorites') {
+        filters.push({
+            label: 'Favorite',
+            clear: () => {
+                currentSort = 'name-asc';
+                sortSelect.value = currentSort;
+            }
+        });
+    }
+    chips.replaceChildren();
+    chips.hidden = filters.length === 0;
+    const refresh = () => {
+        var _a;
+        clearTimeout(searchTimeout);
+        clearTimeout(priceTimeout);
+        currentPage = 0;
+        const priceDetails = document.getElementById('price-disclosure');
+        const priceActive = Boolean((min === null || min === void 0 ? void 0 : min.value) || (max === null || max === void 0 ? void 0 : max.value));
+        priceDetails === null || priceDetails === void 0 ? void 0 : priceDetails.classList.toggle('has-active-filter', priceActive);
+        const label = priceDetails === null || priceDetails === void 0 ? void 0 : priceDetails.querySelector('summary span');
+        if (label)
+            label.textContent = priceActive ? 'Filtre •' : 'Filtre';
+        (_a = document.getElementById('search-disclosure')) === null || _a === void 0 ? void 0 : _a.classList.toggle('has-active-filter', searchQuery !== '');
+        renderSidebar();
+        fetchCacti();
+        const next = document.querySelector('#active-filters button')
+            || document.querySelector('#price-disclosure summary');
+        next === null || next === void 0 ? void 0 : next.focus();
+    };
+    for (const filter of filters) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'filter-chip';
+        button.textContent = `${filter.label} ×`;
+        button.setAttribute('aria-label', `Elimină filtrul ${filter.label}`);
+        button.addEventListener('click', () => {
+            filter.clear();
+            refresh();
+        });
+        chips.appendChild(button);
+    }
+    if (filters.length) {
+        const reset = document.createElement('button');
+        reset.type = 'button';
+        reset.className = 'filter-reset';
+        reset.textContent = 'Resetează';
+        reset.addEventListener('click', () => {
+            filters.forEach(filter => filter.clear());
+            refresh();
+        });
+        chips.appendChild(reset);
+    }
+}
 function renderRecentlyViewed() {
     const container = document.getElementById('recent-products');
     const wrapper = document.getElementById('recently-viewed');
@@ -635,7 +813,7 @@ function renderRecentlyViewed() {
         return;
     }
     Promise.all(recent.slice(0, 4).map(id => fetch(`${API_BASE}/api/cacti/${id}`)
-        .then(r => r.ok ? r.json() : null)
+        .then(response => response.ok ? response.json() : null)
         .catch(() => null))).then(products => {
         const valid = products.filter(Boolean);
         if (valid.length === 0) {
@@ -643,13 +821,23 @@ function renderRecentlyViewed() {
             return;
         }
         wrapper.style.display = 'block';
-        container.innerHTML = valid.map((p) => {
-            const img = p.imageUrl || 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
-            return `<a href="product.html?id=${p.id}" style="flex: 0 0 140px; text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:8px; text-align:center;">
-                <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
-                <p style="color:#2f694b; font-weight:bold; margin:6px 0 2px; font-size:0.8em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</p>
-                <p style="color:#d32f2f; font-weight:bold; margin:0; font-size:0.85em;">${p.price} RON</p>
-            </a>`;
+        container.innerHTML = valid.map((product) => {
+            const img = product.imageUrl ||
+                'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
+            return `
+                <a href="product.html?id=${product.id}"
+                    style="flex:0 0 140px; text-decoration:none; border:2px solid #2f694b;
+                    border-radius:8px; padding:8px; text-align:center;">
+                    <img loading="lazy" src="${escapeHtml(img)}"
+                        style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
+                    <p style="color:#2f694b; font-weight:bold; margin:6px 0 2px; font-size:0.8em;
+                        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${escapeHtml(product.name)}
+                    </p>
+                    <p style="color:#2f694b; font-weight:bold; margin:0; font-size:0.85em;">
+                        ${formatPrice(product.price)} RON
+                    </p>
+                </a>`;
         }).join('');
     });
 }
