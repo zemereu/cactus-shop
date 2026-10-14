@@ -57,6 +57,7 @@ interface Order {
 
 function escapeHtml(unsafe: string | null | undefined): string {
     if (unsafe === null || unsafe === undefined) return "";
+
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -94,7 +95,10 @@ async function responseError(response: Response): Promise<string> {
 }
 
 function formatPrice(value: number): string {
-    return Number(value).toFixed(2);
+    return Number(value).toLocaleString('ro-RO', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 function formatOrderDate(value?: string): string {
@@ -106,7 +110,9 @@ function formatOrderDate(value?: string): string {
 
     return Number.isNaN(date.getTime())
         ? value
-        : date.toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' });
+        : date.toLocaleString('ro-RO', {
+            timeZone: 'Europe/Bucharest'
+        });
 }
 
 async function initAccountDropdown() {
@@ -316,7 +322,6 @@ function initCompactShopControls() {
 
     if (cart) {
         const count = document.getElementById('cart-count');
-
         cart.innerHTML = '<i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>';
 
         if (count) {
@@ -380,7 +385,21 @@ function initCompactShopControls() {
             </summary>
         `;
 
-        fields.before(details);
+        const toolbar = fields.parentElement!;
+        toolbar.classList.add('catalog-toolbar');
+        toolbar.prepend(details);
+
+        const sort = document.getElementById('sort-select');
+        sort?.parentElement?.classList.add('catalog-sort');
+
+        const count = document.getElementById('products-count');
+
+        if (count) {
+            count.setAttribute('role', 'status');
+            count.setAttribute('aria-live', 'polite');
+            details.after(count);
+        }
+
         details.appendChild(fields);
         fields.classList.add('shop-control-panel', 'price-fields');
 
@@ -392,7 +411,7 @@ function initCompactShopControls() {
 
             details.classList.toggle('has-active-filter', active);
             details.querySelector('summary span')!.textContent =
-                active ? 'Filtre • active' : 'Filtre';
+                active ? 'Filtre •' : 'Filtre';
         };
 
         min.addEventListener('input', update);

@@ -1,4 +1,22 @@
-/* Cactus Shop: shared components and responsive overrides. */
+:root {
+    --page-bg: #faf9f4;
+    --surface: #fff;
+    --green: #2f694b;
+    --line: #dfe6df;
+    --muted: #68746c;
+}
+
+body {
+    background-color: var(--page-bg) !important;
+    color: #27362d;
+}
+
+body > header,
+#sidebar,
+#account-dropdown,
+#cart-modal {
+    background-color: var(--page-bg) !important;
+}
 
 body, button, input, select, textarea {
     font-family: 'Poppins', sans-serif;
@@ -7,15 +25,15 @@ body, button, input, select, textarea {
 a, button, input, select, textarea,
 .hover-card, .product-card, .stat-card, .review-card,
 .admin-tab, .header-btn, .account-tab {
-    transition: background-color 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease, box-shadow 0.2s ease,
-    transform 0.2s ease, opacity 0.2s ease;
+    transition: background-color .2s ease, color .2s ease,
+    border-color .2s ease, box-shadow .2s ease,
+    transform .2s ease, opacity .2s ease;
 }
 
 input:focus, select:focus, textarea:focus {
     outline: none !important;
     border-color: #FF9800 !important;
-    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.25) !important;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, .25) !important;
 }
 
 button[style*="background-color: #2f694b"]:hover,
@@ -40,7 +58,7 @@ button[style*="background-color: #d32f2f"]:hover,
 }
 
 .admin-btn.btn-dark:hover {
-    opacity: 0.85;
+    opacity: .85;
     transform: scale(1.03);
 }
 
@@ -72,43 +90,42 @@ button[style*="background-color: #d32f2f"]:hover,
     background-color: #2f694b !important;
     color: #fdf2b8 !important;
     border-color: #FF9800 !important;
-    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, .3);
 }
 
 .dropdown-link:hover,
 #account-dropdown a:hover {
-    background: rgba(255, 152, 0, 0.15) !important;
+    background: rgba(255, 152, 0, .15) !important;
     color: #FF9800 !important;
 }
 
 .cta-button.primary:hover {
     background-color: #e68a00 !important;
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(255, 152, 0, .5) !important;
 }
 
 .hover-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(255, 152, 0, 0.15) !important;
+    box-shadow: 0 12px 24px rgba(255, 152, 0, .15) !important;
     border-bottom-color: #FF9800 !important;
 }
 
 .product-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.2) !important;
+    box-shadow: 0 6px 16px rgba(255, 152, 0, .2) !important;
     border-color: #FF9800 !important;
 }
 
-/* Normal desktop grid: five products per row. */
 #cacti-list,
 body.view-grid #cacti-list {
     grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-#cacti-list > div:hover {
+#cacti-list > .cactus-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 152, 0, 0.15) !important;
-    border-color: #FF9800 !important;
+    box-shadow: 0 8px 22px rgba(35, 65, 45, .08);
+    border-color: #bacdbd;
 }
 
 .admin-tab:hover {
@@ -122,17 +139,17 @@ body.view-grid #cacti-list {
 }
 
 .stat-card:hover {
-    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, .2);
     transform: translateY(-2px);
 }
 
 .orders-table tr:hover td {
-    background: rgba(255, 152, 0, 0.08) !important;
+    background: rgba(255, 152, 0, .08) !important;
 }
 
 .review-card:hover {
     border-color: #FF9800 !important;
-    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, .15);
 }
 
 #admin-categories-list span:hover {
@@ -141,7 +158,7 @@ body.view-grid #cacti-list {
 }
 
 #sidebar-categories-list button:hover {
-    background: rgba(255, 152, 0, 0.15) !important;
+    background: rgba(255, 152, 0, .15) !important;
     color: #FF9800 !important;
     border-color: #FF9800 !important;
 }
@@ -152,10 +169,7 @@ body.view-grid #cacti-list {
     border-color: #FF9800 !important;
 }
 
-.account-tab:hover {
-    color: #FF9800 !important;
-}
-
+.account-tab:hover,
 a[style*="color: #2f694b"]:hover {
     color: #FF9800 !important;
 }
@@ -171,7 +185,7 @@ a[style*="border-bottom: 1px solid #2f694b"]:hover {
 }
 
 #cart-items-container > div:hover {
-    background: rgba(255, 152, 0, 0.08);
+    background: rgba(255, 152, 0, .08);
     border-radius: 4px;
 }
 
@@ -186,7 +200,7 @@ a[style*="border-bottom: 1px solid #2f694b"]:hover {
 ::-webkit-scrollbar-thumb:hover { background: #FF9800; }
 
 ::selection {
-    background: rgba(255, 152, 0, 0.3);
+    background: rgba(255, 152, 0, .3);
     color: #333;
 }
 
@@ -201,6 +215,117 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
     color: #fdf2b8 !important;
 }
 
+/* Product cards */
+
+.cactus-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.cactus-photo {
+    display: block;
+    border-radius: 10px;
+    background: #f5f6f1;
+    overflow: hidden;
+}
+
+.cactus-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: contain;
+}
+
+.cactus-details {
+    min-width: 0;
+    flex: 1;
+}
+
+.cactus-category {
+    display: block;
+    color: var(--muted);
+    font-size: .75rem;
+    overflow-wrap: anywhere;
+}
+
+.cactus-name-link {
+    color: var(--green);
+    text-decoration: none;
+}
+
+.cactus-details h2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: 2.8em;
+    margin: 6px 0 12px;
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.cactus-details .cactus-price {
+    margin: 0 0 6px;
+    color: var(--green);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.cactus-price span {
+    font-size: .72em;
+    font-weight: 400;
+}
+
+.cactus-details .cactus-stock {
+    margin: 0;
+    color: var(--muted);
+    font-size: .78rem;
+}
+
+.cactus-stock.is-unavailable {
+    color: #b23d35;
+}
+
+.cactus-card > button {
+    width: 100%;
+    min-height: 44px;
+    margin-top: auto;
+    padding: 10px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--green);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cactus-card > .sold-out-btn {
+    background: #eef1ec;
+    color: #6a756d;
+    cursor: not-allowed;
+}
+
+.cactus-card .card-actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 2;
+}
+
 body.view-compact #cacti-list {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
     gap: 12px !important;
@@ -210,29 +335,24 @@ body.view-compact .cactus-card {
     padding: 8px !important;
 }
 
-body.view-compact .cactus-image {
-    height: 100px !important;
-    margin-bottom: 6px !important;
-}
-
 body.view-compact .cactus-desc,
 body.view-list .cactus-desc {
     display: none !important;
 }
 
 body.view-compact .cactus-details h2 {
-    font-size: 0.95em !important;
+    font-size: .95em !important;
     margin-top: 4px !important;
 }
 
 body.view-compact .cactus-details p {
-    font-size: 0.8em !important;
+    font-size: .8em !important;
     margin: 2px 0 !important;
 }
 
 body.view-compact .cactus-card > button {
     padding: 6px !important;
-    font-size: 0.85em !important;
+    font-size: .85em !important;
     margin-top: 8px !important;
 }
 
@@ -281,27 +401,29 @@ body.view-list .cactus-card > button {
 .card-action-btn {
     width: 30px;
     height: 30px;
-    background: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,.85);
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.85em;
+    font-size: .85em;
     color: #999;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: background-color 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease, box-shadow 0.2s ease,
-    transform 0.2s ease, opacity 0.2s ease;
+    transition: background-color .2s ease, color .2s ease,
+    border-color .2s ease, box-shadow .2s ease,
+    transform .2s ease, opacity .2s ease;
 }
 
-.cactus-card:hover .card-action-btn { opacity: 1; }
+.cactus-card:hover .card-action-btn {
+    opacity: 1;
+}
 
 .card-action-btn:hover {
     background: white;
     transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 
 .wishlist-btn:hover { color: #d32f2f !important; }
@@ -321,7 +443,7 @@ body.view-list .cactus-card > button {
     border-radius: 50%;
     font-size: 1.2em;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
     z-index: 900;
 }
 
@@ -332,7 +454,7 @@ body.view-list .cactus-card > button {
 
 .breadcrumbs {
     padding: 10px 0;
-    font-size: 0.85em;
+    font-size: .85em;
     color: #666;
 }
 
@@ -345,7 +467,11 @@ a:focus-visible, button:focus-visible {
     outline-offset: 3px;
 }
 
-.cactus-card:focus-within .card-action-btn { opacity: 1; }
+.cactus-card:focus-within .card-action-btn {
+    opacity: 1;
+}
+
+/* Account forms */
 
 #password-recovery {
     margin: 20px 0 0 !important;
@@ -357,7 +483,7 @@ a:focus-visible, button:focus-visible {
     min-height: 44px;
     padding: 10px 0;
     color: #2f694b;
-    font-size: 0.95rem;
+    font-size: .95rem;
     font-weight: 700;
     cursor: pointer;
     border-radius: 6px;
@@ -387,7 +513,7 @@ a:focus-visible, button:focus-visible {
 #forgot-password-form label,
 #reset-password-form label {
     color: #2f694b;
-    font-size: 0.9rem;
+    font-size: .9rem;
     font-weight: 700;
     line-height: 1.5;
 }
@@ -420,7 +546,7 @@ a:focus-visible, button:focus-visible {
     background: #2f694b;
     color: #fdf2b8;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: .95rem;
     font-weight: 700;
     line-height: 1.5;
     white-space: normal;
@@ -435,7 +561,7 @@ a:focus-visible, button:focus-visible {
 
 #forgot-password-form button:disabled,
 #reset-password-form button:disabled {
-    opacity: 0.65;
+    opacity: .65;
     cursor: wait;
 }
 
@@ -448,7 +574,7 @@ a:focus-visible, button:focus-visible {
     border-radius: 8px;
     background: #faf7e8;
     color: #444;
-    font-size: 0.875rem;
+    font-size: .875rem;
     line-height: 1.65;
     overflow-wrap: anywhere;
 }
@@ -461,6 +587,8 @@ a:focus-visible, button:focus-visible {
 #similar-products > p {
     grid-column: 1 / -1 !important;
 }
+
+/* Tablet */
 
 @media (max-width: 1024px) {
     header[style*="grid-template-columns"] {
@@ -496,6 +624,8 @@ a:focus-visible, button:focus-visible {
     }
 }
 
+/* Mobile */
+
 @media (max-width: 768px) {
     *, *::before, *::after {
         box-sizing: border-box;
@@ -521,10 +651,8 @@ a:focus-visible, button:focus-visible {
         flex-wrap: wrap;
     }
 
-    header > *,
-    main > *,
-    .cactus-card,
-    .cactus-details {
+    header > *, main > *,
+    .cactus-card, .cactus-details {
         min-width: 0;
     }
 
@@ -570,9 +698,7 @@ a:focus-visible, button:focus-visible {
         gap: 8px !important;
     }
 
-    .header-btn,
-    #account-link,
-    #cart-button {
+    .header-btn, #account-link, #cart-button {
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
@@ -591,11 +717,7 @@ a:focus-visible, button:focus-visible {
         overflow-wrap: anywhere;
     }
 
-    button,
-    .header-btn,
-    #account-link,
-    .cta-button,
-    summary {
+    button, .header-btn, #account-link, .cta-button, summary {
         min-height: 44px;
         touch-action: manipulation;
     }
@@ -615,9 +737,7 @@ a:focus-visible, button:focus-visible {
         overflow-wrap: anywhere;
     }
 
-    #menu-btn,
-    #close-sidebar-btn,
-    #zoom-close {
+    #menu-btn, #close-sidebar-btn, #zoom-close {
         min-width: 44px;
         min-height: 44px;
     }
@@ -712,8 +832,7 @@ a:focus-visible, button:focus-visible {
         flex: 1 1 100%;
     }
 
-    #price-min,
-    #price-max {
+    #price-min, #price-max {
         flex: 1;
         width: 0 !important;
     }
@@ -727,8 +846,7 @@ a:focus-visible, button:focus-visible {
         gap: 8px;
     }
 
-    .page-btn,
-    .view-toggle-btn {
+    .page-btn, .view-toggle-btn {
         min-width: 44px;
     }
 
@@ -923,7 +1041,7 @@ a:focus-visible, button:focus-visible {
     }
 
     body.view-list .cactus-details h2 {
-        font-size: 0.95em !important;
+        font-size: .95em !important;
     }
 
     body.view-compact #cacti-list {
@@ -979,7 +1097,7 @@ a:focus-visible, button:focus-visible {
         white-space: normal;
         min-height: 44px;
         padding: 8px 12px !important;
-        font-size: 0.85em !important;
+        font-size: .85em !important;
     }
 
     .cactus-card .card-actions .card-action-btn {
@@ -998,10 +1116,6 @@ a:focus-visible, button:focus-visible {
     body.view-compact .cactus-card > button {
         min-height: 44px;
         white-space: normal;
-    }
-
-    body.view-compact .cactus-image {
-        height: 140px !important;
     }
 }
 
@@ -1028,7 +1142,7 @@ a:focus-visible, button:focus-visible {
         opacity: 1;
     }
 
-    #cacti-list > div:hover,
+    #cacti-list > .cactus-card:hover,
     .cactus-card:hover,
     .hover-card:hover,
     .product-card:hover,
@@ -1046,7 +1160,7 @@ a:focus-visible, button:focus-visible {
     }
 }
 
-/* Compact header and collapsible catalog controls. */
+/* Compact header and catalog controls */
 
 #account-link,
 #cart-button,
@@ -1079,22 +1193,24 @@ a:focus-visible, button:focus-visible {
 }
 
 header.compact-shop-header:has(#search-bar) {
-    grid-template-columns: minmax(0, 1fr) auto auto !important;
-    gap: 12px !important;
+    grid-template-columns:
+        minmax(0, 1fr) min(400px, 38vw) minmax(0, 1fr) !important;
 }
 
 header.compact-shop-header:has(#search-bar) > .compact-search-host {
-    width: auto !important;
-    grid-column: auto;
-    grid-row: auto;
-    justify-self: end;
+    width: 100% !important;
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
 }
 
 .shop-disclosure {
-    position: relative;
+    display: flow-root;
 }
 
 .shop-disclosure > summary {
+    float: left;
     list-style: none;
     cursor: pointer;
     touch-action: manipulation;
@@ -1115,44 +1231,109 @@ header.compact-shop-header:has(#search-bar) > .compact-search-host {
     color: #fdf2b8;
 }
 
-.shop-control-panel {
-    box-sizing: border-box;
-    position: absolute;
-    top: calc(100% + 8px);
-    z-index: 50;
-    width: min(320px, calc(100vw - 40px));
-    padding: 14px;
-    border: 1px solid #2f694b;
-    border-radius: 10px;
-    background: #fffdf4;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
 #search-disclosure .shop-control-panel {
-    right: 0;
+    margin-left: 52px;
 }
 
 #search-bar {
     min-width: 0;
+    min-height: 44px;
     font-size: 16px !important;
 }
 
-.price-disclosure > summary {
+.catalog-toolbar {
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.catalog-toolbar > #products-count {
+    margin: 0 !important;
+    color: var(--muted) !important;
+    font-size: .8rem !important;
+}
+
+.catalog-toolbar > .catalog-sort {
+    margin-left: auto;
+}
+
+.catalog-toolbar select,
+.price-fields input,
+#search-bar {
+    border: 1px solid #bdccbf !important;
+    border-radius: 8px !important;
+    background: var(--surface) !important;
+    min-height: 44px;
+}
+
+.catalog-toolbar .view-toggle-btn {
+    min-height: 44px;
+    border-width: 1px !important;
+}
+
+#active-filters {
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 22px;
+}
+
+#active-filters[hidden] {
+    display: none;
+}
+
+.filter-chip,
+.filter-reset {
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #edf3ec;
+    color: var(--green);
+    font-size: .8rem;
+    cursor: pointer;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.filter-chip:hover {
+    background: #deeadc;
+}
+
+.filter-reset {
+    background: transparent;
+    border-color: transparent;
+    text-decoration: underline;
+}
+
+#cart-total {
+    color: var(--green) !important;
+}
+
+.price-disclosure {
+    max-width: 100%;
+}
+
+.price-disclosure > summary {
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     min-height: 44px;
     box-sizing: border-box;
     padding: 8px 12px;
-    border: 1px solid #2f694b;
-    border-radius: 8px;
+    border: 2px solid #2f694b;
+    border-radius: 6px;
     color: #2f694b;
-    font-size: 0.9rem;
+    font-family: inherit;
+    font-size: .9em;
+    font-weight: 700;
 }
 
 .price-disclosure .price-fields {
-    left: 50%;
-    transform: translateX(-50%);
+    margin-left: 112px;
+    width: 260px;
+    min-height: 44px;
     gap: 8px !important;
 }
 
@@ -1161,51 +1342,58 @@ header.compact-shop-header:has(#search-bar) > .compact-search-host {
 }
 
 .price-fields input {
+    box-sizing: border-box;
     flex: 1;
     min-width: 0;
     width: 0 !important;
+    min-height: 44px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
     header.compact-shop-header:has(#search-bar) {
-        display: grid !important;
-        grid-template-columns: minmax(0, 1fr) auto auto !important;
-    }
-
-    header.compact-shop-header:has(#search-bar) > div:first-child {
-        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) auto !important;
     }
 
     header.compact-shop-header:has(#search-bar) > .compact-search-host {
-        grid-column: 2;
+        grid-column: 1 / -1;
         grid-row: 2;
-        order: 0;
+        order: 3;
     }
 
     header.compact-shop-header:has(#search-bar) > div:last-child {
-        grid-column: 3;
-        grid-row: 2;
+        grid-column: 2;
+        grid-row: 1;
     }
+}
 
-    .compact-search-host,
-    .price-disclosure {
-        position: static;
-    }
-
-    header.compact-shop-header:has(#search-bar),
-    div:has(> .price-disclosure) {
-        position: relative;
-    }
-
-    #search-disclosure {
-        position: static;
-    }
-
-    #search-disclosure .shop-control-panel,
-    .price-disclosure .price-fields {
-        left: 0;
-        right: 0;
+@media (max-width: 768px) {
+    .price-disclosure[open] {
         width: 100%;
-        transform: none;
+    }
+
+    .price-disclosure .price-fields {
+        width: auto;
+    }
+
+    .catalog-toolbar > .catalog-sort {
+        flex: 1 1 55%;
+        margin-left: 0;
+    }
+
+    .catalog-toolbar > #products-count {
+        margin-left: auto !important;
+    }
+
+    .catalog-toolbar > #view-toggles {
+        margin-left: auto;
+    }
+
+    .cactus-card .cactus-details h2 {
+        font-size: 1rem;
+    }
+
+    .filter-chip,
+    .filter-reset {
+        min-height: 44px;
     }
 }
