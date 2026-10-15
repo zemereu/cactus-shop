@@ -364,7 +364,7 @@ function initCompactShopControls() {
             setOpen(false);
 
             toggle.addEventListener('click', () => {
-                setOpen(host.hidden);
+                setOpen(Boolean(host.hidden));
             });
 
             search.addEventListener('input', () => {

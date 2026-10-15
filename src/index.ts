@@ -1014,4 +1014,4 @@ window.addEventListener('storage', event => {
 });
 
 fetchCacti();
-updateCartUI(false);
+updateCartUI(false);    

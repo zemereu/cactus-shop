@@ -36,8 +36,8 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 function starsDisplay(rating) {
-    const full = '<i class="fa-solid fa-star" style="color: #FF9800;"></i>';
-    const empty = '<i class="fa-regular fa-star" style="color: #ccc;"></i>';
+    const full = '<i class="fa-solid fa-star" style="color:#FF9800;"></i>';
+    const empty = '<i class="fa-regular fa-star" style="color:#ccc;"></i>';
     return full.repeat(rating) + empty.repeat(5 - rating);
 }
 function responseError(response) {
@@ -255,7 +255,7 @@ function initImageZoom() {
     });
 }
 function initCompactShopControls() {
-    var _a, _b;
+    var _a;
     const cart = document.getElementById('cart-button');
     if (cart) {
         const count = document.getElementById('cart-count');
@@ -270,29 +270,48 @@ function initCompactShopControls() {
     const search = document.getElementById('search-bar');
     if (search && !document.getElementById('search-disclosure')) {
         const host = search.parentElement;
-        const details = document.createElement('details');
-        details.id = 'search-disclosure';
-        details.className = 'shop-disclosure';
-        details.innerHTML = `
-            <summary class="shop-icon-button"
-                     aria-label="Caută produse"
-                     title="Caută produse">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            </summary>
-            <div class="shop-control-panel"></div>
-        `;
-        host.classList.add('compact-search-host');
-        host.appendChild(details);
-        details.querySelector('.shop-control-panel').appendChild(search);
-        search.setAttribute('aria-label', 'Caută produse după nume');
-        (_a = search.closest('header')) === null || _a === void 0 ? void 0 : _a.classList.add('compact-shop-header');
-        details.addEventListener('toggle', () => {
-            if (details.open)
-                search.focus();
-        });
-        search.addEventListener('input', () => {
-            details.classList.toggle('has-active-filter', search.value.trim() !== '');
-        });
+        const header = search.closest('header');
+        const actions = header === null || header === void 0 ? void 0 : header.lastElementChild;
+        if (header && actions && actions !== host) {
+            const toggle = document.createElement('button');
+            toggle.id = 'search-disclosure';
+            toggle.type = 'button';
+            toggle.className = 'shop-icon-button';
+            toggle.innerHTML =
+                '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+            toggle.setAttribute('aria-label', 'Caută produse');
+            toggle.setAttribute('aria-controls', 'search-bar');
+            toggle.title = 'Caută produse';
+            actions.prepend(toggle);
+            host.classList.add('compact-search-host');
+            header.classList.add('compact-shop-header');
+            search.setAttribute('aria-label', 'Caută produse după nume');
+            const setOpen = (open) => {
+                host.hidden = !open;
+                toggle.setAttribute('aria-expanded', String(open));
+                if (open)
+                    search.focus();
+            };
+            setOpen(false);
+            toggle.addEventListener('click', () => {
+                setOpen(Boolean(host.hidden));
+            });
+            search.addEventListener('input', () => {
+                toggle.classList.toggle('has-active-filter', search.value.trim() !== '');
+            });
+            search.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+            document.addEventListener('click', event => {
+                if (!host.contains(event.target) &&
+                    !toggle.contains(event.target)) {
+                    setOpen(false);
+                }
+            });
+        }
     }
     const min = document.getElementById('price-min');
     const max = document.getElementById('price-max');
@@ -311,7 +330,7 @@ function initCompactShopControls() {
         toolbar.classList.add('catalog-toolbar');
         toolbar.prepend(details);
         const sort = document.getElementById('sort-select');
-        (_b = sort === null || sort === void 0 ? void 0 : sort.parentElement) === null || _b === void 0 ? void 0 : _b.classList.add('catalog-sort');
+        (_a = sort === null || sort === void 0 ? void 0 : sort.parentElement) === null || _a === void 0 ? void 0 : _a.classList.add('catalog-sort');
         const count = document.getElementById('products-count');
         if (count) {
             count.setAttribute('role', 'status');

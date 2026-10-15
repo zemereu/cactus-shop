@@ -11,10 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 let cactiForSale = [];
 let allCategories = [];
-let selectedProductType = "Plante";
-let selectedMainCategory = "Cactuși";
+let selectedProductType = "";
+let selectedMainCategory = "";
 let selectedSubCategory = "Toți";
-let expandedMainCategory = "Cactuși";
+let expandedMainCategory = "";
 let searchQuery = "";
 let currentPage = 0;
 let totalPages = 0;
@@ -96,7 +96,9 @@ function fetchCacti() {
                 <div style="grid-column:1/-1; text-align:center; padding:40px;">
                     <i class="fa-solid fa-triangle-exclamation" style="font-size:2em; color:#d32f2f;"></i>
                     <p style="color:#d32f2f; margin-top:10px;">Nu am putut încărca produsele.</p>
-                    <button onclick="fetchCacti()" style="margin-top:10px; padding:8px 20px; background:#2f694b; color:#fdf2b8; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
+                    <button onclick="fetchCacti()" style="margin-top:10px; padding:8px 20px;
+                        background:#2f694b; color:#fdf2b8; border:none; border-radius:6px;
+                        cursor:pointer; font-weight:bold;">
                         <i class="fa-solid fa-rotate-right"></i> Încearcă din nou
                     </button>
                 </div>`;
@@ -722,6 +724,7 @@ function renderActiveFilters() {
             clear: () => { selectedSubCategory = 'Toți'; }
         });
     }
+    const categoryFilterCount = filters.length;
     if (searchQuery) {
         filters.push({
             label: `Căutare: ${searchQuery}`,
@@ -778,10 +781,19 @@ function renderActiveFilters() {
             || document.querySelector('#price-disclosure summary');
         next === null || next === void 0 ? void 0 : next.focus();
     };
-    for (const filter of filters) {
+    for (const [index, filter] of filters.entries()) {
+        if (index > 0 && index < categoryFilterCount) {
+            const arrow = document.createElement('span');
+            arrow.className = 'breadcrumb-arrow';
+            arrow.textContent = '›';
+            arrow.setAttribute('aria-hidden', 'true');
+            chips.appendChild(arrow);
+        }
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'filter-chip';
+        button.className = index < categoryFilterCount
+            ? 'filter-chip breadcrumb-filter'
+            : 'filter-chip';
         button.textContent = `${filter.label} ×`;
         button.setAttribute('aria-label', `Elimină filtrul ${filter.label}`);
         button.addEventListener('click', () => {
