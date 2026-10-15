@@ -67,8 +67,8 @@ function escapeHtml(unsafe: string | null | undefined): string {
 }
 
 function starsDisplay(rating: number): string {
-    const full = '<i class="fa-solid fa-star" style="color: #FF9800;"></i>';
-    const empty = '<i class="fa-regular fa-star" style="color: #ccc;"></i>';
+    const full = '<i class="fa-solid fa-star" style="color:#FF9800;"></i>';
+    const empty = '<i class="fa-regular fa-star" style="color:#ccc;"></i>';
     return full.repeat(rating) + empty.repeat(5 - rating);
 }
 
@@ -152,7 +152,6 @@ async function initAccountDropdown() {
                 link.title = 'Contul meu';
             } else {
                 link.title = 'Autentificare';
-
                 if (dropdown) dropdown.style.display = 'none';
 
                 try {
@@ -337,36 +336,60 @@ function initCompactShopControls() {
 
     if (search && !document.getElementById('search-disclosure')) {
         const host = search.parentElement!;
-        const details = document.createElement('details');
+        const header = search.closest('header');
+        const actions = header?.lastElementChild;
 
-        details.id = 'search-disclosure';
-        details.className = 'shop-disclosure';
-        details.innerHTML = `
-            <summary class="shop-icon-button"
-                     aria-label="Caută produse"
-                     title="Caută produse">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            </summary>
-            <div class="shop-control-panel"></div>
-        `;
+        if (header && actions && actions !== host) {
+            const toggle = document.createElement('button');
+            toggle.id = 'search-disclosure';
+            toggle.type = 'button';
+            toggle.className = 'shop-icon-button';
+            toggle.innerHTML =
+                '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+            toggle.setAttribute('aria-label', 'Caută produse');
+            toggle.setAttribute('aria-controls', 'search-bar');
+            toggle.title = 'Caută produse';
 
-        host.classList.add('compact-search-host');
-        host.appendChild(details);
-        details.querySelector('.shop-control-panel')!.appendChild(search);
+            actions.prepend(toggle);
+            host.classList.add('compact-search-host');
+            header.classList.add('compact-shop-header');
+            search.setAttribute('aria-label', 'Caută produse după nume');
 
-        search.setAttribute('aria-label', 'Caută produse după nume');
-        search.closest('header')?.classList.add('compact-shop-header');
+            const setOpen = (open: boolean) => {
+                host.hidden = !open;
+                toggle.setAttribute('aria-expanded', String(open));
+                if (open) search.focus();
+            };
 
-        details.addEventListener('toggle', () => {
-            if (details.open) search.focus();
-        });
+            setOpen(false);
 
-        search.addEventListener('input', () => {
-            details.classList.toggle(
-                'has-active-filter',
-                search.value.trim() !== ''
-            );
-        });
+            toggle.addEventListener('click', () => {
+                setOpen(host.hidden);
+            });
+
+            search.addEventListener('input', () => {
+                toggle.classList.toggle(
+                    'has-active-filter',
+                    search.value.trim() !== ''
+                );
+            });
+
+            search.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+
+            document.addEventListener('click', event => {
+                if (
+                    !host.contains(event.target as Node) &&
+                    !toggle.contains(event.target as Node)
+                ) {
+                    setOpen(false);
+                }
+            });
+        }
     }
 
     const min = document.getElementById('price-min') as HTMLInputElement | null;
@@ -408,7 +431,6 @@ function initCompactShopControls() {
 
         const update = () => {
             const active = min.value !== '' || max.value !== '';
-
             details.classList.toggle('has-active-filter', active);
             details.querySelector('summary span')!.textContent =
                 active ? 'Filtre •' : 'Filtre';
