@@ -81,7 +81,7 @@ function formatOrderDate(value) {
 function initAccountDropdown() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
-        if (document.getElementById('login-container'))
+        if (document.getElementById('login-container') || document.getElementById('tab-login'))
             return;
         let accountLink = document.getElementById('account-link');
         if (!accountLink) {
@@ -368,3 +368,9 @@ function initCompactShopControls() {
 }
 void initAccountDropdown();
 initCompactShopControls();
+// Only a confirmed hybrid gets a badge; older products remain unmarked.
+function hybridBadge(product) {
+    return product.hybrid === true
+        ? '<span class="hybrid-badge"><i class="fa-solid fa-seedling" aria-hidden="true"></i> Hibrid</span>'
+        : '';
+}

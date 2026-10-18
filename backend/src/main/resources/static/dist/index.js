@@ -315,8 +315,8 @@ function renderCacti() {
         if (countEl)
             countEl.innerText = '0 produse';
         htmlContent = `
-            <p style="grid-column:1/-1; color:red; font-size:1.2em;">
-                Nu am găsit niciun cactus conform căutării.
+            <p class="catalog-empty" role="status">
+                Nu am găsit niciun produs conform căutării.
             </p>`;
     }
     else {
@@ -362,6 +362,7 @@ function renderCacti() {
 
                     <div class="cactus-details">
                         <span class="cactus-category">${escapeHtml(cactus.category)}</span>
+                        ${hybridBadge(cactus)}
                         <a class="cactus-name-link" href="product.html?id=${cactus.id}">
                             <h2 title="${escapeHtml(cactus.name)}">${escapeHtml(cactus.name)}</h2>
                         </a>
@@ -492,7 +493,7 @@ function renderCartItems() {
                 margin-bottom:8px; font-size:0.9em; border-bottom:1px dashed #eee; padding-bottom:8px;">
                 <div style="flex:1; min-width:0;">
                     <i class="fa-solid fa-leaf" style="color:#2f694b; margin-right:4px;"></i>
-                    <span style="font-weight:600;">${escapeHtml(item.name)}</span>
+                    <span style="font-weight:600;">${escapeHtml(item.name)}</span> ${hybridBadge(item)}
                 </div>
                 <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
                     <button class="cart-minus-btn" data-id="${item.id}"
@@ -849,6 +850,7 @@ function renderRecentlyViewed() {
                     <p style="color:#2f694b; font-weight:bold; margin:0; font-size:0.85em;">
                         ${formatPrice(product.price)} RON
                     </p>
+                    ${hybridBadge(product)}
                 </a>`;
         }).join('');
     });

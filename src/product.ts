@@ -15,6 +15,7 @@ interface ProdCactus {
     productType: string;
     active: boolean;
     location?: string | null;
+    hybrid?: boolean;
 }
 
 interface ProdReview {
@@ -120,6 +121,8 @@ async function loadProduct() {
             product.mainCategory,
             product.category
         ].filter(value => value?.trim()).join(' · ') || 'Categorie nespecificată';
+
+        categoryEl.insertAdjacentHTML('afterend', hybridBadge(product));
 
         categoryEl.style.display = 'inline-block';
         categoryEl.style.maxWidth = '100%';
@@ -340,6 +343,7 @@ function renderSimilar(products: ProdCactus[]) {
                 <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
                 <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
                 <p style="color:#d32f2f; font-weight:bold; margin:0;">${formatPrice(p.price)} RON</p>
+                ${hybridBadge(p)}
             </a>`;
     }).join('');
 }

@@ -37,5 +37,6 @@ public record CactusRequestDTO(
         @Min(value = 0, message = "Stocul nu poate fi negativ.")
         Integer stock,
 
-        String location
+        String location,
+        Boolean hybrid
 ) {}

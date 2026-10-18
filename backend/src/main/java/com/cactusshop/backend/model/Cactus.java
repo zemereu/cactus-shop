@@ -35,6 +35,13 @@ public class Cactus {
     private String location;
     private boolean active = true;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hybrid = false;
+
+    public boolean isHybrid() { return hybrid; }
+
+    public void setHybrid(boolean hybrid) { this.hybrid = hybrid; }
+
     public Cactus() {}
 
     public Long getId() {

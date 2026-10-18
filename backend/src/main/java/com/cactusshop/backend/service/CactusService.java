@@ -121,6 +121,7 @@ public class CactusService {
         cactus.setLocation(
                 request.location() != null ? request.location().trim() : "");
 
+        if (request.hybrid() != null) cactus.setHybrid(request.hybrid());
         return cactusRepository.save(cactus);
     }
 
@@ -174,6 +175,7 @@ public class CactusService {
         cactus.setStock(request.stock() != null ? request.stock() : 0);
         cactus.setLocation(
                 request.location() != null ? request.location().trim() : "");
+        if (request.hybrid() != null) cactus.setHybrid(request.hybrid());
 
         return cactusRepository.save(cactus);
     }

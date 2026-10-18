@@ -194,6 +194,7 @@ function renderAdminCacti(cacti: Cactus[]) {
             <p style="margin:2px 0; color:#888; font-size:0.75em;">${escapeHtml(c.productType)} · ${escapeHtml(c.mainCategory)} — ${escapeHtml(c.category)}</p>
             <p style="margin:0; color:#d32f2f; font-weight:bold;">${formatPrice(c.price)} RON</p>
             <p style="margin:4px 0 0; color:${c.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size:0.85em; font-weight:bold;">Stoc: ${c.stock}</p>
+            ${hybridBadge(c)}
             ${c.location ? `<p style="margin:2px 0 0; font-size:0.75em; color:#666;"><i class="fa-solid fa-location-dot" style="color:#FF9800;"></i> ${escapeHtml(c.location)}</p>` : ''}
             ${c.description ? `<p style="margin:4px 0 0; font-size:0.75em; color:#999; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(c.description)}</p>` : ''}
             <div style="display:flex; gap:4px; margin-top:8px;">
@@ -249,6 +250,10 @@ function renderAdminCacti(cacti: Cactus[]) {
                     <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Imagine (URL)</label>
                     <input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
                 </div>
+                <label class="hybrid-toggle" style="grid-column:1/-1;">
+                    <input type="checkbox" class="edit-hybrid" ${c.hybrid === true ? 'checked' : ''}>
+                    <span>Hibrid</span>
+                </label>
                 <div style="grid-column:1/-1;">
                     <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}" style="width:100%; padding:10px; font-size:0.95em; border-radius:6px;">Salvează</button>
                 </div>
@@ -297,7 +302,8 @@ function renderAdminCacti(cacti: Cactus[]) {
             productType: (p.querySelector('.edit-product-type') as HTMLInputElement).value,
             mainCategory: (p.querySelector('.edit-main-category') as HTMLInputElement).value,
             category: (p.querySelector('.edit-category') as HTMLInputElement).value,
-            location: (p.querySelector('.edit-location') as HTMLInputElement).value.trim()
+            location: (p.querySelector('.edit-location') as HTMLInputElement).value.trim(),
+            hybrid: (p.querySelector('.edit-hybrid') as HTMLInputElement).checked
         };
         const r = await adminRequest(`${API_BASE}/api/cacti/${id}`, {
             method: 'PUT', headers: {'Content-Type': 'application/json'},
@@ -367,7 +373,8 @@ if (addCactusBtn) {
             description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
             imageUrl,
             stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0,
-            location: (document.getElementById('new-cactus-location') as HTMLInputElement).value.trim()
+            location: (document.getElementById('new-cactus-location') as HTMLInputElement).value.trim(),
+            hybrid: (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked
         };
 
         if (!newCactus.name || !newCactus.price || !newCactus.category) {
@@ -397,6 +404,7 @@ if (addCactusBtn) {
             'new-cactus-name', 'new-cactus-price', 'new-cactus-desc',
             'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'
         ].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
+        (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked = false;
 
         if (fileInput) fileInput.value = "";
         fetchAdminCacti();

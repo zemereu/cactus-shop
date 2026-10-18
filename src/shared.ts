@@ -36,6 +36,7 @@ interface Cactus {
     active: boolean;
     location?: string | null;
     version: number;
+    hybrid?: boolean;
 }
 
 interface Category {
@@ -116,7 +117,7 @@ function formatOrderDate(value?: string): string {
 }
 
 async function initAccountDropdown() {
-    if (document.getElementById('login-container')) return;
+    if (document.getElementById('login-container') || document.getElementById('tab-login')) return;
 
     let accountLink = document.getElementById('account-link') as HTMLAnchorElement | null;
 
@@ -459,3 +460,10 @@ function initCompactShopControls() {
 
 void initAccountDropdown();
 initCompactShopControls();
+
+// Only a confirmed hybrid gets a badge; older products remain unmarked.
+function hybridBadge(product: { hybrid?: boolean }): string {
+    return product.hybrid === true
+        ? '<span class="hybrid-badge"><i class="fa-solid fa-seedling" aria-hidden="true"></i> Hibrid</span>'
+        : '';
+}

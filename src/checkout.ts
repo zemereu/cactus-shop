@@ -1,6 +1,7 @@
 // Funcțiile și constantele comune vin din shared.ts.
 
 interface CheckoutCactus {
+    hybrid?: boolean;
     id: number;
     name: string;
     price: number;
@@ -54,7 +55,7 @@ function renderCheckoutItems() {
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.95em;">
                 <div>
                     <i class="fa-solid fa-leaf" style="color: #2f694b; margin-right: 4px;"></i>
-                    <strong>${escapeHtml(item.name)}</strong>
+                    <strong>${escapeHtml(item.name)}</strong> ${hybridBadge(item)}
                     <span style="color: #999; margin-left: 4px;">×${qty}</span>
                 </div>
                 <strong style="color: #d32f2f;">${(line / 100).toFixed(2)} RON</strong>
