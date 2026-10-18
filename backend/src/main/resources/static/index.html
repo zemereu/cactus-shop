@@ -8,196 +8,275 @@
     <meta property="og:title" content="Cactus Shop — Cactuși și Suculente Premium">
     <meta property="og:description" content="Descoperă colecția noastră de cactuși și suculente. Livrare rapidă, ambalare securizată.">
     <meta property="og:type" content="website">
-    <!-- Importăm fontul Poppins -->
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Efect pentru butoanele din pagină */
-        .cta-button {
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-        .cta-button.primary:hover {
-            transform: scale(1.05);
-            background-color: #e68a00 !important;
-        }
-        .cta-button.secondary:hover {
-            transform: scale(1.05);
-            background-color: rgba(255, 152, 0, 0.2) !important;
-        }
-
-        /* Efect de ridicare pentru carduri (hover) */
-        .hover-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .hover-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(47, 105, 75, 0.15) !important;
-        }
-
-        /* NOU: Efect pentru butoanele din header */
-        .header-btn {
-            background-color: transparent;
-            border: 2px solid #2f694b;
-            color: #2f694b;
-            padding: 8px 20px;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        .header-btn:hover {
-            background-color: #2f694b;
-            color: #fdf2b8;
-        }
-    </style>
     <script src="https://kit.fontawesome.com/4f1b040aec.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="dist/styles.css">
     <link rel="icon" href="images/logo.png" type="image/png">
+
+    <style>
+        .landing, .landing * { box-sizing: border-box; }
+        .landing { margin: 0; font-family: 'Poppins', sans-serif; background: #fdf2b8; color: #2f694b; line-height: 1.7; }
+        .landing a { color: inherit; }
+        .landing img { display: block; max-width: 100%; object-fit: cover; }
+        .landing h1, .landing h2, .landing h3 { line-height: 1.2; }
+        .landing p { color: #52614c; }
+
+        .landing > header { width: min(1180px, calc(100% - 48px)); margin: auto; display: flex; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid #2f694b26; }
+        .landing header a { text-decoration: none; }
+        .landing header img { width: 56px; height: 56px; object-fit: contain; }
+        .landing header h1 { font-size: 1.4rem; margin: 0; }
+        .landing > header > div:last-child { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+        .landing > header > div:last-child > div { position: relative; }
+        .landing .header-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; font-size: .85rem; }
+        .landing #account-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 230px; padding: 8px; border: 1px solid #2f694b; border-radius: 12px; box-shadow: 0 8px 24px #2f694b22; z-index: 100; }
+        .landing #account-dropdown a { display: block; padding: 12px; border-radius: 6px; font-size: .85rem; }
+        .landing #dropdown-logout-btn { color: #b13830; }
+
+        .landing main { padding: 0 !important; }
+        .landing main > section { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
+        .landing main > section:first-child { padding: 64px 0; }
+        .landing main > section:first-child > div { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 48px; padding: 48px; background: #2f694b; color: #fdf2b8; border-radius: 28px; }
+        .landing main > section:first-child h2 { margin: 0 0 24px; font-size: clamp(2.3rem, 4.6vw, 4rem); letter-spacing: -.04em; line-height: 1.08; }
+        .landing main > section:first-child p { max-width: 45ch; margin: 0 0 36px; font-size: 1.1rem; color: #fdf2b8; line-height: 1.8; }
+        .landing main > section:first-child img { width: 100%; height: 460px; border-radius: 100px 100px 16px 16px; background: #e6e8d8; }
+
+        .landing .enter-shop { display: inline-flex; align-items: center; justify-content: center; gap: 16px; width: min(100%, 400px); min-height: 78px; padding: 20px 28px; background: #ffad32; color: #173d2b; border-radius: 14px; font-size: 1.35rem; font-weight: 700; text-decoration: none; box-shadow: 0 8px 20px #2f694b26; }
+        .landing .enter-shop:hover { background: #ffc15e; }
+        .landing .enter-shop:focus-visible { outline: 3px solid #fdf2b8; outline-offset: 5px; }
+
+        .landing main > section:nth-child(2) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding-bottom: 80px; }
+        .landing .trust-item { min-width: 0; padding: 32px; background: #fffdf4; border: 1px solid #d8dfce; border-radius: 18px; }
+        .landing .trust-item > div { font-size: 1.8rem; margin-bottom: 20px; }
+        .landing .trust-item h3 { margin: 0 0 10px; font-size: 1rem; }
+        .landing .trust-item p { margin: 0; font-size: .95rem; }
+
+        .landing #despre-noi { width: 100%; padding: 80px 24px; background: #fffdf4; }
+        .landing #despre-noi > div { max-width: 1180px; margin: auto; }
+        .landing #despre-noi h2 { margin: 0 0 56px; font-size: 2.6rem; text-align: center; }
+        .landing #despre-noi > div > div { display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 48px; }
+        .landing #despre-noi > div > div + div { margin-top: 64px; grid-template-columns: 1.15fr 1fr; }
+        .landing #despre-noi h3 { margin: 0 0 16px; font-size: 1.3rem; }
+        .landing #despre-noi p { font-size: 1.05rem; line-height: 1.8; margin: 0 0 20px; }
+        .landing #despre-noi img { width: 100%; height: 360px; border-radius: 16px; }
+
+        .landing main > section:last-child { width: 100%; padding: 80px 24px; background: #2f694b; color: #fdf2b8; }
+        .landing main > section:last-child > div { max-width: 1180px; margin: auto; }
+        .landing main > section:last-child h2 { margin: 0 0 40px; font-size: 2.6rem; }
+        .landing #general-reviews-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .landing #general-reviews-container > p { color: #fdf2b8; }
+        .landing #general-reviews-container > div { min-width: 0; padding: 24px !important; box-shadow: none !important; overflow-wrap: anywhere; }
+        .landing main > section:last-child a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 24px; text-underline-offset: 5px; }
+        .landing main > section:last-child a:focus-visible { outline-color: #fdf2b8; }
+
+        .landing > footer { padding: 24px; text-align: center; font-size: .8rem; }
+        .landing > footer a { display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 4px; }
+
+        @media (max-width: 900px) {
+            .landing main > section:first-child > div { gap: 28px; padding: 32px; }
+            .landing main > section:first-child img { height: 400px; }
+            .landing #despre-noi > div > div { gap: 28px; }
+        }
+
+        @media (max-width: 640px) {
+            .landing > header { width: calc(100% - 32px); padding: 16px 0 !important; flex-wrap: wrap; gap: 8px; }
+            .landing header img { width: 40px; height: 40px !important; }
+            .landing header h1 { font-size: 1.15rem !important; }
+            .landing > header > div:last-child { flex: 1 1 100%; justify-content: flex-end; gap: 12px; }
+            .landing main > section { width: calc(100% - 32px); }
+            .landing main > section:first-child { padding: 28px 0; }
+            .landing main > section:first-child > div { padding: 28px 20px; border-radius: 20px; }
+
+            .landing main > section:first-child > div,
+            .landing main > section:nth-child(2),
+            .landing #despre-noi > div > div,
+            .landing #despre-noi > div > div + div {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .landing main > section:first-child h2 { font-size: clamp(2.2rem, 9vw, 3rem); }
+            .landing .enter-shop { width: 100%; min-height: 72px; font-size: 1.2rem; padding: 18px; }
+            .landing main > section:first-child img { height: 260px; border-radius: 64px 64px 16px 16px; }
+            .landing main > section:nth-child(2) { gap: 16px; padding-bottom: 40px; }
+            .landing .trust-item { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; }
+            .landing .trust-item > div { grid-row: 1 / 3; }
+            .landing .trust-item p { grid-column: 2; }
+            .landing #despre-noi { padding: 48px 16px; }
+            .landing #despre-noi h2, .landing main > section:last-child h2 { font-size: 2rem; }
+            .landing #despre-noi img { height: 240px; }
+            .landing main > section:last-child { padding: 40px 16px; }
+        }
+    </style>
 </head>
-<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh;">
 
-<!-- HEADER (logo stânga, nume centru, cont cu dropdown dreapta) -->
-<header style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 20px 40px; background-color: #fdf2b8; border-bottom: 2px solid rgba(47, 105, 75, 0.1);">
-
-    <!-- Stânga: Logo -->
+<body class="landing">
+<header>
     <div>
-        <a href="index.html" style="text-decoration: none;">
-            <img src="images/logo.png" alt="Logo Cactus Shop" style="height: 75px; width: auto; object-fit: contain;">
+        <a href="index.html">
+            <img src="images/logo.png" alt="Logo Cactus Shop">
         </a>
     </div>
 
-    <!-- Centru: Nume -->
-    <a href="index.html" style="text-decoration: none;">
-        <h1 style="margin: 0; color: #2f694b; font-size: 2.2em; font-weight: 900;">Cactus Shop</h1>
+    <a href="index.html">
+        <h1>Cactus Shop</h1>
     </a>
 
-    <!-- Dreapta: Butoane -->
-    <div style="display: flex; gap: 15px; justify-self: end; align-items: center;">
-        <a href="orders.html" id="header-verifica-btn" class="header-btn"><i class="fa-solid fa-magnifying-glass"></i> Verifică Comanda</a>
+    <div>
+        <a href="orders.html" id="header-verifica-btn" class="header-btn">
+            <i class="fa-solid fa-magnifying-glass"></i> Verifică Comanda
+        </a>
 
-        <div style="position: relative;">
-            <a href="account.html" id="account-link" class="header-btn" style="display: inline-block;"><i class="fa-solid fa-user"></i> Cont</a>
+        <div>
+            <a href="account.html" id="account-link" class="header-btn">
+                <i class="fa-solid fa-user"></i> Cont
+            </a>
 
-            <div id="account-dropdown" style="display: none; position: absolute; top: 50px; right: 0; width: 200px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px; text-align: left;">
-                <a href="orders.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-box"></i> Vezi comenzi</a>
-                <a href="account.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-gear"></i> Detalii cont</a>
-                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-right-from-bracket"></i> Delogare</a>
+            <div id="account-dropdown" style="display: none;">
+                <a href="orders.html">
+                    <i class="fa-solid fa-box"></i> Vezi comenzi
+                </a>
+                <a href="account.html">
+                    <i class="fa-solid fa-gear"></i> Detalii cont
+                </a>
+                <a href="#" id="dropdown-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Delogare
+                </a>
             </div>
         </div>
     </div>
-
 </header>
 
-<!-- CONȚINUTUL PRINCIPAL -->
-<main style="flex-grow: 1;">
+<main>
+    <!-- Prezentare principală -->
+    <section>
+        <div>
+            <div>
+                <h2>PREMIUM CACTI &amp; SUCCULENTS</h2>
 
-    <!-- 1. Secțiunea Principală (HERO) -->
-    <section style="display: flex; align-items: center; justify-content: center; padding: 60px 20px;">
-        <div style="max-width: 1100px; width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; background-color: #2f694b; color: #fdf2b8; padding: 50px; border-radius: 16px; box-shadow: 0 10px 30px rgba(47, 105, 75, 0.3);">
-
-            <!-- Text și Butoane (Stânga) -->
-            <div style="flex: 1 1 400px; padding-right: 30px; margin-bottom: 20px;">
-                <h2 style="font-size: 3.2em; margin-top: 0; margin-bottom: 20px; line-height: 1.1;">
-                    PREMIUM CACTI & SUCCULENTS
-                </h2>
-                <p style="font-size: 1.2em; margin-bottom: 30px; line-height: 1.6; opacity: 0.9;">
-                    Descoperă colecția noastră rară. Plante rezistente, perfecte pentru biroul sau livingul tău, livrate în siguranță direct la ușă.
+                <p>
+                    Descoperă colecția noastră rară. Plante rezistente, perfecte pentru
+                    biroul sau livingul tău, livrate în siguranță direct la ușă.
                 </p>
 
-                <!-- Containerul pentru ambele butoane -->
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <a href="shop.html" class="cta-button primary" style="background-color: #FF9800; color: #fdf2b8; padding: 15px 30px; text-decoration: none; font-size: 1.2em; font-weight: bold; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.4);">
+                <div>
+                    <a href="shop.html" class="enter-shop">
                         <i class="fa-solid fa-cart-shopping"></i> Intră în Magazin
                     </a>
                 </div>
             </div>
 
-            <!-- Imaginea de impact (Dreapta) -->
-            <div style="flex: 1 1 300px; text-align: center;">
-                <img loading="lazy" src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=600&q=80" alt="Cactus Decorativ" style="max-width: 100%; height: 400px; object-fit: cover; border-radius: 12px; border: 4px solid #fdf2b8; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+            <div>
+                <img
+                        fetchpriority="high"
+                        src="https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&amp;fit=crop&amp;w=600&amp;q=80"
+                        alt="Cactus Decorativ">
             </div>
         </div>
     </section>
 
-    <!-- 2. Banda de Încredere (Trust Badges) -->
-    <section style="max-width: 1100px; margin: 0 auto 80px auto; padding: 0 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
-        <!-- Badge 1 -->
-        <div class="hover-card" style="flex: 1 1 300px; background-color: white; padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid #2f694b;">
-            <div style="font-size: 2.5em; margin-bottom: 15px; color: #2f694b;"><i class="fa-solid fa-box-open"></i></div>
-            <h3 style="color: #2f694b; margin: 0 0 10px 0; font-size: 1.3em;">Ambalare Securizată</h3>
-            <p style="margin: 0; color: #555; line-height: 1.5;">Plantele ajung perfect intacte la tine, protejate cu materiale ecologice.</p>
+    <!-- Avantaje -->
+    <section>
+        <div class="trust-item">
+            <div>
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3>Ambalare Securizată</h3>
+            <p>Plantele ajung perfect intacte la tine, protejate cu materiale ecologice.</p>
         </div>
-        <!-- Badge 2 -->
-        <div class="hover-card" style="flex: 1 1 300px; background-color: white; padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid #2f694b;">
-            <div style="font-size: 2.5em; margin-bottom: 15px; color: #2f694b;"><i class="fa-solid fa-truck-fast"></i></div>
-            <h3 style="color: #2f694b; margin: 0 0 10px 0; font-size: 1.3em;">Livrare Rapidă</h3>
-            <p style="margin: 0; color: #555; line-height: 1.5;">Expediem comenzile în 24-48 de ore, oriunde în țară.</p>
+
+        <div class="trust-item">
+            <div>
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <h3>Livrare Rapidă</h3>
+            <p>Expediem comenzile în 24-48 de ore, oriunde în țară.</p>
         </div>
-        <!-- Badge 3 -->
-        <div class="hover-card" style="flex: 1 1 300px; background-color: white; padding: 30px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid #2f694b;">
-            <div style="font-size: 2.5em; margin-bottom: 15px; color: #2f694b;"><i class="fa-solid fa-seedling"></i></div>
-            <h3 style="color: #2f694b; margin: 0 0 10px 0; font-size: 1.3em;">Calitate Garantată</h3>
-            <p style="margin: 0; color: #555; line-height: 1.5;">Toți cactușii sunt crescuți cu pasiune, în condiții optime de seră.</p>
+
+        <div class="trust-item">
+            <div>
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <h3>Calitate Garantată</h3>
+            <p>Toți cactușii sunt crescuți cu pasiune, în condiții optime de seră.</p>
         </div>
     </section>
 
-    <!-- Despre Noi -->
-    <section id="despre-noi" style="padding: 80px 20px; background-color: white;">
-        <div style="max-width: 1100px; margin: 0 auto;">
-            <h2 style="text-align: center; color: #2f694b; font-size: 2.8em; margin-top: 0; margin-bottom: 50px;">Despre Noi</h2>
+    <!-- Despre noi -->
+    <section id="despre-noi">
+        <div>
+            <h2>Despre Noi</h2>
 
-            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px; margin-bottom: 60px;">
-                <div style="flex: 1 1 300px;">
-                    <img loading="lazy" src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=600&q=80" alt="Sera noastra" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+            <div>
+                <div>
+                    <img
+                            loading="lazy"
+                            src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&amp;fit=crop&amp;w=600&amp;q=80"
+                            alt="Sera noastra">
                 </div>
-                <div style="flex: 1 1 400px;">
-                    <h3 style="color: #2f694b; margin-top: 0;">Pasiune pentru plante din 2020</h3>
-                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
-                        Totul a început cu un singur cactus pe pervaz. Astăzi, creștem peste 200 de specii de cactuși și suculente în sera noastră din România. Fiecare plantă e îngrijită manual, de la semințe până la livrare.
+
+                <div>
+                    <h3>Pasiune pentru plante din 2020</h3>
+
+                    <p>
+                        Totul a început cu un singur cactus pe pervaz. Astăzi,
+                        creștem peste 200 de specii de cactuși și suculente în sera
+                        noastră din România. Fiecare plantă e îngrijită manual,
+                        de la semințe până la livrare.
                     </p>
-                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
-                        Misiunea noastră e simplă: să aducem un colț de natură în casa ta, cu plante sănătoase, ambalate cu grijă și livrate rapid.
+
+                    <p>
+                        Misiunea noastră e simplă: să aducem un colț de natură în
+                        casa ta, cu plante sănătoase, ambalate cu grijă și livrate rapid.
                     </p>
                 </div>
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px;">
-                <div style="flex: 1 1 400px; order: 1;">
-                    <h3 style="color: #2f694b; margin-top: 0;">De ce noi?</h3>
-                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
-                        Nu suntem un depozit — suntem cultivatori. Știm povestea fiecărei plante pentru că am crescut-o noi. Oferim sfaturi de îngrijire personalizate și suntem mereu la un mesaj distanță dacă ai nevoie de ajutor.
+            <div>
+                <div>
+                    <h3>De ce noi?</h3>
+
+                    <p>
+                        Nu suntem un depozit — suntem cultivatori. Știm povestea
+                        fiecărei plante pentru că am crescut-o noi. Oferim sfaturi
+                        de îngrijire personalizate și suntem mereu la un mesaj
+                        distanță dacă ai nevoie de ajutor.
                     </p>
-                    <p style="color: #555; line-height: 1.8; font-size: 1.05em;">
-                        Ambalăm ecologic, expediem în 24-48 de ore, și garantăm că planta ajunge vie și sănătoasă la tine.
+
+                    <p>
+                        Ambalăm ecologic, expediem în 24-48 de ore, și garantăm
+                        că planta ajunge vie și sănătoasă la tine.
                     </p>
                 </div>
-                <div style="flex: 1 1 300px; order: 2;">
-                    <img loading="lazy" src="https://images.unsplash.com/photo-1446071103084-c257b5f70672?auto=format&fit=crop&w=600&q=80" alt="Colectia noastra" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+
+                <div>
+                    <img
+                            loading="lazy"
+                            src="https://images.unsplash.com/photo-1446071103084-c257b5f70672?auto=format&amp;fit=crop&amp;w=600&amp;q=80"
+                            alt="Colectia noastra">
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 3. Secțiunea de Recenzii (reale, încărcate din backend) -->
-    <section style="background-color: #2f694b; padding: 80px 20px;">
-        <div style="max-width: 1100px; margin: 0 auto; text-align: center;">
-            <h2 style="color: #fdf2b8; font-size: 2.8em; margin-top: 0; margin-bottom: 50px;">Ce spun clienții noștri</h2>
+    <!-- Recenzii încărcate din backend -->
+    <section>
+        <div>
+            <h2>Ce spun clienții noștri</h2>
 
-            <div id="general-reviews-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
-                <p style="color: #fdf2b8;">Se încarcă recenziile...</p>
+            <div id="general-reviews-container">
+                <p>Se încarcă recenziile...</p>
             </div>
 
-            <a href="reviews.html" style="display: inline-block; margin-top: 30px; color: #fdf2b8; text-decoration: none; font-weight: bold; border-bottom: 2px solid #fdf2b8;">
+            <a href="reviews.html">
                 Vezi toate recenziile / Lasă o recenzie →
             </a>
         </div>
     </section>
-
 </main>
 
-<!-- Footer-ul legal -->
-<footer style="text-align: center; padding: 30px 20px; color: #2f694b; font-weight: bold; border-top: 1px solid rgba(47, 105, 75, 0.1);">
-    <div style="margin-bottom: 12px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-        <a href="terms.html" style="color: #2f694b; text-decoration: none; border-bottom: 1px solid #2f694b;">Termeni și Condiții</a>
+<footer>
+    <div>
+        <a href="terms.html">Termeni și Condiții</a>
     </div>
     &copy; 2026 Cactus Shop. Toate drepturile rezervate.
 </footer>

@@ -122,7 +122,7 @@ body.view-grid #cacti-list {
 #cacti-list > .cactus-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 22px rgba(35, 65, 45, .08);
-    border-color: #bacdbd;
+    border-color: var(--green);
 }
 
 .admin-tab:hover {
@@ -219,7 +219,7 @@ a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
     gap: 12px;
     min-width: 0;
     padding: 14px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--green);
     border-radius: 14px;
     background: var(--surface);
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
@@ -1301,3 +1301,32 @@ header.compact-shop-header:has(#search-bar) > div:last-child {
     .cactus-card .cactus-details h2 { font-size: 1rem; }
     .filter-chip, .filter-reset { min-height: 44px; }
 }
+
+/* Recently viewed: equal cards and two-line product names. */
+#recent-products > a {
+    box-sizing: border-box;
+    flex: 0 0 160px !important;
+    width: 160px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+#recent-products > a > img {
+    display: block;
+    flex-shrink: 0;
+}
+#recent-products > a > p:first-of-type {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal !important;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+    height: 2.8em;
+    flex-shrink: 0;
+}
+#recent-products > a > p:last-of-type {
+    margin-top: auto !important;
+}
+
