@@ -467,3 +467,58 @@ function hybridBadge(product: { hybrid?: boolean }): string {
         ? '<span class="hybrid-badge"><i class="fa-solid fa-seedling" aria-hidden="true"></i> Hibrid</span>'
         : '';
 }
+
+
+// Shared markup for catalog and recently viewed product cards.
+function renderProductCard(cactus: Cactus, hearted = false): string {
+    const validImage = cactus.imageUrl ||
+        "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
+
+    const stockLabel = cactus.stock === 1
+        ? '1 exemplar rămas'
+        : cactus.stock > 1
+            ? `${cactus.stock} exemplare rămase`
+            : 'Stoc epuizat';
+
+    return `
+        <article class="cactus-card">
+            <div class="card-actions">
+                <button class="wishlist-btn card-action-btn"
+                    data-id="${cactus.id}"
+                    style="color:${hearted ? '#d32f2f' : '#607568'};"
+                    title="Favorite"
+                    aria-label="Favorite"
+                    aria-pressed="${hearted}">
+                    <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>
+                </button>
+                <button class="zoom-btn card-action-btn"
+                    data-img="${escapeHtml(validImage)}"
+                    title="Mărește imaginea"
+                    aria-label="Mărește imaginea">
+                    <i class="fa-solid fa-expand" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <a class="cactus-photo" href="product.html?id=${cactus.id}">
+                <img loading="lazy"
+                    class="cactus-image"
+                    src="${escapeHtml(validImage)}"
+                    alt="${escapeHtml(cactus.name)}">
+            </a>
+
+            <div class="cactus-details">
+                <span class="cactus-category">${escapeHtml(cactus.category)}</span>
+                ${hybridBadge(cactus)}
+                <a class="cactus-name-link" href="product.html?id=${cactus.id}">
+                    <h2 title="${escapeHtml(cactus.name)}">${escapeHtml(cactus.name)}</h2>
+                </a>
+                <p class="cactus-price">${formatPrice(cactus.price)} <span>RON</span></p>
+                <p class="cactus-stock ${cactus.stock > 0 ? '' : 'is-unavailable'}">${stockLabel}</p>
+            </div>
+
+            <button class="${cactus.stock > 0 ? 'add-to-cart-btn' : 'sold-out-btn'}"
+                data-id="${cactus.id}" ${cactus.stock > 0 ? '' : 'disabled'}>
+                ${cactus.stock > 0 ? 'Adaugă în coș' : 'Stoc epuizat'}
+            </button>
+        </article>`;
+}

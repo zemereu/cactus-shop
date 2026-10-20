@@ -366,64 +366,15 @@ function renderCacti() {
                 `${cactiForSale.length} din ${totalProducts} ${totalProducts === 1 ? 'produs' : 'produse'}${pageInfo}`;
         }
 
-        for (const cactus of cactiForSale) {
-            const validImage = cactus.imageUrl ||
-                "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
-
-            const hearted = isWishlisted(cactus.id);
-            const stockLabel = cactus.stock === 1
-                ? '1 exemplar rămas'
-                : cactus.stock > 1
-                    ? `${cactus.stock} exemplare rămase`
-                    : 'Stoc epuizat';
-
-            htmlContent += `
-                <article class="cactus-card">
-                    <div class="card-actions">
-                        <button class="wishlist-btn card-action-btn"
-                            data-id="${cactus.id}"
-                            style="color:${hearted ? '#d32f2f' : '#607568'};"
-                            title="Favorite"
-                            aria-label="Favorite"
-                            aria-pressed="${hearted}">
-                            <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>
-                        </button>
-                        <button class="zoom-btn card-action-btn"
-                            data-img="${escapeHtml(validImage)}"
-                            title="Mărește imaginea"
-                            aria-label="Mărește imaginea">
-                            <i class="fa-solid fa-expand" aria-hidden="true"></i>
-                        </button>
-                    </div>
-
-                    <a class="cactus-photo" href="product.html?id=${cactus.id}">
-                        <img loading="lazy"
-                            class="cactus-image"
-                            src="${escapeHtml(validImage)}"
-                            alt="${escapeHtml(cactus.name)}">
-                    </a>
-
-                    <div class="cactus-details">
-                        <span class="cactus-category">${escapeHtml(cactus.category)}</span>
-                        ${hybridBadge(cactus)}
-                        <a class="cactus-name-link" href="product.html?id=${cactus.id}">
-                            <h2 title="${escapeHtml(cactus.name)}">${escapeHtml(cactus.name)}</h2>
-                        </a>
-                        <p class="cactus-price">${formatPrice(cactus.price)} <span>RON</span></p>
-                        <p class="cactus-stock ${cactus.stock > 0 ? '' : 'is-unavailable'}">${stockLabel}</p>
-                    </div>
-
-                    <button class="${cactus.stock > 0 ? 'add-to-cart-btn' : 'sold-out-btn'}"
-                        data-id="${cactus.id}" ${cactus.stock > 0 ? '' : 'disabled'}>
-                        ${cactus.stock > 0 ? 'Adaugă în coș' : 'Stoc epuizat'}
-                    </button>
-                </article>`;
-        }
+        htmlContent = cactiForSale.map(cactus => renderProductCard(cactus, isWishlisted(cactus.id))).join('');
     }
 
     container.innerHTML = htmlContent;
+    bindProductCards(container, cactiForSale);
+}
 
-    document.querySelectorAll('.cactus-image').forEach(img => {
+function bindProductCards(container: HTMLElement, products: Cactus[]) {
+    container.querySelectorAll('.cactus-image').forEach(img => {
         (img as HTMLElement).style.cursor = 'zoom-in';
 
         img.addEventListener('click', event => {
@@ -440,7 +391,7 @@ function renderCacti() {
         });
     });
 
-    document.querySelectorAll('.zoom-btn').forEach(btn => {
+    container.querySelectorAll('.zoom-btn').forEach(btn => {
         btn.addEventListener('click', event => {
             event.preventDefault();
             event.stopPropagation();
@@ -460,7 +411,7 @@ function renderCacti() {
         });
     });
 
-    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+    container.querySelectorAll('.wishlist-btn').forEach(btn => {
         btn.addEventListener('click', event => {
             const id = Number(
                 (event.target as HTMLElement).closest('[data-id]')?.getAttribute('data-id')
@@ -471,9 +422,11 @@ function renderCacti() {
             toggleWishlist(id);
 
             const liked = isWishlisted(id);
-            (btn as HTMLElement).style.color = liked ? '#d32f2f' : '#999';
-            btn.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>`;
-            btn.setAttribute('aria-pressed', String(liked));
+            document.querySelectorAll<HTMLButtonElement>(`.wishlist-btn[data-id="${id}"]`).forEach(heart => {
+                heart.style.color = liked ? '#d32f2f' : '#607568';
+                heart.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>`;
+                heart.setAttribute('aria-pressed', String(liked));
+            });
 
             if (currentSort === 'favorites') {
                 currentPage = 0;
@@ -482,11 +435,11 @@ function renderCacti() {
         });
     });
 
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    container.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', event => {
-            const clickedButton = event.target as HTMLButtonElement;
+            const clickedButton = event.currentTarget as HTMLButtonElement;
             const cactusId = Number(clickedButton.getAttribute('data-id'));
-            const cactusToAdd = cactiForSale.find(c => c.id === cactusId);
+            const cactusToAdd = products.find(c => c.id === cactusId);
 
             if (!cactusToAdd) return;
 
@@ -954,55 +907,26 @@ function renderActiveFilters() {
     }
 }
 
-function renderRecentlyViewed() {
+async function renderRecentlyViewed() {
     const container = document.getElementById('recent-products');
     const wrapper = document.getElementById('recently-viewed');
     if (!container || !wrapper) return;
 
-    const recent: number[] = readStoredProductIds('recentlyViewed');
-
-    if (recent.length === 0) {
-        wrapper.style.display = 'none';
-        return;
-    }
-
-    Promise.all(
-        recent.slice(0, 4).map(id =>
-            fetch(`${API_BASE}/api/cacti/${id}`)
-                .then(response => response.ok ? response.json() : null)
-                .catch(() => null)
-        )
-    ).then(products => {
-        const valid = products.filter(Boolean);
-
-        if (valid.length === 0) {
-            wrapper.style.display = 'none';
-            return;
+    const ids = readStoredProductIds('recentlyViewed').slice(0, 5);
+    const results = await Promise.all(ids.map(async id => {
+        try {
+            const response = await fetch(`${API_BASE}/api/cacti/${id}`);
+            if (!response.ok) return null;
+            const product: Cactus = await response.json();
+            return product && product.id === id && product.active !== false ? product : null;
+        } catch {
+            return null;
         }
-
-        wrapper.style.display = 'block';
-
-        container.innerHTML = valid.map((product: any) => {
-            const img = product.imageUrl ||
-                'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80';
-
-            return `
-                <a href="product.html?id=${product.id}"
-                    style="flex:0 0 140px; text-decoration:none; border:2px solid #2f694b;
-                    border-radius:8px; padding:8px; text-align:center;">
-                    <img loading="lazy" src="${escapeHtml(img)}"
-                        style="width:100%; height:80px; object-fit:cover; border-radius:4px;">
-                    <p style="color:#2f694b; font-weight:bold; margin:6px 0 2px; font-size:0.8em;
-                        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        ${escapeHtml(product.name)}
-                    </p>
-                    <p style="color:#2f694b; font-weight:bold; margin:0; font-size:0.85em;">
-                        ${formatPrice(product.price)} RON
-                    </p>
-                    ${hybridBadge(product)}
-                </a>`;
-        }).join('');
-    });
+    }));
+    const products = results.filter((product): product is Cactus => product !== null);
+    container.innerHTML = products.map(product => renderProductCard(product, isWishlisted(product.id))).join('');
+    bindProductCards(container, products);
+    wrapper.hidden = products.length === 0;
 }
 
 renderRecentlyViewed();
@@ -1017,3 +941,4 @@ window.addEventListener('storage', event => {
 
 fetchCacti();
 updateCartUI(false);
+
