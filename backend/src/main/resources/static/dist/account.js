@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 let passwordResetToken = new URLSearchParams(window.location.hash.slice(1)).get('reset');
 if (passwordResetToken)
     window.history.replaceState(null, '', 'account.html');
+// API_BASE, CUSTOMER_NAME_KEY, authFetch vin din shared.ts
 const REDIRECT_FALLBACK = "shop.html";
 function getRedirectTarget() {
     const referrer = document.referrer;

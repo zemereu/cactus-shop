@@ -195,9 +195,16 @@ function showError() {
 function loadProductReviews(cactusId) {
     return __awaiter(this, void 0, void 0, function* () {
         const container = document.getElementById('product-reviews');
+        if (!container)
+            return;
+        container.innerHTML = '<p role="status">Se încarcă recenziile...</p>';
         try {
             const response = yield fetch(`${API_BASE}/api/reviews/product/${cactusId}`);
+            if (!response.ok)
+                throw new Error(yield responseError(response));
             const reviews = yield response.json();
+            if (!Array.isArray(reviews))
+                throw new Error('Răspuns de recenzii invalid.');
             if (reviews.length === 0) {
                 container.innerHTML =
                     '<p style="color:#999; font-style:italic;">Nicio recenzie pentru acest produs.</p>';

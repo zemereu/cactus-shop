@@ -48,14 +48,10 @@ renderCheckoutItems();
 let isLoggedIn = false;
 function prefillFromAccount() {
     return __awaiter(this, void 0, void 0, function* () {
-        const name = localStorage.getItem(CUSTOMER_NAME_KEY);
-        if (!name)
-            return;
         try {
-            const response = yield authFetch(`${API_BASE}/api/customers/me`);
-            if (!response.ok)
+            const profile = yield getCustomerProfile();
+            if (!profile)
                 return;
-            const profile = yield response.json();
             isLoggedIn = true;
             document.getElementById('checkout-name').value = profile.name || '';
             document.getElementById('checkout-email').value = profile.email || '';
@@ -83,7 +79,7 @@ function prefillFromAccount() {
         }
     });
 }
-prefillFromAccount();
+const accountPrefill = prefillFromAccount();
 // Aceeași cheie este păstrată la reîncercări cu rezultat incert.
 const CHECKOUT_ATTEMPT_KEY = 'checkoutAttempt';
 const checkoutSubmitBtn = document.getElementById('submit-order-btn');
@@ -91,6 +87,7 @@ let checkoutSubmitting = false;
 let checkoutCompleted = false;
 if (checkoutSubmitBtn) {
     checkoutSubmitBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
+        yield accountPrefill;
         if (checkoutSubmitting || checkoutCompleted)
             return;
         cart.splice(0, cart.length, ...loadCartFromStorage());

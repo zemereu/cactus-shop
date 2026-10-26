@@ -26,7 +26,9 @@ async function loadReviews() {
 
     try {
         const response = await fetch(endpoint);
+        if (!response.ok) throw new Error(await responseError(response));
         const reviews: ReviewResponse[] = await response.json();
+        if (!Array.isArray(reviews)) throw new Error('Răspuns de recenzii invalid.');
 
         if (reviews.length === 0) {
             listEl.innerHTML = `<p style="text-align: center; color: #999; font-style: italic;">Nicio recenzie încă. Fii primul!</p>`;

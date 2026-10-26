@@ -25,6 +25,35 @@ const API_BASE = '';
 function authFetch(url, options = {}) {
     return fetch(url, Object.assign(Object.assign({}, options), { credentials: 'include', headers: Object.assign({}, options.headers) }));
 }
+// Share concurrent checks, but always recheck after a request has finished.
+let customerProfileRequest = null;
+function getCustomerProfile() {
+    if (customerProfileRequest)
+        return customerProfileRequest;
+    customerProfileRequest = (() => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield authFetch(`${API_BASE}/api/customers/me`);
+            if (response.status === 401 || response.status === 403) {
+                try {
+                    localStorage.removeItem(CUSTOMER_NAME_KEY);
+                }
+                catch (_a) { }
+                return null;
+            }
+            if (!response.ok)
+                throw new Error(yield responseError(response));
+            const profile = yield response.json();
+            if (!profile || typeof profile.name !== 'string' || typeof profile.email !== 'string') {
+                throw new Error('Răspuns de cont invalid.');
+            }
+            return profile;
+        }
+        finally {
+            customerProfileRequest = null;
+        }
+    }))();
+    return customerProfileRequest;
+}
 function escapeHtml(unsafe) {
     if (unsafe === null || unsafe === undefined)
         return "";
@@ -108,11 +137,7 @@ function initAccountDropdown() {
         let authenticated = false;
         const refresh = () => __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield authFetch(`${API_BASE}/api/customers/me`);
-                if (!response.ok && response.status !== 401 && response.status !== 403) {
-                    return;
-                }
-                authenticated = response.ok;
+                authenticated = (yield getCustomerProfile()) !== null;
                 if (authenticated) {
                     link.title = 'Contul meu';
                 }

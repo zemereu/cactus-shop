@@ -23,6 +23,37 @@ function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
     });
 }
 
+interface CustomerProfile {
+    name: string;
+    email: string;
+    address: string;
+    verified: boolean;
+}
+
+// Share concurrent checks, but always recheck after a request has finished.
+let customerProfileRequest: Promise<CustomerProfile | null> | null = null;
+function getCustomerProfile(): Promise<CustomerProfile | null> {
+    if (customerProfileRequest) return customerProfileRequest;
+    customerProfileRequest = (async () => {
+        try {
+            const response = await authFetch(`${API_BASE}/api/customers/me`);
+            if (response.status === 401 || response.status === 403) {
+                try { localStorage.removeItem(CUSTOMER_NAME_KEY); } catch {}
+                return null;
+            }
+            if (!response.ok) throw new Error(await responseError(response));
+            const profile = await response.json();
+            if (!profile || typeof profile.name !== 'string' || typeof profile.email !== 'string') {
+                throw new Error('Răspuns de cont invalid.');
+            }
+            return profile as CustomerProfile;
+        } finally {
+            customerProfileRequest = null;
+        }
+    })();
+    return customerProfileRequest;
+}
+
 interface CartItem {
     id: number;
     name: string;
@@ -157,13 +188,7 @@ async function initAccountDropdown() {
 
     const refresh = async () => {
         try {
-            const response = await authFetch(`${API_BASE}/api/customers/me`);
-
-            if (!response.ok && response.status !== 401 && response.status !== 403) {
-                return;
-            }
-
-            authenticated = response.ok;
+            authenticated = (await getCustomerProfile()) !== null;
 
             if (authenticated) {
                 link.title = 'Contul meu';
@@ -369,5 +394,3 @@ function hybridBadge(product: { hybrid?: boolean }): string {
         ? '<span class="hybrid-badge"><i class="fa-solid fa-seedling" aria-hidden="true"></i> Hibrid</span>'
         : '';
 }
-
-

@@ -3,12 +3,6 @@ if (passwordResetToken) window.history.replaceState(null, '', 'account.html');
 
 // API_BASE, CUSTOMER_NAME_KEY, authFetch vin din shared.ts
 
-interface CustomerProfile {
-    name: string;
-    email: string;
-    address: string;
-    verified: boolean;
-}
 
 const REDIRECT_FALLBACK = "shop.html";
 

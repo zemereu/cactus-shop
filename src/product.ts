@@ -228,11 +228,15 @@ function showError() {
 }
 
 async function loadProductReviews(cactusId: number) {
-    const container = document.getElementById('product-reviews')!;
+    const container = document.getElementById('product-reviews');
+    if (!container) return;
+    container.innerHTML = '<p role="status">Se încarcă recenziile...</p>';
 
     try {
         const response = await fetch(`${API_BASE}/api/reviews/product/${cactusId}`);
+        if (!response.ok) throw new Error(await responseError(response));
         const reviews: ReviewResponse[] = await response.json();
+        if (!Array.isArray(reviews)) throw new Error('Răspuns de recenzii invalid.');
 
         if (reviews.length === 0) {
             container.innerHTML =
@@ -303,4 +307,5 @@ function renderSimilar(products: Cactus[]) {
 
 initImageZoom();
 loadProduct();
+
 

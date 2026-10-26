@@ -29,24 +29,18 @@ if (tabHistory)
     tabHistory.addEventListener('click', () => setComeziTab('history'));
 if (tabLookup)
     tabLookup.addEventListener('click', () => setComeziTab('lookup'));
-// --- Status badge color ---
-function comenziStatusColor(status) {
-    if (status === 'Livrată')
-        return '#2f694b';
-    if (status === 'Expediată')
-        return '#1976d2';
-    if (status === 'Plătită - în pregătire')
-        return '#FF9800';
-    return '#d32f2f'; // Neplătită
-}
-function comenziStatusIcon(status) {
-    if (status === 'Livrată')
-        return 'fa-circle-check';
-    if (status === 'Expediată')
-        return 'fa-truck';
-    if (status === 'Plătită - în pregătire')
-        return 'fa-box';
-    return 'fa-clock'; // Neplătită
+const orderStatusAppearance = {
+    'Neplătită': { color: '#d32f2f', icon: 'fa-clock' },
+    'Plătită - în pregătire': { color: '#FF9800', icon: 'fa-box' },
+    'Expediată': { color: '#1976d2', icon: 'fa-truck' },
+    'Livrată': { color: '#2f694b', icon: 'fa-circle-check' },
+    'Anulată': { color: '#666', icon: 'fa-circle-xmark' }
+};
+function orderStatusBadge(status) {
+    const appearance = orderStatusAppearance[status] || { color: '#666', icon: 'fa-circle-question' };
+    return `<span class="order-status-badge" style="background:${appearance.color}">
+        <i class="fa-solid ${appearance.icon}" aria-hidden="true"></i> ${escapeHtml(status)}
+    </span>`;
 }
 // --- Istoric comenzi (client logat) ---
 function loadOrderHistory() {
@@ -56,22 +50,27 @@ function loadOrderHistory() {
         const ordersList = document.getElementById('orders-list');
         if (!loggedIn || !notLogged || !ordersList)
             return;
-        // Verifică dacă suntem logați (fără a face request inutil)
-        if (!localStorage.getItem(CUSTOMER_NAME_KEY)) {
-            notLogged.style.display = 'block';
-            loggedIn.style.display = 'none';
-            return;
-        }
         loggedIn.style.display = 'block';
         ordersList.innerHTML = `<div style="text-align: center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5em; color: #2f694b;"></i><p style="color: #666; margin-top: 8px;">Se încarcă comenzile...</p></div>`;
+        notLogged.style.display = 'none';
         try {
-            const response = yield authFetch(`${API_BASE}/api/orders/my`);
-            if (!response.ok) {
+            const profile = yield getCustomerProfile();
+            if (!profile) {
                 notLogged.style.display = 'block';
                 loggedIn.style.display = 'none';
                 return;
             }
+            const response = yield authFetch(`${API_BASE}/api/orders/my`);
+            if (response.status === 401 || response.status === 403) {
+                notLogged.style.display = 'block';
+                loggedIn.style.display = 'none';
+                return;
+            }
+            if (!response.ok)
+                throw new Error(yield responseError(response));
             const orders = yield response.json();
+            if (!Array.isArray(orders))
+                throw new Error('Răspuns de comenzi invalid.');
             notLogged.style.display = 'none';
             loggedIn.style.display = 'block';
             if (orders.length === 0) {
@@ -85,23 +84,21 @@ function loadOrderHistory() {
                 </div>`;
                 return;
             }
-            ordersList.innerHTML = orders.map((o) => `
+            ordersList.innerHTML = orders.map(o => `
             <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #eee; margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <div class="order-summary-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                     <div>
                         <span style="color: #999; font-size: 0.85em;">Comanda</span>
                         <code style="background: #f5f0d8; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 4px;">${escapeHtml(o.orderToken)}</code>
                     </div>
-                    <span style="background: ${comenziStatusColor(o.status)}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
-                        <i class="fa-solid ${comenziStatusIcon(o.status)}"></i> ${escapeHtml(o.status)}
-                    </span>
+                    ${orderStatusBadge(o.status)}
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div class="order-summary-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div style="color: #555; font-size: 0.95em;">
                         <i class="fa-solid fa-leaf" style="color: #2f694b;"></i> ${escapeHtml(o.purchasedItems)}
                     </div>
                     <div style="font-weight: bold; color: #d32f2f; font-size: 1.1em;">
-                        ${o.totalPrice} RON
+                        ${formatPrice(o.totalPrice)} RON
                     </div>
                 </div>
             </div>
@@ -109,8 +106,9 @@ function loadOrderHistory() {
         }
         catch (error) {
             console.error("Eroare la incarcarea comenzilor:", error);
-            notLogged.style.display = 'block';
-            loggedIn.style.display = 'none';
+            notLogged.style.display = 'none';
+            loggedIn.style.display = 'block';
+            ordersList.innerHTML = '<p role="alert">Nu am putut încărca comenzile. Reîncearcă mai târziu.</p>';
         }
     });
 }
@@ -134,21 +132,21 @@ if (comenziLookupBtn) {
             params.append('orderToken', tokenInput);
             params.append('email', emailInput);
             const response = yield fetch(`${API_BASE}/api/orders/lookup?${params.toString()}`);
-            if (!response.ok) {
+            if (response.status === 404) {
                 resultDiv.innerHTML = `<p style="color: #d32f2f; text-align: center;"><i class="fa-solid fa-xmark"></i> Nu am gasit nicio comanda cu aceste date.</p>`;
                 return;
             }
+            if (!response.ok)
+                throw new Error(yield responseError(response));
             const order = yield response.json();
             resultDiv.innerHTML = `
                 <div style="background: #f8f4e0; padding: 20px; border-radius: 10px; margin-top: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <strong style="color: #2f694b;">Comanda #${order.id}</strong>
-                        <span style="background: ${comenziStatusColor(order.status)}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
-                            <i class="fa-solid ${comenziStatusIcon(order.status)}"></i> ${escapeHtml(order.status)}
-                        </span>
+                        ${orderStatusBadge(order.status)}
                     </div>
                     <p style="margin: 0 0 8px 0; color: #555;"><i class="fa-solid fa-leaf" style="color: #2f694b;"></i> ${escapeHtml(order.purchasedItems)}</p>
-                    <p style="margin: 0; font-weight: bold; color: #d32f2f;"><i class="fa-solid fa-tag"></i> ${order.totalPrice} RON</p>
+                    <p style="margin: 0; font-weight: bold; color: #d32f2f;"><i class="fa-solid fa-tag"></i> ${formatPrice(order.totalPrice)} RON</p>
                 </div>`;
         }
         catch (error) {

@@ -31,7 +31,11 @@ function loadReviews() {
             : `${API_BASE}/api/reviews/general`;
         try {
             const response = yield fetch(endpoint);
+            if (!response.ok)
+                throw new Error(yield responseError(response));
             const reviews = yield response.json();
+            if (!Array.isArray(reviews))
+                throw new Error('Răspuns de recenzii invalid.');
             if (reviews.length === 0) {
                 listEl.innerHTML = `<p style="text-align: center; color: #999; font-style: italic;">Nicio recenzie încă. Fii primul!</p>`;
                 return;

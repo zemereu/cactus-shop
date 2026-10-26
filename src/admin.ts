@@ -1,3 +1,23 @@
+// Resource keys also prevent duplicate requests after a list is redrawn.
+const pendingAdminActions = new Set<string | Element>();
+function onAdminAction(element: Element, eventName: 'click' | 'change', action: (event: Event) => Promise<void>, key: string | Element = element.id || element) {
+    element.addEventListener(eventName, async event => {
+        if (element.hasAttribute('disabled') || pendingAdminActions.has(key)) return;
+        pendingAdminActions.add(key);
+        element.setAttribute('disabled', '');
+        element.setAttribute('aria-busy', 'true');
+        try {
+            await action(event);
+        } catch {
+            alert('Operația nu a putut fi confirmată. Verifică rezultatul înainte de reîncercare.');
+        } finally {
+            pendingAdminActions.delete(key);
+            element.removeAttribute('disabled');
+            element.removeAttribute('aria-busy');
+        }
+    });
+}
+
 async function adminRequest(url: string, options: RequestInit = {}): Promise<Response | null> {
     try {
         const response = await authFetch(url, options);
@@ -18,7 +38,7 @@ async function showAdminPanel() {
 
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
-    loginBtn.addEventListener('click', async () => {
+    onAdminAction(loginBtn, 'click', async () => {
         const userInput = (document.getElementById('admin-user') as HTMLInputElement).value;
         const passInput = (document.getElementById('admin-pass') as HTMLInputElement).value;
         try {
@@ -65,13 +85,13 @@ function renderFilteredCategories() {
         </span>`).join("");
 
     container.querySelectorAll('.delete-category-btn').forEach(btn => {
-        btn.addEventListener('click', async e => {
+        onAdminAction(btn, 'click', async e => {
             const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (!confirm("Stergi aceasta subcategorie?")) return;
             if (!await adminRequest(`${API_BASE}/api/categories/${id}`, {method: 'DELETE'})) return;
             showToast('Categorie stearsa');
-            fetchAdminCategories();
-        });
+            await fetchAdminCategories();
+        }, `category:${btn.getAttribute('data-id')}`);
     });
 }
 
@@ -94,7 +114,7 @@ if (categoryMainSelect) categoryMainSelect.addEventListener('change', renderFilt
 
 const addCategoryBtn = document.getElementById('add-category-btn');
 if (addCategoryBtn) {
-    addCategoryBtn.addEventListener('click', async () => {
+    onAdminAction(addCategoryBtn, 'click', async () => {
         const name = (document.getElementById('new-category-name') as HTMLInputElement).value.trim();
         const main = (document.getElementById('new-category-main') as HTMLSelectElement).value;
         if (!name) {
@@ -109,7 +129,7 @@ if (addCategoryBtn) {
         })) return;
 
         (document.getElementById('new-category-name') as HTMLInputElement).value = "";
-        fetchAdminCategories();
+        await fetchAdminCategories();
         showToast('Categorie adaugata');
     });
 }
@@ -172,8 +192,8 @@ function getFilteredCacti(): Cactus[] {
     return result;
 }
 
-function editField(label: string, control: string, span = ''): string {
-    return `<div class="${span}"><label class="edit-field-label">${label}</label>${control}</div>`;
+function editField(id: string, label: string, control: string, span = ''): string {
+    return `<div class="${span}"><label class="edit-field-label" for="${id}">${label}</label>${control}</div>`;
 }
 
 const productActions = [
@@ -221,21 +241,21 @@ function renderAdminCacti(cacti: Cactus[]) {
         <div class="edit-panel" data-id="${c.id}" style="display:none;">
             <h4 class="edit-panel-title">Editare: ${escapeHtml(c.name)}</h4>
             <div class="edit-fields">
-                ${editField('Nume', `<input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}">`, 'edit-full-width')}
-                ${editField('Preț (RON)', `<input type="number" class="edit-price admin-input" value="${c.price}">`)}
-                ${editField('Stoc', `<input type="number" class="edit-stock admin-input" value="${c.stock}" min="0">`)}
-                ${editField('Tip produs', `<select class="edit-product-type admin-input">
+                ${editField(`edit-name-${c.id}`, 'Nume', `<input type="text" id="edit-name-${c.id}" class="edit-name admin-input" value="${escapeHtml(c.name)}">`, 'edit-full-width')}
+                ${editField(`edit-price-${c.id}`, 'Preț (RON)', `<input type="number" id="edit-price-${c.id}" class="edit-price admin-input" value="${c.price}">`)}
+                ${editField(`edit-stock-${c.id}`, 'Stoc', `<input type="number" id="edit-stock-${c.id}" class="edit-stock admin-input" value="${c.stock}" min="0">`)}
+                ${editField(`edit-product-type-${c.id}`, 'Tip produs', `<select id="edit-product-type-${c.id}" class="edit-product-type admin-input">
                     ${PRODUCT_TYPES.map(t => `<option value="${escapeHtml(t)}" ${t === c.productType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join("")}
                     </select>`)}
-                ${editField('Categorie principală', `<select class="edit-main-category admin-input" data-id="${c.id}">
+                ${editField(`edit-main-category-${c.id}`, 'Categorie principală', `<select id="edit-main-category-${c.id}" class="edit-main-category admin-input" data-id="${c.id}">
                     ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
                     </select>`)}
-                ${editField('Subcategorie (gen)', `<select class="edit-category admin-input" data-id="${c.id}">
+                ${editField(`edit-category-${c.id}`, 'Subcategorie (gen)', `<select id="edit-category-${c.id}" class="edit-category admin-input" data-id="${c.id}">
                     ${categoryOptions(c.mainCategory, c.category)}
                     </select>`, 'edit-half-width')}
-                ${editField('Descriere', `<input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}">`, 'edit-half-width')}
-                ${editField('Locație (origine)', `<input type="text" class="edit-location admin-input" value="${escapeHtml(c.location || '')}" placeholder="ex: Mexic, Africa de Sud">`, 'edit-full-width')}
-                ${editField('Imagine (URL)', `<input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}">`, 'edit-full-width')}
+                ${editField(`edit-desc-${c.id}`, 'Descriere', `<input type="text" id="edit-desc-${c.id}" class="edit-desc admin-input" value="${escapeHtml(c.description)}">`, 'edit-half-width')}
+                ${editField(`edit-location-${c.id}`, 'Locație (origine)', `<input type="text" id="edit-location-${c.id}" class="edit-location admin-input" value="${escapeHtml(c.location || '')}" placeholder="ex: Mexic, Africa de Sud">`, 'edit-full-width')}
+                ${editField(`edit-image-${c.id}`, 'Imagine (URL)', `<input type="text" id="edit-image-${c.id}" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}">`, 'edit-full-width')}
                 <label class="hybrid-toggle edit-full-width">
                     <input type="checkbox" class="edit-hybrid" ${c.hybrid === true ? 'checked' : ''}>
                     <span>Hibrid</span>
@@ -268,7 +288,7 @@ function renderAdminCacti(cacti: Cactus[]) {
         subSelect.innerHTML = categoryOptions(select.value, subSelect.value);
     }));
 
-    container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', async e => {
+    container.querySelectorAll('.save-edit-btn').forEach(b => onAdminAction(b, 'click', async e => {
         const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (!p) return;
@@ -290,20 +310,20 @@ function renderAdminCacti(cacti: Cactus[]) {
             body: JSON.stringify(u)
         });
         if (r) {
-            fetchAdminCacti();
+            await fetchAdminCacti();
             showToast('Produs actualizat');
         }
-    }));
+    }, `product:${b.getAttribute('data-id')}`));
 
     for (const action of productActions) {
         container.querySelectorAll(action.selector).forEach(button => {
-            button.addEventListener('click', async () => {
+            onAdminAction(button, 'click', async () => {
                 if (!action.confirmations.every(message => confirm(message))) return;
                 const id = button.getAttribute('data-id');
                 if (!await adminRequest(`${API_BASE}/api/cacti/${id}${action.path}`, {method: action.method})) return;
-                fetchAdminCacti();
+                await fetchAdminCacti();
                 showToast(action.message);
-            });
+            }, `product:${button.getAttribute('data-id')}`);
         });
     }
 }
@@ -329,68 +349,58 @@ if (adminSort) adminSort.addEventListener('change', () => renderAdminCacti(getFi
 
 const addCactusBtn = document.getElementById('add-new-cactus-btn');
 if (addCactusBtn) {
-    addCactusBtn.addEventListener('click', async () => {
-        if (addCactusBtn.hasAttribute('disabled')) return;
-        addCactusBtn.setAttribute('disabled', 'true');
-        addCactusBtn.setAttribute('aria-busy', 'true');
-        try {
-            let imageUrl = (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim();
-            const fileInput = document.getElementById('new-cactus-file') as HTMLInputElement;
-            const newCactus = {
-                name: (document.getElementById('new-cactus-name') as HTMLInputElement).value.trim(),
-                price: Number((document.getElementById('new-cactus-price') as HTMLInputElement).value),
-                productType: (document.getElementById('new-cactus-product-type') as HTMLSelectElement).value,
-                mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
-                category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
-                description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
-                imageUrl,
-                stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0,
-                location: (document.getElementById('new-cactus-location') as HTMLInputElement).value.trim(),
-                hybrid: (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked
-            };
+    onAdminAction(addCactusBtn, 'click', async () => {
+        let imageUrl = (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim();
+        const fileInput = document.getElementById('new-cactus-file') as HTMLInputElement;
+        const newCactus = {
+            name: (document.getElementById('new-cactus-name') as HTMLInputElement).value.trim(),
+            price: Number((document.getElementById('new-cactus-price') as HTMLInputElement).value),
+            productType: (document.getElementById('new-cactus-product-type') as HTMLSelectElement).value,
+            mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
+            category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
+            description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
+            imageUrl,
+            stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0,
+            location: (document.getElementById('new-cactus-location') as HTMLInputElement).value.trim(),
+            hybrid: (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked
+        };
 
-            if (!newCactus.name || !newCactus.price || !newCactus.category) {
-                alert("Completeaza campurile obligatorii!");
-                return;
-            }
-
-            if (fileInput.files && fileInput.files.length > 0) {
-                const fd = new FormData();
-                fd.append('file', fileInput.files[0]);
-                const ur = await adminRequest(`${API_BASE}/api/images/upload`, {
-                    method: 'POST', body: fd
-                });
-                if (!ur) return;
-                const uploaded = await ur.json();
-                if (typeof uploaded.imageUrl !== 'string' || !uploaded.imageUrl.trim()) {
-                    throw new Error('Serverul nu a returnat adresa imaginii încărcate.');
-                }
-                imageUrl = uploaded.imageUrl;
-                newCactus.imageUrl = imageUrl;
-                (document.getElementById('new-cactus-image') as HTMLInputElement).value = imageUrl;
-                fileInput.value = '';
-            }
-
-            if (!await adminRequest(`${API_BASE}/api/cacti`, {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(newCactus)
-            })) return;
-
-            [
-                'new-cactus-name', 'new-cactus-price', 'new-cactus-desc',
-                'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'
-            ].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
-            (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked = false;
-
-            if (fileInput) fileInput.value = "";
-            fetchAdminCacti();
-            showToast('Produs adaugat');
-        } catch {
-            alert('Operația nu a putut fi confirmată. Verifică rezultatul înainte de reîncercare.');
-        } finally {
-            addCactusBtn.removeAttribute('disabled');
-            addCactusBtn.removeAttribute('aria-busy');
+        if (!newCactus.name || !newCactus.price || !newCactus.category) {
+            alert("Completeaza campurile obligatorii!");
+            return;
         }
+
+        if (fileInput.files && fileInput.files.length > 0) {
+            const fd = new FormData();
+            fd.append('file', fileInput.files[0]);
+            const ur = await adminRequest(`${API_BASE}/api/images/upload`, {
+                method: 'POST', body: fd
+            });
+            if (!ur) return;
+            const uploaded = await ur.json();
+            if (typeof uploaded.imageUrl !== 'string' || !uploaded.imageUrl.trim()) {
+                throw new Error('Serverul nu a returnat adresa imaginii încărcate.');
+            }
+            imageUrl = uploaded.imageUrl;
+            newCactus.imageUrl = imageUrl;
+            (document.getElementById('new-cactus-image') as HTMLInputElement).value = imageUrl;
+            fileInput.value = '';
+        }
+
+        if (!await adminRequest(`${API_BASE}/api/cacti`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(newCactus)
+        })) return;
+
+        [
+            'new-cactus-name', 'new-cactus-price', 'new-cactus-desc',
+            'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'
+        ].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
+        (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked = false;
+
+        if (fileInput) fileInput.value = "";
+        await fetchAdminCacti();
+        showToast('Produs adaugat');
     });
 }
 
@@ -414,7 +424,7 @@ function renderOrderRows(orders: Order[]) {
             </select></td>
         </tr>`).join("");
 
-    tb.querySelectorAll('.order-status-select').forEach(s => s.addEventListener('change', async e => {
+    tb.querySelectorAll('.order-status-select').forEach(s => onAdminAction(s, 'change', async e => {
         const t = e.target as HTMLSelectElement;
         const previous = orders.find(order => order.id === Number(t.getAttribute('data-id')))?.status;
         const r = await adminRequest(`${API_BASE}/api/orders/${t.getAttribute('data-id')}/status`, {
@@ -427,7 +437,7 @@ function renderOrderRows(orders: Order[]) {
         } else if (previous) {
             t.value = previous;
         }
-    }));
+    }, `order:${s.getAttribute('data-id')}`));
 }
 
 function getFilteredOrders(): Order[] {
@@ -501,19 +511,19 @@ async function fetchPendingReviews() {
                 </div>
             </div>`).join("");
 
-        container.querySelectorAll('.approve-review-btn').forEach(b => b.addEventListener('click', async e => {
+        container.querySelectorAll('.approve-review-btn').forEach(b => onAdminAction(b, 'click', async e => {
             const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (!await adminRequest(`${API_BASE}/api/reviews/${id}/approve`, {method: 'PUT'})) return;
-            fetchPendingReviews();
-        }));
+            await fetchPendingReviews();
+        }, `review:${b.getAttribute('data-id')}`));
 
-        container.querySelectorAll('.reject-review-btn').forEach(b => b.addEventListener('click', async e => {
+        container.querySelectorAll('.reject-review-btn').forEach(b => onAdminAction(b, 'click', async e => {
             if (!confirm("Respingi recenzia?")) return;
             const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (!await adminRequest(`${API_BASE}/api/reviews/${id}`, {method: 'DELETE'})) return;
-            fetchPendingReviews();
+            await fetchPendingReviews();
             showToast('Recenzie respinsa');
-        }));
+        }, `review:${b.getAttribute('data-id')}`));
     } catch (e) {
         console.error("Eroare recenzii:", e);
     }
@@ -523,5 +533,6 @@ authFetch(`${API_BASE}/api/auth/me`).then(response => {
     if (response.ok) return showAdminPanel();
 }).catch(() => {
 });
+
 
 

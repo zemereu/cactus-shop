@@ -358,7 +358,6 @@ function bindProductCards(container, products) {
             toggleWishlist(id);
             const liked = isWishlisted(id);
             document.querySelectorAll(`.wishlist-btn[data-id="${id}"]`).forEach(heart => {
-                heart.style.color = liked ? '#d32f2f' : '#607568';
                 heart.innerHTML = `<i class="fa-${liked ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>`;
                 heart.setAttribute('aria-pressed', String(liked));
             });
@@ -910,7 +909,6 @@ function renderProductCard(cactus, hearted = false) {
             <div class="card-actions">
                 <button class="wishlist-btn card-action-btn"
                     data-id="${cactus.id}"
-                    style="color:${hearted ? '#d32f2f' : '#607568'};"
                     title="Favorite"
                     aria-label="Favorite"
                     aria-pressed="${hearted}">

@@ -5,9 +5,13 @@ async function loadLandingReviews() {
     const container = document.getElementById('general-reviews-container');
     if (!container) return;
 
+    container.innerHTML = '<p role="status">Se încarcă recenziile...</p>';
+
     try {
         const response = await fetch(`${API_BASE}/api/reviews/general`);
-        const reviews = await response.json();
+        if (!response.ok) throw new Error(await responseError(response));
+        const reviews: ReviewResponse[] = await response.json();
+        if (!Array.isArray(reviews)) throw new Error('Răspuns de recenzii invalid.');
 
         if (reviews.length === 0) {
             container.innerHTML = `<p style="color: #fdf2b8; font-style: italic;">Nicio recenzie încă. Fii primul care lasă una!</p>`;
@@ -15,7 +19,7 @@ async function loadLandingReviews() {
         }
 
         const topReviews = reviews.slice(0, 3);
-        container.innerHTML = topReviews.map((r: any) => `
+        container.innerHTML = topReviews.map(r => `
             <div style="flex: 1 1 300px; background-color: #fdf2b8; padding: 30px; border-radius: 16px; text-align: left; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="color: #FF9800; font-size: 1.5em; margin-bottom: 15px;">${'<i class="fa-solid fa-star" style="color: #FF9800;"></i>'.repeat(r.rating)}</div>
                 <p style="font-style: italic; color: #333; line-height: 1.6; margin-bottom: 25px;">
