@@ -9,9 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var _a;
-function adminToast(msg) {
-    showToast(msg);
-}
 function adminRequest(url_1) {
     return __awaiter(this, arguments, void 0, function* (url, options = {}) {
         try {
@@ -56,11 +53,17 @@ if (loginBtn) {
     }));
 }
 let allCategoriesCache = [];
+function categoriesFor(main) {
+    return allCategoriesCache.filter(c => c.mainCategory === main)
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+function categoryOptions(main, selected = '') {
+    return categoriesFor(main).map(c => `<option value="${escapeHtml(c.name)}" ${c.name === selected ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+}
 function renderFilteredCategories() {
     var _a;
     const main = ((_a = document.getElementById('new-category-main')) === null || _a === void 0 ? void 0 : _a.value) || 'Cactuși';
-    const filtered = allCategoriesCache.filter(c => c.mainCategory === main)
-        .sort((a, b) => a.name.localeCompare(b.name));
+    const filtered = categoriesFor(main);
     const container = document.getElementById('admin-categories-list');
     if (!container)
         return;
@@ -81,7 +84,7 @@ function renderFilteredCategories() {
                 return;
             if (!(yield adminRequest(`${API_BASE}/api/categories/${id}`, { method: 'DELETE' })))
                 return;
-            adminToast('Categorie stearsa');
+            showToast('Categorie stearsa');
             fetchAdminCategories();
         }));
     });
@@ -123,7 +126,7 @@ if (addCategoryBtn) {
             return;
         document.getElementById('new-category-name').value = "";
         fetchAdminCategories();
-        adminToast('Categorie adaugata');
+        showToast('Categorie adaugata');
     }));
 }
 function refreshSubcategories() {
@@ -132,12 +135,7 @@ function refreshSubcategories() {
     const sub = document.getElementById('new-cactus-category');
     if (!sub)
         return;
-    const selected = sub.value;
-    const categories = allCategoriesCache.filter(c => c.mainCategory === main)
-        .sort((a, b) => a.name.localeCompare(b.name));
-    sub.innerHTML = categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
-    if (categories.some(c => c.name === selected))
-        sub.value = selected;
+    sub.innerHTML = categoryOptions(main, sub.value);
 }
 (_a = document.getElementById('new-cactus-main-category')) === null || _a === void 0 ? void 0 : _a.addEventListener('change', refreshSubcategories);
 let allCactiCache = [];
@@ -197,6 +195,9 @@ function getFilteredCacti() {
     });
     return result;
 }
+function editField(label, control, span = '') {
+    return `<div class="${span}"><label class="edit-field-label">${label}</label>${control}</div>`;
+}
 function renderAdminCacti(cacti) {
     const container = document.getElementById('admin-cacti-list');
     const countEl = document.getElementById('products-count');
@@ -230,57 +231,30 @@ function renderAdminCacti(cacti) {
                        <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
         </div>
-        <div class="edit-panel" data-id="${c.id}" style="display:none; grid-column:1/-1; background:#f8f4e0; border-radius:10px; padding:20px; border:1px solid #ddd; text-align:left;">
-            <h4 style="margin:0 0 14px; color:#2f694b; font-size:1em;">Editare: ${escapeHtml(c.name)}</h4>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px;">
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Nume</label>
-                    <input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Preț (RON)</label>
-                    <input type="number" class="edit-price admin-input" value="${c.price}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Stoc</label>
-                    <input type="number" class="edit-stock admin-input" value="${c.stock}" min="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Tip produs</label>
-                    <select class="edit-product-type admin-input" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
-                        ${PRODUCT_TYPES.map(t => `<option value="${escapeHtml(t)}" ${t === c.productType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join("")}
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Categorie principală</label>
-                    <select class="edit-main-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
-                        ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
-                    </select>
-                </div>
-                <div style="grid-column:span 2;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Subcategorie (gen)</label>
-                    <select class="edit-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
-                        ${allCategoriesCache.filter(cat => cat.mainCategory === c.mainCategory).sort((a, b) => a.name.localeCompare(b.name)).map(cat => `<option value="${escapeHtml(cat.name)}" ${cat.name === c.category ? 'selected' : ''}>${escapeHtml(cat.name)}</option>`).join("")}
-                    </select>
-                </div>
-                <div style="grid-column:span 2;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Descriere</label>
-                    <input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Locație (origine)</label>
-                    <input type="text" class="edit-location admin-input" value="${escapeHtml(c.location || '')}" placeholder="ex: Mexic, Africa de Sud" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Imagine (URL)</label>
-                    <input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <label class="hybrid-toggle" style="grid-column:1/-1;">
+        <div class="edit-panel" data-id="${c.id}" style="display:none;">
+            <h4 class="edit-panel-title">Editare: ${escapeHtml(c.name)}</h4>
+            <div class="edit-fields">
+                ${editField('Nume', `<input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}">`, 'edit-full-width')}
+                ${editField('Preț (RON)', `<input type="number" class="edit-price admin-input" value="${c.price}">`)}
+                ${editField('Stoc', `<input type="number" class="edit-stock admin-input" value="${c.stock}" min="0">`)}
+                ${editField('Tip produs', `<select class="edit-product-type admin-input">
+                    ${PRODUCT_TYPES.map(t => `<option value="${escapeHtml(t)}" ${t === c.productType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join("")}
+                    </select>`)}
+                ${editField('Categorie principală', `<select class="edit-main-category admin-input" data-id="${c.id}">
+                    ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
+                    </select>`)}
+                ${editField('Subcategorie (gen)', `<select class="edit-category admin-input" data-id="${c.id}">
+                    ${categoryOptions(c.mainCategory, c.category)}
+                    </select>`, 'edit-half-width')}
+                ${editField('Descriere', `<input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}">`, 'edit-half-width')}
+                ${editField('Locație (origine)', `<input type="text" class="edit-location admin-input" value="${escapeHtml(c.location || '')}" placeholder="ex: Mexic, Africa de Sud">`, 'edit-full-width')}
+                ${editField('Imagine (URL)', `<input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}">`, 'edit-full-width')}
+                <label class="hybrid-toggle edit-full-width">
                     <input type="checkbox" class="edit-hybrid" ${c.hybrid === true ? 'checked' : ''}>
                     <span>Hibrid</span>
                 </label>
-                <div style="grid-column:1/-1;">
-                    <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}" style="width:100%; padding:10px; font-size:0.95em; border-radius:6px;">Salvează</button>
+                <div class="edit-full-width">
+                    <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}">Salvează</button>
                 </div>
             </div>
         </div>`;
@@ -306,12 +280,7 @@ function renderAdminCacti(cacti) {
         if (!panel)
             return;
         const subSelect = panel.querySelector('.edit-category');
-        const filtered = allCategoriesCache.filter(cat => cat.mainCategory === select.value)
-            .sort((a, b) => a.name.localeCompare(b.name));
-        const previous = subSelect.value;
-        subSelect.innerHTML = filtered.map(cat => `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`).join("");
-        if (filtered.some(cat => cat.name === previous))
-            subSelect.value = previous;
+        subSelect.innerHTML = categoryOptions(select.value, subSelect.value);
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
@@ -338,39 +307,30 @@ function renderAdminCacti(cacti) {
         });
         if (r && r.ok) {
             fetchAdminCacti();
-            adminToast('Produs actualizat');
+            showToast('Produs actualizat');
         }
     })));
-    container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
-        if (!confirm("Dezactivezi acest produs?"))
-            return;
-        if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}`, { method: 'DELETE' })))
-            return;
-        fetchAdminCacti();
-        adminToast('Produs dezactivat');
-    })));
-    container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
-        if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}/reactivate`, { method: 'PUT' })))
-            return;
-        fetchAdminCacti();
-        adminToast('Produs reactivat');
-    })));
-    container.querySelectorAll('.hard-delete-btn').forEach(b => b.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
-        if (!confirm("ATENTIE: Stergere definitiva?"))
-            return;
-        if (!confirm("Absolut sigur? Ireversibil."))
-            return;
-        if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}/permanent`, { method: 'DELETE' })))
-            return;
-        fetchAdminCacti();
-        adminToast('Produs sters definitiv');
-    })));
+    const productActions = [
+        { selector: '.delete-cactus-btn', path: '', method: 'DELETE', message: 'Produs dezactivat',
+            confirmations: ['Dezactivezi acest produs?'] },
+        { selector: '.reactivate-cactus-btn', path: '/reactivate', method: 'PUT', message: 'Produs reactivat',
+            confirmations: [] },
+        { selector: '.hard-delete-btn', path: '/permanent', method: 'DELETE', message: 'Produs sters definitiv',
+            confirmations: ['ATENTIE: Stergere definitiva?', 'Absolut sigur? Ireversibil.'] }
+    ];
+    for (const action of productActions) {
+        container.querySelectorAll(action.selector).forEach(button => {
+            button.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
+                if (!action.confirmations.every(message => confirm(message)))
+                    return;
+                const id = button.getAttribute('data-id');
+                if (!(yield adminRequest(`${API_BASE}/api/cacti/${id}${action.path}`, { method: action.method })))
+                    return;
+                fetchAdminCacti();
+                showToast(action.message);
+            }));
+        });
+    }
 }
 function fetchAdminCacti() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -443,7 +403,7 @@ if (addCactusBtn) {
         if (fileInput)
             fileInput.value = "";
         fetchAdminCacti();
-        adminToast('Produs adaugat');
+        showToast('Produs adaugat');
     }));
 }
 function renderOrderRows(orders) {
@@ -475,7 +435,7 @@ function renderOrderRows(orders) {
         });
         if (r && r.ok) {
             yield fetchAdminOrders();
-            adminToast('Status actualizat');
+            showToast('Status actualizat');
         }
         else if (previous) {
             t.value = previous;
@@ -569,7 +529,7 @@ function fetchPendingReviews() {
                 if (!(yield adminRequest(`${API_BASE}/api/reviews/${id}`, { method: 'DELETE' })))
                     return;
                 fetchPendingReviews();
-                adminToast('Recenzie respinsa');
+                showToast('Recenzie respinsa');
             })));
         }
         catch (e) {

@@ -1309,3 +1309,15 @@ body.view-list .cactus-card > button { grid-column: 3; grid-row: 2; margin: 0; p
 #recently-viewed[hidden] { display: none; }
 #recent-heading { color: var(--green); font-size: 1.4rem; margin: 0 0 20px; }
 #recent-products { display: grid; gap: 20px; }
+
+
+/* Shared presentation for dynamically rendered admin edit forms. */
+.edit-panel { grid-column: 1 / -1; background: #f8f4e0; border-radius: 10px; padding: 20px; border: 1px solid #ddd; text-align: left; }
+.edit-panel-title { margin: 0 0 14px; color: #2f694b; font-size: 1em; }
+.edit-fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+.edit-fields > .edit-full-width { grid-column: 1 / -1; }
+.edit-fields > .edit-half-width { grid-column: span 2; }
+.edit-field-label { font-size: .8em; color: #666; font-weight: 600; margin-bottom: 3px; display: block; }
+.edit-panel .admin-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: .9em; }
+.edit-panel select.admin-input { background: white; }
+.edit-panel .save-edit-btn { width: 100%; padding: 10px; font-size: .95em; border-radius: 6px; }

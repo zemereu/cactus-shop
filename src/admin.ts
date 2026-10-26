@@ -1,7 +1,3 @@
-function adminToast(msg: string) {
-    showToast(msg);
-}
-
 async function adminRequest(url: string, options: RequestInit = {}): Promise<Response | null> {
     try {
         const response = await authFetch(url, options);
@@ -41,10 +37,20 @@ if (loginBtn) {
 
 let allCategoriesCache: Category[] = [];
 
+function categoriesFor(main?: string): Category[] {
+    return allCategoriesCache.filter(c => c.mainCategory === main)
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function categoryOptions(main?: string, selected = ''): string {
+    return categoriesFor(main).map(c =>
+        `<option value="${escapeHtml(c.name)}" ${c.name === selected ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+    ).join('');
+}
+
 function renderFilteredCategories() {
     const main = (document.getElementById('new-category-main') as HTMLSelectElement)?.value || 'Cactuși';
-    const filtered = allCategoriesCache.filter(c => c.mainCategory === main)
-        .sort((a, b) => a.name.localeCompare(b.name));
+    const filtered = categoriesFor(main);
     const container = document.getElementById('admin-categories-list');
     if (!container) return;
     if (filtered.length === 0) {
@@ -63,7 +69,7 @@ function renderFilteredCategories() {
             const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (!confirm("Stergi aceasta subcategorie?")) return;
             if (!await adminRequest(`${API_BASE}/api/categories/${id}`, {method: 'DELETE'})) return;
-            adminToast('Categorie stearsa');
+            showToast('Categorie stearsa');
             fetchAdminCategories();
         });
     });
@@ -104,7 +110,7 @@ if (addCategoryBtn) {
 
         (document.getElementById('new-category-name') as HTMLInputElement).value = "";
         fetchAdminCategories();
-        adminToast('Categorie adaugata');
+        showToast('Categorie adaugata');
     });
 }
 
@@ -112,13 +118,7 @@ function refreshSubcategories() {
     const main = (document.getElementById('new-cactus-main-category') as HTMLSelectElement)?.value;
     const sub = document.getElementById('new-cactus-category') as HTMLSelectElement | null;
     if (!sub) return;
-    const selected = sub.value;
-    const categories = allCategoriesCache.filter(c => c.mainCategory === main)
-        .sort((a, b) => a.name.localeCompare(b.name));
-    sub.innerHTML = categories.map(c =>
-        `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`
-    ).join('');
-    if (categories.some(c => c.name === selected)) sub.value = selected;
+    sub.innerHTML = categoryOptions(main, sub.value);
 }
 
 document.getElementById('new-cactus-main-category')
@@ -172,6 +172,10 @@ function getFilteredCacti(): Cactus[] {
     return result;
 }
 
+function editField(label: string, control: string, span = ''): string {
+    return `<div class="${span}"><label class="edit-field-label">${label}</label>${control}</div>`;
+}
+
 function renderAdminCacti(cacti: Cactus[]) {
     const container = document.getElementById('admin-cacti-list');
     const countEl = document.getElementById('products-count');
@@ -205,57 +209,30 @@ function renderAdminCacti(cacti: Cactus[]) {
                        <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
         </div>
-        <div class="edit-panel" data-id="${c.id}" style="display:none; grid-column:1/-1; background:#f8f4e0; border-radius:10px; padding:20px; border:1px solid #ddd; text-align:left;">
-            <h4 style="margin:0 0 14px; color:#2f694b; font-size:1em;">Editare: ${escapeHtml(c.name)}</h4>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px;">
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Nume</label>
-                    <input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Preț (RON)</label>
-                    <input type="number" class="edit-price admin-input" value="${c.price}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Stoc</label>
-                    <input type="number" class="edit-stock admin-input" value="${c.stock}" min="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Tip produs</label>
-                    <select class="edit-product-type admin-input" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
-                        ${PRODUCT_TYPES.map(t => `<option value="${escapeHtml(t)}" ${t === c.productType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join("")}
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Categorie principală</label>
-                    <select class="edit-main-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
-                        ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
-                    </select>
-                </div>
-                <div style="grid-column:span 2;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Subcategorie (gen)</label>
-                    <select class="edit-category admin-input" data-id="${c.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em; background:white;">
-                        ${allCategoriesCache.filter(cat => cat.mainCategory === c.mainCategory).sort((a, b) => a.name.localeCompare(b.name)).map(cat => `<option value="${escapeHtml(cat.name)}" ${cat.name === c.category ? 'selected' : ''}>${escapeHtml(cat.name)}</option>`).join("")}
-                    </select>
-                </div>
-                <div style="grid-column:span 2;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Descriere</label>
-                    <input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Locație (origine)</label>
-                    <input type="text" class="edit-location admin-input" value="${escapeHtml(c.location || '')}" placeholder="ex: Mexic, Africa de Sud" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <div style="grid-column:1/-1;">
-                    <label style="font-size:0.8em; color:#666; font-weight:600; margin-bottom:3px; display:block;">Imagine (URL)</label>
-                    <input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9em;">
-                </div>
-                <label class="hybrid-toggle" style="grid-column:1/-1;">
+        <div class="edit-panel" data-id="${c.id}" style="display:none;">
+            <h4 class="edit-panel-title">Editare: ${escapeHtml(c.name)}</h4>
+            <div class="edit-fields">
+                ${editField('Nume', `<input type="text" class="edit-name admin-input" value="${escapeHtml(c.name)}">`, 'edit-full-width')}
+                ${editField('Preț (RON)', `<input type="number" class="edit-price admin-input" value="${c.price}">`)}
+                ${editField('Stoc', `<input type="number" class="edit-stock admin-input" value="${c.stock}" min="0">`)}
+                ${editField('Tip produs', `<select class="edit-product-type admin-input">
+                    ${PRODUCT_TYPES.map(t => `<option value="${escapeHtml(t)}" ${t === c.productType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join("")}
+                    </select>`)}
+                ${editField('Categorie principală', `<select class="edit-main-category admin-input" data-id="${c.id}">
+                    ${MAIN_CATEGORIES.map(m => `<option value="${escapeHtml(m)}" ${m === c.mainCategory ? 'selected' : ''}>${escapeHtml(m)}</option>`).join("")}
+                    </select>`)}
+                ${editField('Subcategorie (gen)', `<select class="edit-category admin-input" data-id="${c.id}">
+                    ${categoryOptions(c.mainCategory, c.category)}
+                    </select>`, 'edit-half-width')}
+                ${editField('Descriere', `<input type="text" class="edit-desc admin-input" value="${escapeHtml(c.description)}">`, 'edit-half-width')}
+                ${editField('Locație (origine)', `<input type="text" class="edit-location admin-input" value="${escapeHtml(c.location || '')}" placeholder="ex: Mexic, Africa de Sud">`, 'edit-full-width')}
+                ${editField('Imagine (URL)', `<input type="text" class="edit-image admin-input" value="${escapeHtml(c.imageUrl)}">`, 'edit-full-width')}
+                <label class="hybrid-toggle edit-full-width">
                     <input type="checkbox" class="edit-hybrid" ${c.hybrid === true ? 'checked' : ''}>
                     <span>Hibrid</span>
                 </label>
-                <div style="grid-column:1/-1;">
-                    <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}" style="width:100%; padding:10px; font-size:0.95em; border-radius:6px;">Salvează</button>
+                <div class="edit-full-width">
+                    <button class="save-edit-btn admin-btn btn-primary btn-sm" data-id="${c.id}">Salvează</button>
                 </div>
             </div>
         </div>`;
@@ -279,13 +256,7 @@ function renderAdminCacti(cacti: Cactus[]) {
         const panel = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (!panel) return;
         const subSelect = panel.querySelector('.edit-category') as HTMLSelectElement;
-        const filtered = allCategoriesCache.filter(cat => cat.mainCategory === select.value)
-            .sort((a, b) => a.name.localeCompare(b.name));
-        const previous = subSelect.value;
-        subSelect.innerHTML = filtered.map(cat =>
-            `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`
-        ).join("");
-        if (filtered.some(cat => cat.name === previous)) subSelect.value = previous;
+        subSelect.innerHTML = categoryOptions(select.value, subSelect.value);
     }));
 
     container.querySelectorAll('.save-edit-btn').forEach(b => b.addEventListener('click', async e => {
@@ -311,33 +282,29 @@ function renderAdminCacti(cacti: Cactus[]) {
         });
         if (r && r.ok) {
             fetchAdminCacti();
-            adminToast('Produs actualizat');
+            showToast('Produs actualizat');
         }
     }));
 
-    container.querySelectorAll('.delete-cactus-btn').forEach(b => b.addEventListener('click', async e => {
-        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
-        if (!confirm("Dezactivezi acest produs?")) return;
-        if (!await adminRequest(`${API_BASE}/api/cacti/${id}`, {method: 'DELETE'})) return;
-        fetchAdminCacti();
-        adminToast('Produs dezactivat');
-    }));
-
-    container.querySelectorAll('.reactivate-cactus-btn').forEach(b => b.addEventListener('click', async e => {
-        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
-        if (!await adminRequest(`${API_BASE}/api/cacti/${id}/reactivate`, {method: 'PUT'})) return;
-        fetchAdminCacti();
-        adminToast('Produs reactivat');
-    }));
-
-    container.querySelectorAll('.hard-delete-btn').forEach(b => b.addEventListener('click', async e => {
-        const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
-        if (!confirm("ATENTIE: Stergere definitiva?")) return;
-        if (!confirm("Absolut sigur? Ireversibil.")) return;
-        if (!await adminRequest(`${API_BASE}/api/cacti/${id}/permanent`, {method: 'DELETE'})) return;
-        fetchAdminCacti();
-        adminToast('Produs sters definitiv');
-    }));
+    const productActions = [
+        { selector: '.delete-cactus-btn', path: '', method: 'DELETE', message: 'Produs dezactivat',
+            confirmations: ['Dezactivezi acest produs?'] },
+        { selector: '.reactivate-cactus-btn', path: '/reactivate', method: 'PUT', message: 'Produs reactivat',
+            confirmations: [] },
+        { selector: '.hard-delete-btn', path: '/permanent', method: 'DELETE', message: 'Produs sters definitiv',
+            confirmations: ['ATENTIE: Stergere definitiva?', 'Absolut sigur? Ireversibil.'] }
+    ];
+    for (const action of productActions) {
+        container.querySelectorAll(action.selector).forEach(button => {
+            button.addEventListener('click', async () => {
+                if (!action.confirmations.every(message => confirm(message))) return;
+                const id = button.getAttribute('data-id');
+                if (!await adminRequest(`${API_BASE}/api/cacti/${id}${action.path}`, {method: action.method})) return;
+                fetchAdminCacti();
+                showToast(action.message);
+            });
+        });
+    }
 }
 
 async function fetchAdminCacti() {
@@ -408,7 +375,7 @@ if (addCactusBtn) {
 
         if (fileInput) fileInput.value = "";
         fetchAdminCacti();
-        adminToast('Produs adaugat');
+        showToast('Produs adaugat');
     });
 }
 
@@ -441,7 +408,7 @@ function renderOrderRows(orders: Order[]) {
         });
         if (r && r.ok) {
             await fetchAdminOrders();
-            adminToast('Status actualizat');
+            showToast('Status actualizat');
         } else if (previous) {
             t.value = previous;
         }
@@ -530,7 +497,7 @@ async function fetchPendingReviews() {
             const id = (e.target as HTMLElement).closest("[data-id]")?.getAttribute("data-id");
             if (!await adminRequest(`${API_BASE}/api/reviews/${id}`, {method: 'DELETE'})) return;
             fetchPendingReviews();
-            adminToast('Recenzie respinsa');
+            showToast('Recenzie respinsa');
         }));
     } catch (e) {
         console.error("Eroare recenzii:", e);
