@@ -23,20 +23,31 @@ function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
     });
 }
 
-interface Cactus {
+interface CartItem {
     id: number;
     name: string;
     price: number;
+    stock: number;
+    hybrid?: boolean;
+}
+
+interface Cactus extends CartItem {
     description: string;
     productType: string;
     category: string;
     mainCategory: string;
     imageUrl: string;
-    stock: number;
     active: boolean;
     location?: string | null;
     version: number;
-    hybrid?: boolean;
+}
+
+interface ReviewResponse {
+    id: number;
+    customerName: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
 }
 
 interface Category {
@@ -272,6 +283,34 @@ function saveLocalValue(key: string, value: string): boolean {
         showToast('Nu am putut salva în browser. Verifică setările de stocare și reîncearcă.');
         return false;
     }
+}
+
+// Keep repeated entries: each occurrence represents one unit in the cart.
+function loadCartFromStorage(): CartItem[] {
+    try {
+        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+        return Array.isArray(data) ? data.filter(item => item &&
+            Number.isSafeInteger(item.id) && item.id > 0 &&
+            typeof item.name === 'string' &&
+            Number.isFinite(item.price) && item.price >= 0 &&
+            Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveCartToStorage(items: readonly CartItem[]): boolean {
+    return saveLocalValue(CART_STORAGE_KEY, JSON.stringify(items));
+}
+
+function groupCartItems(items: readonly CartItem[]): Map<number, { item: CartItem; qty: number }> {
+    const grouped = new Map<number, { item: CartItem; qty: number }>();
+    for (const item of items) {
+        const existing = grouped.get(item.id);
+        if (existing) existing.qty++;
+        else grouped.set(item.id, { item, qty: 1 });
+    }
+    return grouped;
 }
 
 function initImageZoom() {
@@ -522,3 +561,4 @@ function renderProductCard(cactus: Cactus, hearted = false): string {
             </button>
         </article>`;
 }
+

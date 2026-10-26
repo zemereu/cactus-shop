@@ -9,22 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-function loadCart() {
-    try {
-        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
-        return Array.isArray(data) ? data.filter(item => item &&
-            Number.isSafeInteger(item.id) && item.id > 0 && typeof item.name === 'string' &&
-            Number.isFinite(item.price) && item.price >= 0 &&
-            Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
-    }
-    catch (_a) {
-        return [];
-    }
-}
-const cart = loadCart();
+const cart = loadCartFromStorage();
 window.addEventListener('storage', event => {
     if ((event.key === CART_STORAGE_KEY || event.key === null) && !checkoutSubmitting && !checkoutCompleted) {
-        cart.splice(0, cart.length, ...loadCart());
+        cart.splice(0, cart.length, ...loadCartFromStorage());
         renderCheckoutItems();
     }
 });
@@ -36,20 +24,13 @@ function renderCheckoutItems() {
     const totalEl = document.getElementById('checkout-total');
     if (!container || !totalEl)
         return;
-    const grouped = new Map();
-    cart.forEach(item => {
-        const e = grouped.get(item.id);
-        if (e)
-            e.qty++;
-        else
-            grouped.set(item.id, { item, qty: 1 });
-    });
+    const grouped = groupCartItems(cart);
     let total = 0;
-    container.innerHTML = '';
+    let html = '';
     grouped.forEach(({ item, qty }) => {
         const line = Math.round(item.price * 100) * qty;
         total += line;
-        container.innerHTML += `
+        html += `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.95em;">
                 <div>
                     <i class="fa-solid fa-leaf" style="color: #2f694b; margin-right: 4px;"></i>
@@ -59,6 +40,7 @@ function renderCheckoutItems() {
                 <strong style="color: #d32f2f;">${(line / 100).toFixed(2)} RON</strong>
             </div>`;
     });
+    container.innerHTML = html;
     totalEl.innerText = (total / 100).toFixed(2);
 }
 renderCheckoutItems();
@@ -111,7 +93,7 @@ if (checkoutSubmitBtn) {
     checkoutSubmitBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
         if (checkoutSubmitting || checkoutCompleted)
             return;
-        cart.splice(0, cart.length, ...loadCart());
+        cart.splice(0, cart.length, ...loadCartFromStorage());
         renderCheckoutItems();
         if (!cart.length) {
             showToast('Coșul este gol. Adaugă produse înainte de a comanda.');
@@ -150,11 +132,10 @@ if (checkoutSubmitBtn) {
             }
             // Reîncercarea ajunge la server chiar dacă prima cerere a consumat ultimul produs.
             if (!pending) {
-                const cartCounts = new Map();
-                cart.forEach(item => cartCounts.set(item.id, (cartCounts.get(item.id) || 0) + 1));
+                const cartCounts = groupCartItems(cart);
                 const problems = [];
                 const prices = new Map();
-                for (const [id, qty] of cartCounts) {
+                for (const [id, { qty }] of cartCounts) {
                     const r = yield fetch(`${API_BASE}/api/cacti/${id}`);
                     if (!r.ok) {
                         problems.push(`Produsul #${id} nu mai este disponibil.`);
@@ -190,26 +171,25 @@ if (checkoutSubmitBtn) {
                 body: attempt.body
             });
             if (!response.ok) {
-                const errText = yield response.text();
+                const errText = yield responseError(response);
                 if (response.status >= 400 && response.status < 500 && ![408, 429].includes(response.status)) {
                     sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
                 }
-                throw new Error(errText || 'Eroare la plasarea comenzii.');
+                throw new Error(errText);
             }
             const order = yield response.json();
             checkoutCompleted = true;
             // Eliminăm doar cantitățile comandate, păstrând adăugările din alte taburi.
-            const purchased = new Map();
-            cart.forEach(item => purchased.set(item.id, (purchased.get(item.id) || 0) + 1));
-            const remaining = loadCart().filter(item => {
-                const qty = purchased.get(item.id) || 0;
-                if (!qty)
+            const purchased = groupCartItems(cart);
+            const remaining = loadCartFromStorage().filter(item => {
+                const entry = purchased.get(item.id);
+                if (!entry || entry.qty === 0)
                     return true;
-                purchased.set(item.id, qty - 1);
+                entry.qty--;
                 return false;
             });
             // Păstrăm cheia dacă salvarea coșului eșuează.
-            if (saveLocalValue(CART_STORAGE_KEY, JSON.stringify(remaining))) {
+            if (saveCartToStorage(remaining)) {
                 sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
             }
             document.querySelector('main > div > div[style*="display: flex"]').style.display = 'none';

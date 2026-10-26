@@ -126,9 +126,9 @@ if (submitBtn) {
                 setTimeout(() => { window.location.href = 'index.html'; }, 3000);
             }
             else {
-                const errorMsg = yield response.text();
+                const errorMsg = yield responseError(response);
                 messageEl.style.color = '#d32f2f';
-                messageEl.innerText = errorMsg || "Nu am putut trimite recenzia.";
+                messageEl.innerText = errorMsg;
             }
         }
         catch (error) {

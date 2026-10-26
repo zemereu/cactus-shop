@@ -3,53 +3,6 @@
 const produsParams = new URLSearchParams(window.location.search);
 const productId = produsParams.get('id');
 
-interface ProdCactus {
-    id: number;
-    name: string;
-    price: number;
-    stock: number;
-    description: string;
-    imageUrl: string;
-    category: string;
-    mainCategory: string;
-    productType: string;
-    active: boolean;
-    location?: string | null;
-    hybrid?: boolean;
-}
-
-interface ProdReview {
-    id: number;
-    customerName: string;
-    rating: number;
-    comment: string;
-    createdAt: string;
-}
-
-function produsLoadCart(): ProdCactus[] {
-    try {
-        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
-
-        return Array.isArray(data)
-            ? data.filter(item =>
-                item &&
-                Number.isSafeInteger(item.id) &&
-                item.id > 0 &&
-                typeof item.name === 'string' &&
-                Number.isFinite(item.price) &&
-                item.price >= 0 &&
-                Number.isSafeInteger(item.stock) &&
-                item.stock >= 0)
-            : [];
-    } catch {
-        return [];
-    }
-}
-
-function produsSaveCart(cart: ProdCactus[]) {
-    return saveLocalValue(CART_STORAGE_KEY, JSON.stringify(cart));
-}
-
 async function loadProduct() {
     if (!productId) {
         showError();
@@ -64,7 +17,7 @@ async function loadProduct() {
             return;
         }
 
-        const product: ProdCactus = await response.json();
+        const product: Cactus = await response.json();
 
         if (!product) {
             showError();
@@ -170,12 +123,12 @@ async function loadProduct() {
                     const response = await fetch(`${API_BASE}/api/cacti/${product.id}`);
                     if (!response.ok) throw new Error();
 
-                    const fresh: ProdCactus = await response.json();
+                    const fresh: Cactus = await response.json();
                     if (!Number.isSafeInteger(fresh.stock) || fresh.stock < 0) {
                         throw new Error();
                     }
 
-                    const cart = produsLoadCart();
+                    const cart = loadCartFromStorage();
                     const inCart = cart.filter(c => c.id === product.id).length;
 
                     if (fresh.active === false || inCart >= fresh.stock) {
@@ -184,7 +137,7 @@ async function loadProduct() {
                     }
 
                     cart.push(product);
-                    if (!produsSaveCart(cart)) return;
+                    if (!saveCartToStorage(cart)) return;
 
                     showToast('Adăugat în coș!');
                 } catch {
@@ -279,7 +232,7 @@ async function loadProductReviews(cactusId: number) {
 
     try {
         const response = await fetch(`${API_BASE}/api/reviews/product/${cactusId}`);
-        const reviews: ProdReview[] = await response.json();
+        const reviews: ReviewResponse[] = await response.json();
 
         if (reviews.length === 0) {
             container.innerHTML =
@@ -300,7 +253,7 @@ async function loadProductReviews(cactusId: number) {
     }
 }
 
-async function loadSimilarProducts(product: ProdCactus) {
+async function loadSimilarProducts(product: Cactus) {
     try {
         const response = await fetch(
             `${API_BASE}/api/cacti?productType=${encodeURIComponent(product.productType)}&mainCategory=${encodeURIComponent(product.mainCategory)}&category=${encodeURIComponent(product.category)}&size=50`
@@ -309,7 +262,7 @@ async function loadSimilarProducts(product: ProdCactus) {
         if (!response.ok) throw new Error('Similar products unavailable');
 
         const data = await response.json();
-        const products: ProdCactus[] = data.content || data;
+        const products: Cactus[] = data.content || data;
 
         renderSimilar(products.filter(p =>
             p.id !== product.id &&
@@ -325,7 +278,7 @@ async function loadSimilarProducts(product: ProdCactus) {
     }
 }
 
-function renderSimilar(products: ProdCactus[]) {
+function renderSimilar(products: Cactus[]) {
     const container = document.getElementById('similar-products')!;
 
     if (products.length === 0) {
@@ -350,3 +303,4 @@ function renderSimilar(products: ProdCactus[]) {
 
 initImageZoom();
 loadProduct();
+

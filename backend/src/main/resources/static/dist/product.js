@@ -11,27 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const produsParams = new URLSearchParams(window.location.search);
 const productId = produsParams.get('id');
-function produsLoadCart() {
-    try {
-        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
-        return Array.isArray(data)
-            ? data.filter(item => item &&
-                Number.isSafeInteger(item.id) &&
-                item.id > 0 &&
-                typeof item.name === 'string' &&
-                Number.isFinite(item.price) &&
-                item.price >= 0 &&
-                Number.isSafeInteger(item.stock) &&
-                item.stock >= 0)
-            : [];
-    }
-    catch (_a) {
-        return [];
-    }
-}
-function produsSaveCart(cart) {
-    return saveLocalValue(CART_STORAGE_KEY, JSON.stringify(cart));
-}
 function loadProduct() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
@@ -128,14 +107,14 @@ function loadProduct() {
                         if (!Number.isSafeInteger(fresh.stock) || fresh.stock < 0) {
                             throw new Error();
                         }
-                        const cart = produsLoadCart();
+                        const cart = loadCartFromStorage();
                         const inCart = cart.filter(c => c.id === product.id).length;
                         if (fresh.active === false || inCart >= fresh.stock) {
                             showToast('Stoc insuficient!');
                             return;
                         }
                         cart.push(product);
-                        if (!produsSaveCart(cart))
+                        if (!saveCartToStorage(cart))
                             return;
                         showToast('Adăugat în coș!');
                     }

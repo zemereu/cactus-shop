@@ -12,25 +12,7 @@ let totalPages: number = 0;
 let totalProducts = 0;
 const PAGE_SIZE: number = 20;
 
-function loadCartFromStorage(): Cactus[] {
-    try {
-        const data = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
-
-        return Array.isArray(data) ? data.filter(item => item &&
-            Number.isSafeInteger(item.id) && item.id > 0 &&
-            typeof item.name === 'string' &&
-            Number.isFinite(item.price) && item.price >= 0 &&
-            Number.isSafeInteger(item.stock) && item.stock >= 0) : [];
-    } catch {
-        return [];
-    }
-}
-
-function saveCartToStorage() {
-    return saveLocalValue(CART_STORAGE_KEY, JSON.stringify(shoppingCart));
-}
-
-let shoppingCart: Cactus[] = loadCartFromStorage();
+let shoppingCart = loadCartFromStorage();
 let catalogRequestId = 0;
 
 async function fetchCacti() {
@@ -105,7 +87,7 @@ async function fetchCacti() {
 }
 
 function updateCartUI(persist = true): boolean {
-    const saved = !persist || saveCartToStorage();
+    const saved = !persist || saveCartToStorage(shoppingCart);
     if (!saved) shoppingCart = loadCartFromStorage();
 
     const cartCountElement = document.getElementById('cart-count');
@@ -491,13 +473,7 @@ function renderCartItems() {
         return;
     }
 
-    const grouped = new Map<number, { item: Cactus; qty: number }>();
-
-    shoppingCart.forEach(item => {
-        const existing = grouped.get(item.id);
-        if (existing) existing.qty++;
-        else grouped.set(item.id, { item, qty: 1 });
-    });
+    const grouped = groupCartItems(shoppingCart);
 
     let htmlContent = "";
     let totalPrice = 0;
@@ -941,4 +917,5 @@ window.addEventListener('storage', event => {
 
 fetchCacti();
 updateCartUI(false);
+
 

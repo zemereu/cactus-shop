@@ -480,14 +480,9 @@ const orderFilter = document.getElementById('admin-order-filter');
 if (orderSearch) orderSearch.addEventListener('input', () => renderOrderRows(getFilteredOrders()));
 if (orderFilter) orderFilter.addEventListener('change', () => renderOrderRows(getFilteredOrders()));
 
-interface PendingReview {
-    id: number;
-    customerName: string;
+interface PendingReview extends ReviewResponse {
     customerEmail: string;
     cactusId: number | null;
-    rating: number;
-    comment: string;
-    createdAt: string;
 }
 
 async function fetchPendingReviews() {
@@ -546,3 +541,4 @@ authFetch(`${API_BASE}/api/auth/me`).then(response => {
     if (response.ok) return showAdminPanel();
 }).catch(() => {
 });
+

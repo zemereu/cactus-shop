@@ -1,13 +1,5 @@
 // API_BASE, CUSTOMER_NAME_KEY, escapeHtml, authFetch vin din shared.ts
 
-interface ReviewResponse {
-    id: number;
-    customerName: string;
-    rating: number;
-    comment: string;
-    createdAt: string;
-}
-
 // Dacă URL-ul are ?cactusId=X, arătăm recenzii pentru acel produs.
 // Altfel, recenzii generale despre magazin.
 const urlParams = new URLSearchParams(window.location.search);
@@ -127,9 +119,9 @@ if (submitBtn) {
                 starElements.forEach(s => s.textContent = '☆');
                 setTimeout(() => { window.location.href = 'index.html'; }, 3000);
             } else {
-                const errorMsg = await response.text();
+                const errorMsg = await responseError(response);
                 messageEl.style.color = '#d32f2f';
-                messageEl.innerText = errorMsg || "Nu am putut trimite recenzia.";
+                messageEl.innerText = errorMsg;
             }
         } catch (error) {
             console.error(error);
