@@ -1,5 +1,4 @@
 "use strict";
-// Interfetele Cactus si Category vin din shared.ts.
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+// Shop-only controls are initialized before catalog elements are used.
+initCompactShopControls();
+// Interfetele Cactus si Category vin din shared.ts.
 let cactiForSale = [];
 let allCategories = [];
 let selectedProductType = "";
@@ -782,3 +784,166 @@ window.addEventListener('storage', event => {
 });
 fetchCacti();
 updateCartUI(false);
+function initCompactShopControls() {
+    var _a;
+    const cart = document.getElementById('cart-button');
+    if (cart) {
+        const count = document.getElementById('cart-count');
+        cart.innerHTML = '<i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>';
+        if (count) {
+            count.hidden = true;
+            cart.appendChild(count);
+        }
+        cart.setAttribute('aria-label', 'Deschide coșul');
+        cart.title = 'Coș';
+    }
+    const search = document.getElementById('search-bar');
+    if (search && !document.getElementById('search-disclosure')) {
+        const host = search.parentElement;
+        const header = search.closest('header');
+        const actions = header === null || header === void 0 ? void 0 : header.lastElementChild;
+        if (header && actions && actions !== host) {
+            const toggle = document.createElement('button');
+            toggle.id = 'search-disclosure';
+            toggle.type = 'button';
+            toggle.className = 'shop-icon-button';
+            toggle.innerHTML =
+                '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+            toggle.setAttribute('aria-label', 'Caută produse');
+            toggle.setAttribute('aria-controls', 'search-bar');
+            toggle.title = 'Caută produse';
+            actions.prepend(toggle);
+            host.classList.add('compact-search-host');
+            header.classList.add('compact-shop-header');
+            search.setAttribute('aria-label', 'Caută produse după nume');
+            const setOpen = (open) => {
+                host.hidden = !open;
+                toggle.setAttribute('aria-expanded', String(open));
+                if (open)
+                    search.focus();
+            };
+            setOpen(false);
+            toggle.addEventListener('click', () => {
+                setOpen(Boolean(host.hidden));
+            });
+            search.addEventListener('input', () => {
+                toggle.classList.toggle('has-active-filter', search.value.trim() !== '');
+            });
+            search.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+            document.addEventListener('click', event => {
+                if (!host.contains(event.target) &&
+                    !toggle.contains(event.target)) {
+                    setOpen(false);
+                }
+            });
+        }
+    }
+    const min = document.getElementById('price-min');
+    const max = document.getElementById('price-max');
+    if (min && max && !document.getElementById('price-disclosure')) {
+        const fields = min.parentElement;
+        const details = document.createElement('details');
+        details.id = 'price-disclosure';
+        details.className = 'shop-disclosure price-disclosure';
+        details.innerHTML = `
+            <summary>
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                <span>Filtre</span>
+            </summary>
+        `;
+        const toolbar = fields.parentElement;
+        toolbar.classList.add('catalog-toolbar');
+        toolbar.prepend(details);
+        const sort = document.getElementById('sort-select');
+        (_a = sort === null || sort === void 0 ? void 0 : sort.parentElement) === null || _a === void 0 ? void 0 : _a.classList.add('catalog-sort');
+        const count = document.getElementById('products-count');
+        if (count) {
+            count.setAttribute('role', 'status');
+            count.setAttribute('aria-live', 'polite');
+            details.after(count);
+        }
+        details.appendChild(fields);
+        fields.classList.add('shop-control-panel', 'price-fields');
+        min.setAttribute('aria-label', 'Preț minim în RON');
+        max.setAttribute('aria-label', 'Preț maxim în RON');
+        const update = () => {
+            const active = min.value !== '' || max.value !== '';
+            details.classList.toggle('has-active-filter', active);
+            details.querySelector('summary span').textContent =
+                active ? 'Filtre •' : 'Filtre';
+        };
+        min.addEventListener('input', update);
+        max.addEventListener('input', update);
+        update();
+    }
+    document.querySelectorAll('.shop-disclosure').forEach(details => {
+        document.addEventListener('click', event => {
+            if (details.open && !details.contains(event.target)) {
+                details.open = false;
+            }
+        });
+        details.addEventListener('keydown', event => {
+            var _a;
+            if (event.key === 'Escape' && details.open) {
+                details.open = false;
+                (_a = details.querySelector('summary')) === null || _a === void 0 ? void 0 : _a.focus();
+            }
+        });
+    });
+}
+// Shared markup for catalog and recently viewed product cards.
+function renderProductCard(cactus, hearted = false) {
+    const validImage = cactus.imageUrl ||
+        "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
+    const stockLabel = cactus.stock === 1
+        ? '1 exemplar rămas'
+        : cactus.stock > 1
+            ? `${cactus.stock} exemplare rămase`
+            : 'Stoc epuizat';
+    return `
+        <article class="cactus-card">
+            <div class="card-actions">
+                <button class="wishlist-btn card-action-btn"
+                    data-id="${cactus.id}"
+                    style="color:${hearted ? '#d32f2f' : '#607568'};"
+                    title="Favorite"
+                    aria-label="Favorite"
+                    aria-pressed="${hearted}">
+                    <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>
+                </button>
+                <button class="zoom-btn card-action-btn"
+                    data-img="${escapeHtml(validImage)}"
+                    title="Mărește imaginea"
+                    aria-label="Mărește imaginea">
+                    <i class="fa-solid fa-expand" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <a class="cactus-photo" href="product.html?id=${cactus.id}">
+                <img loading="lazy"
+                    class="cactus-image"
+                    src="${escapeHtml(validImage)}"
+                    alt="${escapeHtml(cactus.name)}">
+            </a>
+
+            <div class="cactus-details">
+                <span class="cactus-category">${escapeHtml(cactus.category)}</span>
+                ${hybridBadge(cactus)}
+                <a class="cactus-name-link" href="product.html?id=${cactus.id}">
+                    <h2 title="${escapeHtml(cactus.name)}">${escapeHtml(cactus.name)}</h2>
+                </a>
+                <p class="cactus-price">${formatPrice(cactus.price)} <span>RON</span></p>
+                <p class="cactus-stock ${cactus.stock > 0 ? '' : 'is-unavailable'}">${stockLabel}</p>
+            </div>
+
+            <button class="${cactus.stock > 0 ? 'add-to-cart-btn' : 'sold-out-btn'}"
+                data-id="${cactus.id}" ${cactus.stock > 0 ? '' : 'disabled'}>
+                ${cactus.stock > 0 ? 'Adaugă în coș' : 'Stoc epuizat'}
+            </button>
+        </article>`;
+}

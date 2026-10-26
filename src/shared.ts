@@ -85,32 +85,37 @@ function starsDisplay(rating: number): string {
 }
 
 async function responseError(response: Response): Promise<string> {
-    const text = await response.text();
+    const text = (await response.text()).trim();
+    const fallback = `Eroare HTTP ${response.status}.`;
+    if (!text) return fallback;
 
+    let body: unknown;
     try {
-        const body = JSON.parse(text);
-        const details = body.details && typeof body.details === 'object'
-            ? Object.keys(body.details)
-                .map(key => body.details[key])
-                .filter(value => typeof value === 'string')
-            : [];
-
-        return [
-            typeof body.error === 'string'
-                ? body.error
-                : `Eroare HTTP ${response.status}.`,
-            ...details
-        ].join('\n');
+        body = JSON.parse(text);
     } catch {
-        return text || `Eroare HTTP ${response.status}.`;
+        // A proxy may return an HTML error page instead of an API message.
+        return text.startsWith('<') ? fallback : text;
     }
+    if (typeof body === 'string') return body.trim() || fallback;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return fallback;
+
+    const error = body as Record<string, unknown>;
+    const message = [error.error, error.message, error.detail]
+        .find((value): value is string => typeof value === 'string' && value.trim() !== '');
+    const details = error.details && typeof error.details === 'object'
+        ? Object.keys(error.details).map(key => (error.details as Record<string, unknown>)[key])
+            .filter((value): value is string => typeof value === 'string' && value.trim() !== '')
+        : [];
+    return [message || fallback, ...details].join('\n');
 }
 
+const priceFormatter = new Intl.NumberFormat('ro-RO', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+});
+
 function formatPrice(value: number): string {
-    return Number(value).toLocaleString('ro-RO', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+    return priceFormatter.format(Number(value));
 }
 
 function formatOrderDate(value?: string): string {
@@ -356,149 +361,7 @@ function initImageZoom() {
     });
 }
 
-function initCompactShopControls() {
-    const cart = document.getElementById('cart-button');
-
-    if (cart) {
-        const count = document.getElementById('cart-count');
-        cart.innerHTML = '<i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>';
-
-        if (count) {
-            count.hidden = true;
-            cart.appendChild(count);
-        }
-
-        cart.setAttribute('aria-label', 'Deschide coșul');
-        cart.title = 'Coș';
-    }
-
-    const search = document.getElementById('search-bar') as HTMLInputElement | null;
-
-    if (search && !document.getElementById('search-disclosure')) {
-        const host = search.parentElement!;
-        const header = search.closest('header');
-        const actions = header?.lastElementChild;
-
-        if (header && actions && actions !== host) {
-            const toggle = document.createElement('button');
-            toggle.id = 'search-disclosure';
-            toggle.type = 'button';
-            toggle.className = 'shop-icon-button';
-            toggle.innerHTML =
-                '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
-            toggle.setAttribute('aria-label', 'Caută produse');
-            toggle.setAttribute('aria-controls', 'search-bar');
-            toggle.title = 'Caută produse';
-
-            actions.prepend(toggle);
-            host.classList.add('compact-search-host');
-            header.classList.add('compact-shop-header');
-            search.setAttribute('aria-label', 'Caută produse după nume');
-
-            const setOpen = (open: boolean) => {
-                host.hidden = !open;
-                toggle.setAttribute('aria-expanded', String(open));
-                if (open) search.focus();
-            };
-
-            setOpen(false);
-
-            toggle.addEventListener('click', () => {
-                setOpen(Boolean(host.hidden));
-            });
-
-            search.addEventListener('input', () => {
-                toggle.classList.toggle(
-                    'has-active-filter',
-                    search.value.trim() !== ''
-                );
-            });
-
-            search.addEventListener('keydown', event => {
-                if (event.key === 'Escape') {
-                    setOpen(false);
-                    toggle.focus();
-                }
-            });
-
-            document.addEventListener('click', event => {
-                if (
-                    !host.contains(event.target as Node) &&
-                    !toggle.contains(event.target as Node)
-                ) {
-                    setOpen(false);
-                }
-            });
-        }
-    }
-
-    const min = document.getElementById('price-min') as HTMLInputElement | null;
-    const max = document.getElementById('price-max') as HTMLInputElement | null;
-
-    if (min && max && !document.getElementById('price-disclosure')) {
-        const fields = min.parentElement!;
-        const details = document.createElement('details');
-
-        details.id = 'price-disclosure';
-        details.className = 'shop-disclosure price-disclosure';
-        details.innerHTML = `
-            <summary>
-                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                <span>Filtre</span>
-            </summary>
-        `;
-
-        const toolbar = fields.parentElement!;
-        toolbar.classList.add('catalog-toolbar');
-        toolbar.prepend(details);
-
-        const sort = document.getElementById('sort-select');
-        sort?.parentElement?.classList.add('catalog-sort');
-
-        const count = document.getElementById('products-count');
-
-        if (count) {
-            count.setAttribute('role', 'status');
-            count.setAttribute('aria-live', 'polite');
-            details.after(count);
-        }
-
-        details.appendChild(fields);
-        fields.classList.add('shop-control-panel', 'price-fields');
-
-        min.setAttribute('aria-label', 'Preț minim în RON');
-        max.setAttribute('aria-label', 'Preț maxim în RON');
-
-        const update = () => {
-            const active = min.value !== '' || max.value !== '';
-            details.classList.toggle('has-active-filter', active);
-            details.querySelector('summary span')!.textContent =
-                active ? 'Filtre •' : 'Filtre';
-        };
-
-        min.addEventListener('input', update);
-        max.addEventListener('input', update);
-        update();
-    }
-
-    document.querySelectorAll<HTMLDetailsElement>('.shop-disclosure').forEach(details => {
-        document.addEventListener('click', event => {
-            if (details.open && !details.contains(event.target as Node)) {
-                details.open = false;
-            }
-        });
-
-        details.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && details.open) {
-                details.open = false;
-                details.querySelector('summary')?.focus();
-            }
-        });
-    });
-}
-
 void initAccountDropdown();
-initCompactShopControls();
 
 // Only a confirmed hybrid gets a badge; older products remain unmarked.
 function hybridBadge(product: { hybrid?: boolean }): string {
@@ -507,58 +370,4 @@ function hybridBadge(product: { hybrid?: boolean }): string {
         : '';
 }
 
-
-// Shared markup for catalog and recently viewed product cards.
-function renderProductCard(cactus: Cactus, hearted = false): string {
-    const validImage = cactus.imageUrl ||
-        "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
-
-    const stockLabel = cactus.stock === 1
-        ? '1 exemplar rămas'
-        : cactus.stock > 1
-            ? `${cactus.stock} exemplare rămase`
-            : 'Stoc epuizat';
-
-    return `
-        <article class="cactus-card">
-            <div class="card-actions">
-                <button class="wishlist-btn card-action-btn"
-                    data-id="${cactus.id}"
-                    style="color:${hearted ? '#d32f2f' : '#607568'};"
-                    title="Favorite"
-                    aria-label="Favorite"
-                    aria-pressed="${hearted}">
-                    <i class="fa-${hearted ? 'solid' : 'regular'} fa-heart" aria-hidden="true"></i>
-                </button>
-                <button class="zoom-btn card-action-btn"
-                    data-img="${escapeHtml(validImage)}"
-                    title="Mărește imaginea"
-                    aria-label="Mărește imaginea">
-                    <i class="fa-solid fa-expand" aria-hidden="true"></i>
-                </button>
-            </div>
-
-            <a class="cactus-photo" href="product.html?id=${cactus.id}">
-                <img loading="lazy"
-                    class="cactus-image"
-                    src="${escapeHtml(validImage)}"
-                    alt="${escapeHtml(cactus.name)}">
-            </a>
-
-            <div class="cactus-details">
-                <span class="cactus-category">${escapeHtml(cactus.category)}</span>
-                ${hybridBadge(cactus)}
-                <a class="cactus-name-link" href="product.html?id=${cactus.id}">
-                    <h2 title="${escapeHtml(cactus.name)}">${escapeHtml(cactus.name)}</h2>
-                </a>
-                <p class="cactus-price">${formatPrice(cactus.price)} <span>RON</span></p>
-                <p class="cactus-stock ${cactus.stock > 0 ? '' : 'is-unavailable'}">${stockLabel}</p>
-            </div>
-
-            <button class="${cactus.stock > 0 ? 'add-to-cart-btn' : 'sold-out-btn'}"
-                data-id="${cactus.id}" ${cactus.stock > 0 ? '' : 'disabled'}>
-                ${cactus.stock > 0 ? 'Adaugă în coș' : 'Stoc epuizat'}
-            </button>
-        </article>`;
-}
 

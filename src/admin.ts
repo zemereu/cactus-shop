@@ -176,6 +176,15 @@ function editField(label: string, control: string, span = ''): string {
     return `<div class="${span}"><label class="edit-field-label">${label}</label>${control}</div>`;
 }
 
+const productActions = [
+    { selector: '.delete-cactus-btn', path: '', method: 'DELETE', message: 'Produs dezactivat',
+        confirmations: ['Dezactivezi acest produs?'] },
+    { selector: '.reactivate-cactus-btn', path: '/reactivate', method: 'PUT', message: 'Produs reactivat',
+        confirmations: [] },
+    { selector: '.hard-delete-btn', path: '/permanent', method: 'DELETE', message: 'Produs sters definitiv',
+        confirmations: ['ATENTIE: Stergere definitiva?', 'Absolut sigur? Ireversibil.'] }
+];
+
 function renderAdminCacti(cacti: Cactus[]) {
     const container = document.getElementById('admin-cacti-list');
     const countEl = document.getElementById('products-count');
@@ -280,20 +289,12 @@ function renderAdminCacti(cacti: Cactus[]) {
             method: 'PUT', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(u)
         });
-        if (r && r.ok) {
+        if (r) {
             fetchAdminCacti();
             showToast('Produs actualizat');
         }
     }));
 
-    const productActions = [
-        { selector: '.delete-cactus-btn', path: '', method: 'DELETE', message: 'Produs dezactivat',
-            confirmations: ['Dezactivezi acest produs?'] },
-        { selector: '.reactivate-cactus-btn', path: '/reactivate', method: 'PUT', message: 'Produs reactivat',
-            confirmations: [] },
-        { selector: '.hard-delete-btn', path: '/permanent', method: 'DELETE', message: 'Produs sters definitiv',
-            confirmations: ['ATENTIE: Stergere definitiva?', 'Absolut sigur? Ireversibil.'] }
-    ];
     for (const action of productActions) {
         container.querySelectorAll(action.selector).forEach(button => {
             button.addEventListener('click', async () => {
@@ -329,53 +330,67 @@ if (adminSort) adminSort.addEventListener('change', () => renderAdminCacti(getFi
 const addCactusBtn = document.getElementById('add-new-cactus-btn');
 if (addCactusBtn) {
     addCactusBtn.addEventListener('click', async () => {
-        let imageUrl = (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim();
-        const fileInput = document.getElementById('new-cactus-file') as HTMLInputElement;
-        const newCactus = {
-            name: (document.getElementById('new-cactus-name') as HTMLInputElement).value.trim(),
-            price: Number((document.getElementById('new-cactus-price') as HTMLInputElement).value),
-            productType: (document.getElementById('new-cactus-product-type') as HTMLSelectElement).value,
-            mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
-            category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
-            description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
-            imageUrl,
-            stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0,
-            location: (document.getElementById('new-cactus-location') as HTMLInputElement).value.trim(),
-            hybrid: (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked
-        };
+        if (addCactusBtn.hasAttribute('disabled')) return;
+        addCactusBtn.setAttribute('disabled', 'true');
+        addCactusBtn.setAttribute('aria-busy', 'true');
+        try {
+            let imageUrl = (document.getElementById('new-cactus-image') as HTMLInputElement).value.trim();
+            const fileInput = document.getElementById('new-cactus-file') as HTMLInputElement;
+            const newCactus = {
+                name: (document.getElementById('new-cactus-name') as HTMLInputElement).value.trim(),
+                price: Number((document.getElementById('new-cactus-price') as HTMLInputElement).value),
+                productType: (document.getElementById('new-cactus-product-type') as HTMLSelectElement).value,
+                mainCategory: (document.getElementById('new-cactus-main-category') as HTMLSelectElement).value,
+                category: (document.getElementById('new-cactus-category') as HTMLSelectElement).value,
+                description: (document.getElementById('new-cactus-desc') as HTMLInputElement).value.trim(),
+                imageUrl,
+                stock: Number((document.getElementById('new-cactus-stock') as HTMLInputElement).value) || 0,
+                location: (document.getElementById('new-cactus-location') as HTMLInputElement).value.trim(),
+                hybrid: (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked
+            };
 
-        if (!newCactus.name || !newCactus.price || !newCactus.category) {
-            alert("Completeaza campurile obligatorii!");
-            return;
+            if (!newCactus.name || !newCactus.price || !newCactus.category) {
+                alert("Completeaza campurile obligatorii!");
+                return;
+            }
+
+            if (fileInput.files && fileInput.files.length > 0) {
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                const ur = await adminRequest(`${API_BASE}/api/images/upload`, {
+                    method: 'POST', body: fd
+                });
+                if (!ur) return;
+                const uploaded = await ur.json();
+                if (typeof uploaded.imageUrl !== 'string' || !uploaded.imageUrl.trim()) {
+                    throw new Error('Serverul nu a returnat adresa imaginii încărcate.');
+                }
+                imageUrl = uploaded.imageUrl;
+                newCactus.imageUrl = imageUrl;
+                (document.getElementById('new-cactus-image') as HTMLInputElement).value = imageUrl;
+                fileInput.value = '';
+            }
+
+            if (!await adminRequest(`${API_BASE}/api/cacti`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(newCactus)
+            })) return;
+
+            [
+                'new-cactus-name', 'new-cactus-price', 'new-cactus-desc',
+                'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'
+            ].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
+            (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked = false;
+
+            if (fileInput) fileInput.value = "";
+            fetchAdminCacti();
+            showToast('Produs adaugat');
+        } catch {
+            alert('Operația nu a putut fi confirmată. Verifică rezultatul înainte de reîncercare.');
+        } finally {
+            addCactusBtn.removeAttribute('disabled');
+            addCactusBtn.removeAttribute('aria-busy');
         }
-
-        if (fileInput.files && fileInput.files.length > 0) {
-            const fd = new FormData();
-            fd.append('file', fileInput.files[0]);
-            const ur = await adminRequest(`${API_BASE}/api/images/upload`, {
-                method: 'POST', body: fd
-            });
-            if (!ur) return;
-            imageUrl = (await ur.json()).imageUrl;
-            newCactus.imageUrl = imageUrl;
-            (document.getElementById('new-cactus-image') as HTMLInputElement).value = imageUrl;
-            fileInput.value = '';
-        }
-
-        if (!await adminRequest(`${API_BASE}/api/cacti`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(newCactus)
-        })) return;
-
-        [
-            'new-cactus-name', 'new-cactus-price', 'new-cactus-desc',
-            'new-cactus-image', 'new-cactus-stock', 'new-cactus-location'
-        ].forEach(id => (document.getElementById(id) as HTMLInputElement).value = "");
-        (document.getElementById('new-cactus-hybrid') as HTMLInputElement).checked = false;
-
-        if (fileInput) fileInput.value = "";
-        fetchAdminCacti();
-        showToast('Produs adaugat');
     });
 }
 
@@ -406,7 +421,7 @@ function renderOrderRows(orders: Order[]) {
             method: 'PUT', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({status: t.value})
         });
-        if (r && r.ok) {
+        if (r) {
             await fetchAdminOrders();
             showToast('Status actualizat');
         } else if (previous) {
@@ -508,4 +523,5 @@ authFetch(`${API_BASE}/api/auth/me`).then(response => {
     if (response.ok) return showAdminPanel();
 }).catch(() => {
 });
+
 
