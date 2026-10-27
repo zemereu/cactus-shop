@@ -238,7 +238,7 @@ function renderAdminCacti(cacti: Cactus[]) {
                        <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
         </div>
-        <div class="edit-panel" data-id="${c.id}" style="display:none;">
+        <div class="edit-panel" data-id="${c.id}" data-version="${c.version}" style="display:none;">
             <h4 class="edit-panel-title">Editare: ${escapeHtml(c.name)}</h4>
             <div class="edit-fields">
                 ${editField(`edit-name-${c.id}`, 'Nume', `<input type="text" id="edit-name-${c.id}" class="edit-name admin-input" value="${escapeHtml(c.name)}">`, 'edit-full-width')}
@@ -293,7 +293,7 @@ function renderAdminCacti(cacti: Cactus[]) {
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`) as HTMLElement;
         if (!p) return;
         const u = {
-            version: allCactiCache.find(c => c.id === Number(id))?.version,
+            version: Number(p.getAttribute('data-version')),
             name: (p.querySelector('.edit-name') as HTMLInputElement).value.trim(),
             price: Number((p.querySelector('.edit-price') as HTMLInputElement).value),
             stock: Number((p.querySelector('.edit-stock') as HTMLInputElement).value) || 0,
@@ -419,8 +419,8 @@ function renderOrderRows(orders: Order[]) {
             <td>${escapeHtml(o.address)}</td>
             <td>${escapeHtml(o.purchasedItems)}</td>
             <td style="color:#d32f2f; font-weight:bold;">${formatPrice(o.totalPrice)} RON</td>
-            <td><select class="order-status-select admin-input" data-id="${o.id}" style="padding:6px;">
-                ${ORDER_STATUSES.map(s => `<option value="${escapeHtml(s)}" ${s === o.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
+            <td><select class="order-status-select admin-input" data-id="${o.id}" aria-label="Status comandă ${o.id}" ${(ORDER_STATUS_TRANSITIONS[o.status] || []).length === 0 ? 'disabled' : ''} style="padding:6px;">
+                ${[o.status, ...(ORDER_STATUS_TRANSITIONS[o.status] || [])].map(s => `<option value="${escapeHtml(s)}" ${s === o.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
             </select></td>
         </tr>`).join("");
 

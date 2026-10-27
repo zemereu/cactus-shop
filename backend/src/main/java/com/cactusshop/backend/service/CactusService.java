@@ -156,12 +156,18 @@ public class CactusService {
         cactusRepository.delete(cactus);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Cactus updateCactus(Long id, CactusRequestDTO request) {
         validateCategory(request);
 
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Produsul nu a fost găsit."));
+
+        if (request.version() == null || request.version() != cactus.getVersion()) {
+            throw new org.springframework.dao.OptimisticLockingFailureException(
+                    "Produsul a fost modificat între timp sau formularul nu include versiunea.");
+        }
 
         cactus.setName(request.name().trim());
         cactus.setPrice(request.price());
@@ -177,6 +183,6 @@ public class CactusService {
                 request.location() != null ? request.location().trim() : "");
         if (request.hybrid() != null) cactus.setHybrid(request.hybrid());
 
-        return cactusRepository.save(cactus);
+        return cactusRepository.saveAndFlush(cactus);
     }
 }

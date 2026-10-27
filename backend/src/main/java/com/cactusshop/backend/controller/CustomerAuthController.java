@@ -6,6 +6,7 @@ import com.cactusshop.backend.dto.CustomerRegisterDTO;
 import com.cactusshop.backend.dto.CustomerUpdateDTO;
 import com.cactusshop.backend.model.Customer;
 import com.cactusshop.backend.security.JwtUtil;
+import com.cactusshop.backend.security.ClientIpResolver;
 import com.cactusshop.backend.security.LoginRateLimiter;
 import com.cactusshop.backend.service.CustomerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +33,15 @@ public class CustomerAuthController {
     @Autowired
     private LoginRateLimiter rateLimiter;
 
+    @Autowired
+    private ClientIpResolver clientIpResolver;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(
             @Valid @RequestBody CustomerRegisterDTO request,
             HttpServletRequest httpRequest) {
 
-        if (!rateLimiter.tryAcquire("register", httpRequest.getRemoteAddr(), 20)) {
+        if (!rateLimiter.tryAcquire("register", clientIpResolver.resolve(httpRequest), 20)) {
             return ResponseEntity.status(429).header("Retry-After", "900")
                     .body(Map.of("error", "Prea multe încercări. Reîncearcă peste 15 minute."));
         }
@@ -66,8 +70,10 @@ public class CustomerAuthController {
             @Valid @RequestBody CustomerLoginDTO request,
             HttpServletRequest httpRequest) {
 
-        if (!rateLimiter.tryAcquire(
-                "customer", request.email().trim().toLowerCase(java.util.Locale.ROOT), 5)) {
+        String clientIp = clientIpResolver.resolve(httpRequest);
+        String email = request.email().trim().toLowerCase(java.util.Locale.ROOT);
+        if (!rateLimiter.tryAcquire("customer-ip", clientIp, 20)
+                || !rateLimiter.tryAcquire("customer", clientIp + "|" + email, 5)) {
             return ResponseEntity.status(429).header("Retry-After", "900")
                     .body(Map.of("error", "Prea multe încercări. Reîncearcă peste 15 minute."));
         }
@@ -103,7 +109,7 @@ public class CustomerAuthController {
             @Valid @RequestBody ForgotPasswordRequest request,
             HttpServletRequest http) {
 
-        if (!rateLimiter.tryAcquire("reset-ip", http.getRemoteAddr(), 20))
+        if (!rateLimiter.tryAcquire("reset-ip", clientIpResolver.resolve(http), 20))
             return ResponseEntity.status(429).header("Retry-After", "900")
                     .body(Map.of("error", "Prea multe cereri. Reîncearcă peste 15 minute."));
 
@@ -121,7 +127,7 @@ public class CustomerAuthController {
             @Valid @RequestBody ResetPasswordRequest request,
             HttpServletRequest http) {
 
-        if (!rateLimiter.tryAcquire("reset-submit", http.getRemoteAddr(), 20))
+        if (!rateLimiter.tryAcquire("reset-submit", clientIpResolver.resolve(http), 20))
             return ResponseEntity.status(429).header("Retry-After", "900")
                     .body(Map.of("error", "Prea multe cereri. Reîncearcă peste 15 minute."));
 

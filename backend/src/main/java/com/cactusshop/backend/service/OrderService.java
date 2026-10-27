@@ -42,6 +42,14 @@ public class OrderService {
             "Neplătită", "Plătită - în pregătire", "Expediată", "Livrată", "Anulată"
     );
 
+    private static final Map<String, Set<String>> STATUS_TRANSITIONS = Map.of(
+            "Neplătită", Set.of("Plătită - în pregătire", "Anulată"),
+            "Plătită - în pregătire", Set.of("Expediată", "Anulată"),
+            "Expediată", Set.of("Livrată"),
+            "Livrată", Set.of(),
+            "Anulată", Set.of()
+    );
+
     // Only the authenticated principal can establish account ownership.
     @Transactional
     public Order placeOrder(
@@ -212,12 +220,14 @@ public class OrderService {
 
         if (order.getStatus().equals(status)) return order;
 
-        if (order.getStatus().equals("Anulată"))
-            throw new IllegalStateException("O comandă anulată nu poate fi redeschisă.");
+        if (!STATUS_TRANSITIONS.getOrDefault(order.getStatus(), Set.of()).contains(status)) {
+            throw new IllegalStateException(
+                    "Tranziția de la \"" + order.getStatus() + "\" la \"" + status
+                            + "\" nu este permisă. Reîncarcă lista pentru statusul actual."
+                            + " Comenzile expediate sau livrate necesită gestionarea separată a returului.");
+        }
 
         if (status.equals("Anulată")) {
-            if (order.getStatus().equals("Livrată") || order.getStatus().equals("Expediată"))
-                throw new IllegalStateException("Comenzile expediate/livrate necesită gestionarea returului.");
 
             if (order.getQuantities().isEmpty())
                 throw new IllegalStateException(

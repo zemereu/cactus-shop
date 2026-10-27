@@ -4,10 +4,14 @@ const BANK_TRANSFER_INFO = {
     holder: "Numele Titularului / Firmei"
 };
 
-const ORDER_STATUSES = [
-    "Neplătită", "Plătită - în pregătire",
-    "Expediată", "Livrată", "Anulată"
-];
+// Keep aligned with OrderService.STATUS_TRANSITIONS; the server enforces the rules.
+const ORDER_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
+    'Neplătită': ['Plătită - în pregătire', 'Anulată'],
+    'Plătită - în pregătire': ['Expediată', 'Anulată'],
+    'Expediată': ['Livrată'],
+    'Livrată': [],
+    'Anulată': []
+};
 
 const CUSTOMER_NAME_KEY = "customerName";
 const CART_STORAGE_KEY = "shoppingCart";

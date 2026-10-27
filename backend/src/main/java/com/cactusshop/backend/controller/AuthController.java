@@ -1,6 +1,7 @@
 package com.cactusshop.backend.controller;
 
 import com.cactusshop.backend.security.JwtUtil;
+import com.cactusshop.backend.security.ClientIpResolver;
 import com.cactusshop.backend.security.LoginRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class AuthController {
     @Autowired
     private LoginRateLimiter rateLimiter;
 
+    @Autowired
+    private ClientIpResolver clientIpResolver;
+
     @Value("${ADMIN_USERNAME}")
     private String adminUsername;
 
@@ -37,7 +41,7 @@ public class AuthController {
             @RequestBody Map<String, String> credentials,
             HttpServletRequest request) {
 
-        if (!rateLimiter.tryAcquire("admin", "login", 5)) {
+        if (!rateLimiter.tryAcquire("admin", clientIpResolver.resolve(request), 5)) {
             return ResponseEntity.status(429)
                     .header("Retry-After", "900")
                     .body(Map.of(

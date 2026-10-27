@@ -261,7 +261,7 @@ function renderAdminCacti(cacti) {
                        <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
         </div>
-        <div class="edit-panel" data-id="${c.id}" style="display:none;">
+        <div class="edit-panel" data-id="${c.id}" data-version="${c.version}" style="display:none;">
             <h4 class="edit-panel-title">Editare: ${escapeHtml(c.name)}</h4>
             <div class="edit-fields">
                 ${editField(`edit-name-${c.id}`, 'Nume', `<input type="text" id="edit-name-${c.id}" class="edit-name admin-input" value="${escapeHtml(c.name)}">`, 'edit-full-width')}
@@ -313,13 +313,13 @@ function renderAdminCacti(cacti) {
         subSelect.innerHTML = categoryOptions(select.value, subSelect.value);
     }));
     container.querySelectorAll('.save-edit-btn').forEach(b => onAdminAction(b, 'click', (e) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b;
+        var _a;
         const id = (_a = e.target.closest("[data-id]")) === null || _a === void 0 ? void 0 : _a.getAttribute("data-id");
         const p = document.querySelector(`.edit-panel[data-id="${id}"]`);
         if (!p)
             return;
         const u = {
-            version: (_b = allCactiCache.find(c => c.id === Number(id))) === null || _b === void 0 ? void 0 : _b.version,
+            version: Number(p.getAttribute('data-version')),
             name: p.querySelector('.edit-name').value.trim(),
             price: Number(p.querySelector('.edit-price').value),
             stock: Number(p.querySelector('.edit-stock').value) || 0,
@@ -447,8 +447,8 @@ function renderOrderRows(orders) {
             <td>${escapeHtml(o.address)}</td>
             <td>${escapeHtml(o.purchasedItems)}</td>
             <td style="color:#d32f2f; font-weight:bold;">${formatPrice(o.totalPrice)} RON</td>
-            <td><select class="order-status-select admin-input" data-id="${o.id}" style="padding:6px;">
-                ${ORDER_STATUSES.map(s => `<option value="${escapeHtml(s)}" ${s === o.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
+            <td><select class="order-status-select admin-input" data-id="${o.id}" aria-label="Status comandă ${o.id}" ${(ORDER_STATUS_TRANSITIONS[o.status] || []).length === 0 ? 'disabled' : ''} style="padding:6px;">
+                ${[o.status, ...(ORDER_STATUS_TRANSITIONS[o.status] || [])].map(s => `<option value="${escapeHtml(s)}" ${s === o.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
             </select></td>
         </tr>`).join("");
     tb.querySelectorAll('.order-status-select').forEach(s => onAdminAction(s, 'change', (e) => __awaiter(this, void 0, void 0, function* () {

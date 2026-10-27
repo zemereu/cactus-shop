@@ -38,5 +38,8 @@ public record CactusRequestDTO(
         Integer stock,
 
         String location,
-        Boolean hybrid
+        Boolean hybrid,
+
+        @Min(value = 0, message = "Versiunea produsului nu poate fi negativă.")
+        Long version
 ) {}
