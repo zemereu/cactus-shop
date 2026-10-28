@@ -3,7 +3,8 @@ package com.cactusshop.backend.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "categories", uniqueConstraints =
+@UniqueConstraint(name = "uk_category_name_main", columnNames = {"name", "main_category"}))
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

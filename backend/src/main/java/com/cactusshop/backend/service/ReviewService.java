@@ -7,6 +7,10 @@ import com.cactusshop.backend.model.Review;
 import com.cactusshop.backend.repository.CactusRepository;
 import com.cactusshop.backend.repository.CustomerRepository;
 import com.cactusshop.backend.repository.ReviewRepository;
+import com.cactusshop.backend.repository.OrderRepository;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,16 +29,32 @@ public class ReviewService {
     @Autowired
     private CactusRepository cactusRepository;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
+    @Transactional
     public String submitReview(String email, ReviewRequestDTO request) {
-        Customer customer = customerRepository.findByEmail(email).orElse(null);
+        Customer customer = customerRepository.findLockedByEmail(email).orElse(null);
         if (customer == null) {
             throw new IllegalArgumentException("Cont inexistent.");
         }
 
-        if (request.cactusId() != null && !cactusRepository.existsById(request.cactusId())) {
-            throw new IllegalArgumentException("Produsul nu exista.");
+        if (!customer.isVerified()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Verifică adresa de email din pagina contului înainte de a trimite o recenzie.");
+        }
+        if (request.cactusId() != null) {
+            var cactus = cactusRepository.findById(request.cactusId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produsul nu există."));
+            if (!cactus.isActive()) {
+                throw new IllegalStateException("Nu poți trimite recenzii pentru un produs inactiv.");
+            }
+            if (!orderRepository.hasPurchased(customer.getId(), cactus.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Poți recenza doar produse din comenzile contului tău, plătite, expediate sau livrate.");
+            }
         }
 
         if (reviewRepository.existsByCustomerEmailAndCactusId(email, request.cactusId())) {

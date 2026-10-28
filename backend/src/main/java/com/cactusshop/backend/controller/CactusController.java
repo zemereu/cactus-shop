@@ -117,14 +117,9 @@ public class CactusController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCactus(
+    public ResponseEntity<Cactus> updateCactus(
             @PathVariable Long id,
             @Valid @RequestBody CactusRequestDTO request) {
-        try {
-            Cactus saved = cactusService.updateCactus(id, request);
-            return ResponseEntity.ok(saved);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        return ResponseEntity.ok(cactusService.updateCactus(id, request));
     }
 }

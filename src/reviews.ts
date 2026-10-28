@@ -4,7 +4,8 @@
 // Altfel, recenzii generale despre magazin.
 const urlParams = new URLSearchParams(window.location.search);
 const cactusIdParam = urlParams.get('cactusId');
-const cactusId = cactusIdParam ? Number(cactusIdParam) : null;
+const cactusId = cactusIdParam !== null ? Number(cactusIdParam) : null;
+const invalidProductId = cactusId !== null && (!Number.isSafeInteger(cactusId) || cactusId <= 0);
 
 const titleEl = document.getElementById('reviews-title');
 if (titleEl) {
@@ -17,6 +18,10 @@ if (titleEl) {
 async function loadReviews() {
     const listEl = document.getElementById('reviews-list');
     if (!listEl) return;
+    if (invalidProductId) {
+        listEl.textContent = 'Linkul produsului nu este valid. Revino în magazin.';
+        return;
+    }
 
     listEl.innerHTML = `<div style="text-align: center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5em; color: #2f694b;"></i><p style="color: #666; margin-top: 8px;">Se încarcă recenziile...</p></div>`;
 
@@ -55,9 +60,18 @@ const formContainer = document.getElementById('review-form-container');
 const loginPrompt = document.getElementById('login-prompt');
 
 async function checkReviewAuth() {
+    if (invalidProductId) return;
     try {
         const response = await authFetch(`${API_BASE}/api/customers/me`);
         if (response.ok) {
+            const profile: CustomerProfile = await response.json();
+            if (!profile.verified) {
+                if (loginPrompt) {
+                    loginPrompt.style.display = 'block';
+                    loginPrompt.innerHTML = '<p>Verifică adresa de email înainte de a trimite o recenzie.</p><a href="account.html">Deschide contul / retrimite emailul</a>';
+                }
+                return;
+            }
             if (formContainer) formContainer.style.display = 'block';
         } else {
             if (loginPrompt) loginPrompt.style.display = 'block';
@@ -84,6 +98,7 @@ starElements.forEach(starEl => {
 const submitBtn = document.getElementById('submit-review-btn');
 if (submitBtn) {
     submitBtn.addEventListener('click', async () => {
+        if (invalidProductId || submitBtn.hasAttribute('disabled')) return;
         const comment = (document.getElementById('review-comment') as HTMLTextAreaElement).value.trim();
         const messageEl = document.getElementById('review-form-message');
         if (!messageEl) return;
@@ -101,6 +116,8 @@ if (submitBtn) {
             return;
         }
 
+        submitBtn.setAttribute('disabled', '');
+        let submitted = false;
         try {
             const response = await authFetch(`${API_BASE}/api/reviews`, {
                 method: 'POST',
@@ -114,12 +131,13 @@ if (submitBtn) {
 
             messageEl.style.display = 'block';
             if (response.ok) {
+                submitted = true;
                 messageEl.style.color = '#2f694b';
                 messageEl.innerText = "Mulțumim! Recenzia ta va apărea după aprobare.";
                 (document.getElementById('review-comment') as HTMLTextAreaElement).value = "";
                 selectedRating = 0;
                 starElements.forEach(s => s.textContent = '☆');
-                setTimeout(() => { window.location.href = 'index.html'; }, 3000);
+                setTimeout(() => { window.location.href = cactusId !== null ? `product.html?id=${cactusId}` : 'index.html'; }, 3000);
             } else {
                 const errorMsg = await responseError(response);
                 messageEl.style.color = '#d32f2f';
@@ -130,6 +148,8 @@ if (submitBtn) {
             messageEl.style.display = 'block';
             messageEl.style.color = '#d32f2f';
             messageEl.innerText = "Eroare de conexiune.";
+        } finally {
+            if (!submitted) submitBtn.removeAttribute('disabled');
         }
     });
 }

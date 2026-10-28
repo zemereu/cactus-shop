@@ -22,9 +22,9 @@ public class CactusService {
     private CategoryRepository categoryRepository;
 
     private void validateCategory(CactusRequestDTO request) {
-        if (!categoryRepository.existsByNameAndMainCategory(
+        if (categoryRepository.findByNameAndMainCategory(
                 request.category().trim(),
-                request.mainCategory().trim())) {
+                request.mainCategory().trim()).isEmpty()) {
 
             throw new IllegalArgumentException(
                     "Genul nu există în categoria principală selectată.");
@@ -104,6 +104,7 @@ public class CactusService {
         return cactusRepository.findAll();
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Cactus addCactus(CactusRequestDTO request) {
         validateCategory(request);
 
@@ -128,7 +129,7 @@ public class CactusService {
     public void deleteCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Produsul nu a fost găsit."));
+                        new java.util.NoSuchElementException("Produsul nu a fost găsit."));
 
         cactus.setActive(false);
         cactusRepository.save(cactus);
@@ -137,7 +138,7 @@ public class CactusService {
     public Cactus reactivateCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Produsul nu a fost găsit."));
+                        new java.util.NoSuchElementException("Produsul nu a fost găsit."));
 
         cactus.setActive(true);
         return cactusRepository.save(cactus);
@@ -146,7 +147,7 @@ public class CactusService {
     public void hardDeleteCactus(Long id) {
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Produsul nu a fost găsit."));
+                        new java.util.NoSuchElementException("Produsul nu a fost găsit."));
 
         if (cactus.isActive()) {
             throw new IllegalStateException(
@@ -162,7 +163,7 @@ public class CactusService {
 
         Cactus cactus = cactusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Produsul nu a fost găsit."));
+                        new java.util.NoSuchElementException("Produsul nu a fost găsit."));
 
         if (request.version() == null || request.version() != cactus.getVersion()) {
             throw new org.springframework.dao.OptimisticLockingFailureException(
