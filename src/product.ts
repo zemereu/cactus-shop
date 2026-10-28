@@ -24,6 +24,12 @@ async function loadProduct() {
             return;
         }
 
+        const reviewLink = document.getElementById('product-review-link') as HTMLAnchorElement | null;
+        if (reviewLink) {
+            reviewLink.href = `reviews.html?cactusId=${encodeURIComponent(String(product.id))}`;
+            reviewLink.hidden = false;
+        }
+
         document.title = `${product.name} - Cactus Shop`;
 
         const metaDesc = document.querySelector('meta[name="description"]');

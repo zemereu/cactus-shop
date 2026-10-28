@@ -250,7 +250,19 @@ document.addEventListener('keydown', event => {
 });
 fetchAndRenderCategories();
 const VIEW_MODE_KEY = 'cactusViewMode';
-let viewMode = localStorage.getItem(VIEW_MODE_KEY) || 'grid';
+function isViewMode(value) {
+    return value === 'grid' || value === 'compact' || value === 'list';
+}
+function loadViewMode() {
+    try {
+        const stored = localStorage.getItem(VIEW_MODE_KEY);
+        return isViewMode(stored) ? stored : 'grid';
+    }
+    catch (_a) {
+        return 'grid';
+    }
+}
+let viewMode = loadViewMode();
 const viewTogglesContainer = document.getElementById('view-toggles');
 if (viewTogglesContainer) {
     const views = [
@@ -270,13 +282,17 @@ function applyViewMode() {
     document.body.classList.add(`view-${viewMode}`);
     document.querySelectorAll('.view-toggle-btn').forEach(btn => {
         const isActive = btn.getAttribute('data-view') === viewMode;
+        btn.setAttribute('aria-pressed', String(isActive));
         btn.style.backgroundColor = isActive ? '#2f694b' : 'transparent';
         btn.style.color = isActive ? '#fdf2b8' : '#2f694b';
     });
 }
 document.querySelectorAll('.view-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        viewMode = btn.getAttribute('data-view');
+        const nextMode = btn.getAttribute('data-view');
+        if (!isViewMode(nextMode))
+            return;
+        viewMode = nextMode;
         saveLocalValue(VIEW_MODE_KEY, viewMode);
         applyViewMode();
     });

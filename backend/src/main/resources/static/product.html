@@ -18,9 +18,14 @@
         <img src="images/logo.png" alt="Logo" style="height: 50px;">
         <h1 style="margin: 0; color: #2f694b; font-size: 1.5em;">Cactus Shop</h1>
     </a>
-    <a href="shop.html" style="color: #2f694b; text-decoration: none; font-weight: bold;">
-        <i class="fa-solid fa-arrow-left"></i> Înapoi la magazin
-    </a>
+    <nav aria-label="Navigare produs" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <a href="shop.html" style="color:#2f694b; text-decoration:none; font-weight:bold;">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Înapoi la magazin
+        </a>
+        <a href="checkout.html" class="shop-icon-button" aria-label="Vezi coșul și finalizează comanda" title="Vezi coșul">
+            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+        </a>
+    </nav>
 </header>
 
 <main style="flex-grow: 1; padding: 30px 20px;">
@@ -56,6 +61,7 @@
         <!-- Recenzii produs -->
         <div style="margin-bottom: 40px;">
             <h3 style="color: #2f694b; margin-bottom: 15px;"><i class="fa-solid fa-star"></i> Recenzii pentru acest produs</h3>
+            <p><a id="product-review-link" class="header-btn" hidden>Scrie o recenzie</a></p>
             <div id="product-reviews"></div>
         </div>
 

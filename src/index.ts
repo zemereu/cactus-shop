@@ -277,7 +277,20 @@ fetchAndRenderCategories();
 
 type ViewMode = 'grid' | 'compact' | 'list';
 const VIEW_MODE_KEY = 'cactusViewMode';
-let viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || 'grid';
+function isViewMode(value: string | null): value is ViewMode {
+    return value === 'grid' || value === 'compact' || value === 'list';
+}
+
+function loadViewMode(): ViewMode {
+    try {
+        const stored = localStorage.getItem(VIEW_MODE_KEY);
+        return isViewMode(stored) ? stored : 'grid';
+    } catch {
+        return 'grid';
+    }
+}
+
+let viewMode: ViewMode = loadViewMode();
 
 const viewTogglesContainer = document.getElementById('view-toggles');
 
@@ -302,6 +315,7 @@ function applyViewMode() {
 
     document.querySelectorAll('.view-toggle-btn').forEach(btn => {
         const isActive = btn.getAttribute('data-view') === viewMode;
+        btn.setAttribute('aria-pressed', String(isActive));
         (btn as HTMLElement).style.backgroundColor = isActive ? '#2f694b' : 'transparent';
         (btn as HTMLElement).style.color = isActive ? '#fdf2b8' : '#2f694b';
     });
@@ -309,7 +323,9 @@ function applyViewMode() {
 
 document.querySelectorAll('.view-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        viewMode = btn.getAttribute('data-view') as ViewMode;
+        const nextMode = btn.getAttribute('data-view');
+        if (!isViewMode(nextMode)) return;
+        viewMode = nextMode;
         saveLocalValue(VIEW_MODE_KEY, viewMode);
         applyViewMode();
     });

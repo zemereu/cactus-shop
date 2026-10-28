@@ -29,6 +29,11 @@ function loadProduct() {
                 showError();
                 return;
             }
+            const reviewLink = document.getElementById('product-review-link');
+            if (reviewLink) {
+                reviewLink.href = `reviews.html?cactusId=${encodeURIComponent(String(product.id))}`;
+                reviewLink.hidden = false;
+            }
             document.title = `${product.name} - Cactus Shop`;
             const metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc) {
