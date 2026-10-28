@@ -74,7 +74,7 @@ function renderFilteredCategories() {
     const container = document.getElementById('admin-categories-list');
     if (!container) return;
     if (filtered.length === 0) {
-        container.innerHTML = '<span style="color:#999; font-style:italic;">Nicio subcategorie.</span>';
+        container.innerHTML = '<span style="color:#59645c; font-style:italic;">Nicio subcategorie.</span>';
         return;
     }
 
@@ -212,7 +212,7 @@ function renderAdminCacti(cacti: Cactus[]) {
     if (countEl) countEl.innerText = `${cacti.length} din ${allCactiCache.length} produse`;
 
     if (cacti.length === 0) {
-        container.innerHTML = '<p style="color:#999; font-style:italic; grid-column:1/-1;">Niciun produs gasit.</p>';
+        container.innerHTML = '<p style="color:#59645c; font-style:italic; grid-column:1/-1;">Niciun produs gasit.</p>';
         return;
     }
 
@@ -221,21 +221,21 @@ function renderAdminCacti(cacti: Cactus[]) {
         const img = c.imageUrl || "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?auto=format&fit=crop&w=400&q=80";
         html += `
         <div class="product-card ${c.active ? '' : 'inactive'}" data-card-id="${c.id}">
-            ${c.active ? '' : '<p style="margin:0 0 5px 0; color:#d32f2f; font-weight:bold; font-size:0.8em;">DEZACTIVAT</p>'}
+            ${c.active ? '' : '<p style="margin:0 0 5px 0; color:#b32626; font-weight:bold; font-size:0.8em;">DEZACTIVAT</p>'}
             <img src="${escapeHtml(img)}" alt="${escapeHtml(c.name)}">
             <h4 style="margin:8px 0 4px; color:#2f694b; font-size:0.95em;">${escapeHtml(c.name)}</h4>
-            <p style="margin:2px 0; color:#888; font-size:0.75em;">${escapeHtml(c.productType)} · ${escapeHtml(c.mainCategory)} — ${escapeHtml(c.category)}</p>
-            <p style="margin:0; color:#d32f2f; font-weight:bold;">${formatPrice(c.price)} RON</p>
+            <p style="margin:2px 0; color:#59645c; font-size:0.75em;">${escapeHtml(c.productType)} · ${escapeHtml(c.mainCategory)} — ${escapeHtml(c.category)}</p>
+            <p style="margin:0; color:#b32626; font-weight:bold;">${formatPrice(c.price)} RON</p>
             <p style="margin:4px 0 0; color:${c.stock > 0 ? '#2f694b' : '#d32f2f'}; font-size:0.85em; font-weight:bold;">Stoc: ${c.stock}</p>
             ${hybridBadge(c)}
             ${c.location ? `<p style="margin:2px 0 0; font-size:0.75em; color:#666;"><i class="fa-solid fa-location-dot" style="color:#FF9800;"></i> ${escapeHtml(c.location)}</p>` : ''}
-            ${c.description ? `<p style="margin:4px 0 0; font-size:0.75em; color:#999; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(c.description)}</p>` : ''}
+            ${c.description ? `<p style="margin:4px 0 0; font-size:0.75em; color:#59645c; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(c.description)}</p>` : ''}
             <div style="display:flex; gap:4px; margin-top:8px;">
-                <button class="edit-cactus-btn admin-btn btn-warning btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-pen"></i></button>
+                <button aria-label="Editează ${escapeHtml(c.name)}" class="edit-cactus-btn admin-btn btn-warning btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-pen"></i></button>
                 ${c.active
-            ? `<button class="delete-cactus-btn admin-btn btn-danger btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-trash"></i></button>`
-            : `<button class="reactivate-cactus-btn admin-btn btn-success btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-rotate-left"></i></button>
-                       <button class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
+            ? `<button aria-label="Dezactivează ${escapeHtml(c.name)}" class="delete-cactus-btn admin-btn btn-danger btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-trash"></i></button>`
+            : `<button aria-label="Reactivează ${escapeHtml(c.name)}" class="reactivate-cactus-btn admin-btn btn-success btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-rotate-left"></i></button>
+                       <button aria-label="Șterge definitiv ${escapeHtml(c.name)}" class="hard-delete-btn admin-btn btn-dark btn-sm" data-id="${c.id}" style="flex:1;"><i class="fa-solid fa-ban"></i></button>`}
             </div>
         </div>
         <div class="edit-panel" data-id="${c.id}" data-version="${c.version}" style="display:none;">
@@ -408,17 +408,17 @@ function renderOrderRows(orders: Order[]) {
     const tb = document.getElementById('admin-orders-list');
     if (!tb) return;
     if (orders.length === 0) {
-        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#999;">Nicio comanda.</td></tr>`;
+        tb.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#59645c;">Nicio comanda.</td></tr>`;
         return;
     }
 
     tb.innerHTML = orders.map(o => `
         <tr>
             <td>#${o.id}<br><small>${escapeHtml(formatOrderDate(o.createdAt))}</small></td>
-            <td>${escapeHtml(o.customerName)}<br><span style="font-size:0.8em; color:#999;">${escapeHtml(o.email)}</span></td>
+            <td>${escapeHtml(o.customerName)}<br><span style="font-size:0.8em; color:#59645c;">${escapeHtml(o.email)}</span></td>
             <td>${escapeHtml(o.address)}</td>
             <td>${escapeHtml(o.purchasedItems)}</td>
-            <td style="color:#d32f2f; font-weight:bold;">${formatPrice(o.totalPrice)} RON</td>
+            <td style="color:#b32626; font-weight:bold;">${formatPrice(o.totalPrice)} RON</td>
             <td><select class="order-status-select admin-input" data-id="${o.id}" aria-label="Status comandă ${o.id}" ${(ORDER_STATUS_TRANSITIONS[o.status] || []).length === 0 ? 'disabled' : ''} style="padding:6px;">
                 ${[o.status, ...(ORDER_STATUS_TRANSITIONS[o.status] || [])].map(s => `<option value="${escapeHtml(s)}" ${s === o.status ? 'selected' : ''}>${escapeHtml(s)}</option>`).join("")}
             </select></td>
@@ -488,7 +488,7 @@ async function fetchPendingReviews() {
         updateStats();
 
         if (reviews.length === 0) {
-            container.innerHTML = '<p style="color:#999; font-style:italic;">Nicio recenzie in asteptare.</p>';
+            container.innerHTML = '<p style="color:#59645c; font-style:italic;">Nicio recenzie in asteptare.</p>';
             return;
         }
 
@@ -497,7 +497,7 @@ async function fetchPendingReviews() {
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <div>
                         <strong style="color:#2f694b;">${escapeHtml(rv.customerName)}</strong>
-                        <span style="color:#999; font-size:0.85em;">(${escapeHtml(rv.customerEmail)})</span>
+                        <span style="color:#59645c; font-size:0.85em;">(${escapeHtml(rv.customerEmail)})</span>
                         ${rv.cactusId
             ? `<span style="color:#666; font-size:0.85em;"> — Produs #${rv.cactusId}</span>`
             : '<span style="color:#666; font-size:0.85em;"> — Generala</span>'}

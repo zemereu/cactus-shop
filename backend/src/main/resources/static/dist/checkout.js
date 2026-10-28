@@ -35,9 +35,9 @@ function renderCheckoutItems() {
                 <div>
                     <i class="fa-solid fa-leaf" style="color: #2f694b; margin-right: 4px;"></i>
                     <strong>${escapeHtml(item.name)}</strong> ${hybridBadge(item)}
-                    <span style="color: #999; margin-left: 4px;">×${qty}</span>
+                    <span style="color: #59645c; margin-left: 4px;">×${qty}</span>
                 </div>
-                <strong style="color: #d32f2f;">${(line / 100).toFixed(2)} RON</strong>
+                <strong style="color: #b32626;">${(line / 100).toFixed(2)} RON</strong>
             </div>`;
     });
     container.innerHTML = html;
@@ -71,7 +71,7 @@ function prefillFromAccount() {
                 <div><i class="fa-solid fa-envelope" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.email)}</div>
                 <div><i class="fa-solid fa-location-dot" style="color: #2f694b; width: 20px;"></i> ${escapeHtml(profile.address || 'Fără adresă salvată')}</div>
             </div>
-            ${!profile.address ? '<p style="color: #d32f2f; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="account.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
+            ${!profile.address ? '<p style="color: #b32626; margin: 8px 0 0; font-size: 0.85em;"><i class="fa-solid fa-triangle-exclamation"></i> Adaugă o adresă în <a href="account.html" style="color: #2f694b; font-weight: bold;">contul tău</a> înainte de a comanda.</p>' : ''}
         `;
         }
         catch (_a) {

@@ -14,7 +14,7 @@
         .admin-tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 3px solid #2f694b; }
         .admin-tab {
             padding: 12px 24px; background: #e8e0c0; border: none; font-family: 'Poppins', sans-serif;
-            font-weight: bold; color: #666; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 0.95em;
+            font-weight: bold; color: #49554c; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 0.95em;
             transition: all 0.2s;
         }
         .admin-tab:hover { background: #d4cc9e; }
@@ -41,7 +41,7 @@
         .admin-btn:hover { opacity: 0.9; transform: scale(1.02); }
         .btn-primary { background: #2f694b; color: #fdf2b8; }
         .btn-danger { background: #d32f2f; color: white; }
-        .btn-warning { background: #FF9800; color: white; }
+        .btn-warning { background: #FF9800; color: #27362d; }
         .btn-success { background: #2f694b; color: white; }
         .btn-dark { background: #7f0000; color: white; font-size: 0.8em; }
         .btn-sm { padding: 6px 12px; font-size: 0.8em; }
@@ -114,7 +114,7 @@
             <div class="stat-label">Comenzi active</div>
         </div>
         <div class="stat-card" style="border-left-color: #d32f2f;">
-            <div class="stat-number" id="stat-out-of-stock" style="color: #d32f2f;">—</div>
+            <div class="stat-number" id="stat-out-of-stock" style="color: #b32626;">—</div>
             <div class="stat-label">Fără stoc</div>
         </div>
         <div class="stat-card" style="border-left-color: #FF9800;">
@@ -138,13 +138,13 @@
         <div id="tab-products" class="tab-content active">
             <div class="toolbar">
                 <input type="text" id="admin-search" placeholder="Caută produs..." class="admin-input search-input">
-                <select id="admin-filter-status" class="admin-input">
+                <select id="admin-filter-status" aria-label="Filtrează produsele după status" class="admin-input">
                     <option value="all">Toate</option>
                     <option value="active">Active</option>
                     <option value="inactive">Dezactivate</option>
                     <option value="nostock">Fără stoc</option>
                 </select>
-                <select id="admin-sort" class="admin-input">
+                <select id="admin-sort" aria-label="Sortează produsele" class="admin-input">
                     <option value="name-asc">Nume A-Z</option>
                     <option value="name-desc">Nume Z-A</option>
                     <option value="price-asc">Preț crescător</option>

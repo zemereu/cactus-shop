@@ -48,7 +48,7 @@
                 <div id="cart-items-container" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
 
                 <div style="border-top: 1px solid #2f694b; padding-top: 10px; font-weight: bold; text-align: right; font-size: 1.1em;">
-                    Total: <span id="cart-total" style="color: #d32f2f;">0</span> RON
+                    Total: <span id="cart-total" style="color: #b32626;">0</span> RON
                 </div>
 
                 <button id="checkout-btn" style="width: 100%; margin-top: 15px; background-color: #FF9800; color: #fdf2b8; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
@@ -66,7 +66,7 @@
             <div id="account-dropdown" style="display: none; position: absolute; top: 55px; right: 0; width: 200px; background-color: #fdf2b8; border: 2px solid #2f694b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px; text-align: left;">
                 <a href="orders.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-box"></i> Vezi comenzi</a>
                 <a href="account.html" style="display: block; padding: 10px; color: #2f694b; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-gear"></i> Detalii cont</a>
-                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #d32f2f; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-right-from-bracket"></i> Delogare</a>
+                <a href="#" id="dropdown-logout-btn" style="display: block; padding: 10px; color: #b32626; text-decoration: none; font-weight: bold; border-radius: 4px;"><i class="fa-solid fa-right-from-bracket"></i> Delogare</a>
             </div>
         </div>
     </div>
@@ -75,7 +75,7 @@
 <!-- Sidebar-ul Ascuns pentru Categorii -->
 <div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
 <div id="sidebar" style="position: fixed; top: 0; left: 0; transform: translateX(-100%); visibility: hidden; width: 250px; height: 100%; background-color: #fdf2b8; border-right: 2px solid #2f694b; z-index: 1000; transition: transform 0.3s ease; padding: 20px; padding-bottom: 80px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); overflow-y: auto;">
-    <button id="close-sidebar-btn" style="background: none; border: none; font-size: 20px; color: #d32f2f; cursor: pointer; float: right; font-weight: bold;">X</button>
+    <button id="close-sidebar-btn" style="background: none; border: none; font-size: 20px; color: #b32626; cursor: pointer; float: right; font-weight: bold;">X</button>
     <h2 style="color: #2f694b; border-bottom: 2px solid #2f694b; padding-bottom: 10px;">Categorii</h2>
     <div id="sidebar-categories-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
 </div>
@@ -83,7 +83,7 @@
 <!-- Sortare + View toggles + Grila -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
     <div style="display: flex; align-items: center; gap: 8px;">
-        <label style="color: #2f694b; font-weight: bold; font-size: 0.9em;"><i class="fa-solid fa-arrow-down-wide-short"></i> Sortare:</label>
+        <label for="sort-select" style="color: #2f694b; font-weight: bold; font-size: 0.9em;"><i class="fa-solid fa-arrow-down-wide-short"></i> Sortare:</label>
         <select id="sort-select" style="padding: 8px 12px; border: 2px solid #2f694b; border-radius: 6px; font-family: 'Poppins', sans-serif; color: #2f694b; background: transparent; cursor: pointer;">
             <option value="name-asc">Nume A-Z</option>
             <option value="name-desc">Nume Z-A</option>
@@ -94,7 +94,7 @@
         </select>
     </div>
     <div style="display: flex; align-items: center; gap: 6px;">
-        <label style="color: #2f694b; font-weight: bold; font-size: 0.9em;"><i class="fa-solid fa-tag"></i></label>
+        <label for="sort-select" style="color: #2f694b; font-weight: bold; font-size: 0.9em;"><i class="fa-solid fa-tag"></i></label>
         <input type="number" id="price-min" placeholder="Min" min="0" style="width: 70px; padding: 8px; border: 2px solid #2f694b; border-radius: 6px; font-family: 'Poppins', sans-serif; color: #2f694b; background: transparent;">
         <span style="color: #666;">—</span>
         <input type="number" id="price-max" placeholder="Max" min="0" style="width: 70px; padding: 8px; border: 2px solid #2f694b; border-radius: 6px; font-family: 'Poppins', sans-serif; color: #2f694b; background: transparent;">

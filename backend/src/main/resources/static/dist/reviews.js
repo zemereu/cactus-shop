@@ -42,7 +42,7 @@ function loadReviews() {
             if (!Array.isArray(reviews))
                 throw new Error('Răspuns de recenzii invalid.');
             if (reviews.length === 0) {
-                listEl.innerHTML = `<p style="text-align: center; color: #999; font-style: italic;">Nicio recenzie încă. Fii primul!</p>`;
+                listEl.innerHTML = `<p style="text-align: center; color: #59645c; font-style: italic;">Nicio recenzie încă. Fii primul!</p>`;
                 return;
             }
             listEl.innerHTML = reviews.map(r => `
@@ -50,13 +50,13 @@ function loadReviews() {
                 <div style="color: #FF9800; font-size: 1.3em;">${starsDisplay(r.rating)}</div>
                 <p style="font-style: italic; color: #333; margin: 10px 0;">${escapeHtml(r.comment)}</p>
                 <p style="margin: 0; font-weight: bold; color: #2f694b;">${escapeHtml(r.customerName)}</p>
-                <span style="font-size: 0.8em; color: #999;">${escapeHtml(r.createdAt)}</span>
+                <span style="font-size: 0.8em; color: #59645c;">${escapeHtml(r.createdAt)}</span>
             </div>
         `).join("");
         }
         catch (error) {
             console.error(error);
-            listEl.innerHTML = `<p style="color: #d32f2f; text-align: center;"><i class="fa-solid fa-triangle-exclamation"></i> Nu am putut încărca recenziile.</p>`;
+            listEl.innerHTML = `<p style="color: #b32626; text-align: center;"><i class="fa-solid fa-triangle-exclamation"></i> Nu am putut încărca recenziile.</p>`;
         }
     });
 }
@@ -99,9 +99,10 @@ let selectedRating = 0;
 const starElements = document.querySelectorAll('#star-picker .star');
 starElements.forEach(starEl => {
     starEl.addEventListener('click', (e) => {
-        selectedRating = Number(e.target.getAttribute('data-value'));
+        selectedRating = Number(e.currentTarget.getAttribute('data-value'));
         starElements.forEach((s, index) => {
             s.textContent = index < selectedRating ? '★' : '☆';
+            s.setAttribute('aria-pressed', String(index + 1 === selectedRating));
         });
     });
 });
@@ -146,7 +147,10 @@ if (submitBtn) {
                 messageEl.innerText = "Mulțumim! Recenzia ta va apărea după aprobare.";
                 document.getElementById('review-comment').value = "";
                 selectedRating = 0;
-                starElements.forEach(s => s.textContent = '☆');
+                starElements.forEach(s => {
+                    s.textContent = '☆';
+                    s.setAttribute('aria-pressed', 'false');
+                });
                 setTimeout(() => { window.location.href = cactusId !== null ? `product.html?id=${cactusId}` : 'index.html'; }, 3000);
             }
             else {

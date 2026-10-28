@@ -90,7 +90,7 @@ async function loadOrderHistory() {
             <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #eee; margin-bottom: 15px;">
                 <div class="order-summary-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                     <div>
-                        <span style="color: #999; font-size: 0.85em;">Comanda</span>
+                        <span style="color: #59645c; font-size: 0.85em;">Comanda</span>
                         <code style="background: #f5f0d8; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 4px;">${escapeHtml(o.orderToken)}</code>
                     </div>
                     ${orderStatusBadge(o.status)}
@@ -99,7 +99,7 @@ async function loadOrderHistory() {
                     <div style="color: #555; font-size: 0.95em;">
                         <i class="fa-solid fa-leaf" style="color: #2f694b;"></i> ${escapeHtml(o.purchasedItems)}
                     </div>
-                    <div style="font-weight: bold; color: #d32f2f; font-size: 1.1em;">
+                    <div style="font-weight: bold; color: #b32626; font-size: 1.1em;">
                         ${formatPrice(o.totalPrice)} RON
                     </div>
                 </div>
@@ -125,7 +125,7 @@ if (comenziLookupBtn) {
         if (!resultDiv) return;
 
         if (!tokenInput || !emailInput) {
-            resultDiv.innerHTML = `<p style="color: #d32f2f; text-align: center; margin-top: 15px;">Completeaza ambele campuri.</p>`;
+            resultDiv.innerHTML = `<p style="color: #b32626; text-align: center; margin-top: 15px;">Completeaza ambele campuri.</p>`;
             return;
         }
 
@@ -139,7 +139,7 @@ if (comenziLookupBtn) {
             const response = await fetch(`${API_BASE}/api/orders/lookup?${params.toString()}`);
 
             if (response.status === 404) {
-                resultDiv.innerHTML = `<p style="color: #d32f2f; text-align: center;"><i class="fa-solid fa-xmark"></i> Nu am gasit nicio comanda cu aceste date.</p>`;
+                resultDiv.innerHTML = `<p style="color: #b32626; text-align: center;"><i class="fa-solid fa-xmark"></i> Nu am gasit nicio comanda cu aceste date.</p>`;
                 return;
             }
 
@@ -152,10 +152,10 @@ if (comenziLookupBtn) {
                         ${orderStatusBadge(order.status)}
                     </div>
                     <p style="margin: 0 0 8px 0; color: #555;"><i class="fa-solid fa-leaf" style="color: #2f694b;"></i> ${escapeHtml(order.purchasedItems)}</p>
-                    <p style="margin: 0; font-weight: bold; color: #d32f2f;"><i class="fa-solid fa-tag"></i> ${formatPrice(order.totalPrice)} RON</p>
+                    <p style="margin: 0; font-weight: bold; color: #b32626;"><i class="fa-solid fa-tag"></i> ${formatPrice(order.totalPrice)} RON</p>
                 </div>`;
         } catch (error) {
-            resultDiv.innerHTML = `<p style="color: #d32f2f; text-align: center;">Eroare de conexiune.</p>`;
+            resultDiv.innerHTML = `<p style="color: #b32626; text-align: center;">Eroare de conexiune.</p>`;
         }
     });
 }

@@ -43,7 +43,7 @@
             <div style="flex: 1 1 350px;">
                 <span id="product-category" style="background: #2f694b; color: #fdf2b8; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold;"></span>
                 <h2 id="product-name" style="color: #2f694b; margin: 15px 0 10px; font-size: 2em;"></h2>
-                <p id="product-price" style="color: #d32f2f; font-size: 1.8em; font-weight: 900; margin: 0 0 10px;"></p>
+                <p id="product-price" style="color: #b32626; font-size: 1.8em; font-weight: 900; margin: 0 0 10px;"></p>
                 <p id="product-stock" style="font-size: 0.9em; margin: 0 0 8px;"></p>
                 <p id="product-location" style="font-size: 0.9em; color: #666; margin: 0 0 20px;"></p>
                 <p id="product-desc" style="color: #555; line-height: 1.7; margin: 0 0 25px;"></p>
@@ -51,7 +51,7 @@
                     <button id="product-add-cart" style="flex: 1; padding: 14px; background: #2f694b; color: #fdf2b8; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1em; font-family: 'Poppins', sans-serif;">
                         <i class="fa-solid fa-cart-plus"></i> Adaugă în coș
                     </button>
-                    <button id="product-wishlist" style="padding: 14px 18px; background: white; border: 2px solid #2f694b; border-radius: 8px; font-size: 1.2em; cursor: pointer;">
+                    <button id="product-wishlist" aria-label="Schimbă starea de favorit a produsului" style="padding: 14px 18px; background: white; border: 2px solid #2f694b; border-radius: 8px; font-size: 1.2em; cursor: pointer;">
                         <i class="fa-regular fa-heart"></i>
                     </button>
                 </div>
@@ -73,8 +73,8 @@
     </div>
 
     <div id="product-error" style="display: none; text-align: center; padding: 60px;">
-        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2em; color: #d32f2f;"></i>
-        <p style="color: #d32f2f; margin-top: 10px;">Produsul nu a fost găsit.</p>
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2em; color: #b32626;"></i>
+        <p style="color: #b32626; margin-top: 10px;">Produsul nu a fost găsit.</p>
         <a href="shop.html" style="color: #2f694b; font-weight: bold;"><i class="fa-solid fa-arrow-left"></i> Înapoi la magazin</a>
     </div>
 </main>
@@ -86,7 +86,7 @@
 <!-- Zoom Modal -->
 <div id="zoom-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; cursor:pointer; align-items:center; justify-content:center;">
     <img id="zoom-img" src="" alt="Zoom" style="max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
-    <button id="zoom-close" style="position:absolute; top:20px; right:20px; background:white; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2em; cursor:pointer;">
+    <button id="zoom-close" aria-label="Închide imaginea mărită" style="position:absolute; top:20px; right:20px; background:white; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2em; cursor:pointer;">
         <i class="fa-solid fa-xmark"></i>
     </button>
 </div>

@@ -105,8 +105,8 @@ async function loadProduct() {
                 <strong style="color:#2f694b;">${product.stock} în stoc</strong>`;
         } else {
             stockEl.innerHTML = `
-                <i class="fa-solid fa-xmark" style="color:#d32f2f;"></i>
-                <strong style="color:#d32f2f;">Stoc epuizat</strong>`;
+                <i class="fa-solid fa-xmark" style="color:#b32626;"></i>
+                <strong style="color:#b32626;">Stoc epuizat</strong>`;
         }
 
         // Adăugare în coș cu verificarea stocului actual.
@@ -246,7 +246,7 @@ async function loadProductReviews(cactusId: number) {
 
         if (reviews.length === 0) {
             container.innerHTML =
-                '<p style="color:#999; font-style:italic;">Nicio recenzie pentru acest produs.</p>';
+                '<p style="color:#59645c; font-style:italic;">Nicio recenzie pentru acest produs.</p>';
             return;
         }
 
@@ -255,11 +255,11 @@ async function loadProductReviews(cactusId: number) {
                 <div style="color:#FF9800; font-size:1.1em;">${starsDisplay(r.rating)}</div>
                 <p style="font-style:italic; color:#333; margin:8px 0;">"${escapeHtml(r.comment)}"</p>
                 <span style="font-weight:bold; color:#2f694b;">${escapeHtml(r.customerName)}</span>
-                <span style="color:#999; font-size:0.8em; margin-left:8px;">${escapeHtml(r.createdAt)}</span>
+                <span style="color:#59645c; font-size:0.8em; margin-left:8px;">${escapeHtml(r.createdAt)}</span>
             </div>`).join('');
     } catch {
         container.innerHTML =
-            '<p style="color:#d32f2f;">Nu am putut încărca recenziile.</p>';
+            '<p style="color:#b32626;">Nu am putut încărca recenziile.</p>';
     }
 }
 
@@ -293,7 +293,7 @@ function renderSimilar(products: Cactus[]) {
 
     if (products.length === 0) {
         container.innerHTML =
-            '<p style="color:#999; font-style:italic; grid-column: span 4;">Niciun produs similar găsit.</p>';
+            '<p style="color:#59645c; font-style:italic; grid-column: span 4;">Niciun produs similar găsit.</p>';
         return;
     }
 
@@ -303,9 +303,9 @@ function renderSimilar(products: Cactus[]) {
 
         return `
             <a href="product.html?id=${p.id}" style="text-decoration:none; border:2px solid #2f694b; border-radius:8px; padding:10px; text-align:center; display:block;">
-                <img loading="lazy" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
+                <img loading="lazy" alt="${escapeHtml(p.name)}" src="${escapeHtml(img)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
                 <p style="color:#2f694b; font-weight:bold; margin:8px 0 4px; font-size:0.9em;">${escapeHtml(p.name)}</p>
-                <p style="color:#d32f2f; font-weight:bold; margin:0;">${formatPrice(p.price)} RON</p>
+                <p style="color:#b32626; font-weight:bold; margin:0;">${formatPrice(p.price)} RON</p>
                 ${hybridBadge(p)}
             </a>`;
     }).join('');

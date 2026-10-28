@@ -27,16 +27,21 @@
     <div id="review-form-container" style="display: none; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b; margin-bottom: 30px;">
         <h3 style="color: #2f694b; margin-top: 0;">Lasă o recenzie</h3>
 
-        <div id="star-picker" style="font-size: 2em; margin-bottom: 15px; cursor: pointer;">
-            <span class="star" data-value="1">☆</span><span class="star" data-value="2">☆</span><span class="star" data-value="3">☆</span><span class="star" data-value="4">☆</span><span class="star" data-value="5">☆</span>
+        <div id="star-picker" role="group" aria-label="Nota recenziei">
+            <button type="button" class="star" data-value="1" aria-label="1 stea" aria-pressed="false">☆</button>
+            <button type="button" class="star" data-value="2" aria-label="2 stele" aria-pressed="false">☆</button>
+            <button type="button" class="star" data-value="3" aria-label="3 stele" aria-pressed="false">☆</button>
+            <button type="button" class="star" data-value="4" aria-label="4 stele" aria-pressed="false">☆</button>
+            <button type="button" class="star" data-value="5" aria-label="5 stele" aria-pressed="false">☆</button>
         </div>
 
-        <textarea id="review-comment" placeholder="Scrie părerea ta..." rows="4" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; font-family: inherit; margin-bottom: 15px;"></textarea>
+        <label for="review-comment">Comentariul tău</label>
+        <textarea maxlength="1000" id="review-comment" placeholder="Scrie părerea ta..." rows="4" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; font-family: inherit; margin-bottom: 15px;"></textarea>
 
         <button id="submit-review-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">
             Trimite Recenzia
         </button>
-        <p id="review-form-message" style="margin-top: 10px; display: none;"></p>
+        <p role="status" aria-live="polite" id="review-form-message" style="margin-top: 10px; display: none;"></p>
     </div>
 
     <!-- Mesaj pentru cei nelogați -->

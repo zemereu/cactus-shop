@@ -77,8 +77,8 @@ async function fetchCacti() {
         if (container) {
             container.innerHTML = `
                 <div style="grid-column:1/-1; text-align:center; padding:40px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:2em; color:#d32f2f;"></i>
-                    <p style="color:#d32f2f; margin-top:10px;">Nu am putut încărca produsele.</p>
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:2em; color:#b32626;"></i>
+                    <p style="color:#b32626; margin-top:10px;">Nu am putut încărca produsele.</p>
                     <button onclick="fetchCacti()" style="margin-top:10px; padding:8px 20px;
                         background:#2f694b; color:#fdf2b8; border:none; border-radius:6px;
                         cursor:pointer; font-weight:bold;">
@@ -175,7 +175,7 @@ function renderSidebar() {
                 </button>`;
 
             if (subcats.length === 0) {
-                html += `<span style="color:#999; font-style:italic; font-size:0.85em; padding:4px;">Momentan nimic aici</span>`;
+                html += `<span style="color:#59645c; font-style:italic; font-size:0.85em; padding:4px;">Momentan nimic aici</span>`;
             } else {
                 for (const sub of subcats) {
                     const isSubActive = isMainActive && selectedSubCategory === sub.name;
@@ -480,7 +480,7 @@ function renderCartItems() {
         cartItemsContainer.innerHTML = `
             <div style="text-align:center; padding:15px;">
                 <i class="fa-solid fa-cart-shopping" style="font-size:2em; color:#ccc;"></i>
-                <p style="color:#999; margin-top:8px;">
+                <p style="color:#59645c; margin-top:8px;">
                     Coșul e gol. Explorează
                     <a href="shop.html" style="color:#2f694b; font-weight:bold;">magazinul</a>!
                 </p>
