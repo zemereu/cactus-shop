@@ -3,7 +3,7 @@
     --surface: #fff;
     --green: #2f694b;
     --line: #dfe6df;
-    --muted: #68746c;
+    --muted: #59645c;
 }
 
 body {
@@ -29,7 +29,7 @@ a, button, input, select, textarea,
 
 input:focus, select:focus, textarea:focus {
     outline: none !important;
-    border-color: #FF9800 !important;
+    border-color: #995200 !important;
     box-shadow: 0 0 0 3px rgba(255, 152, 0, .25) !important;
 }
 
@@ -37,7 +37,7 @@ button[style*="background-color: #2f694b"]:hover,
 button[style*="background:#2f694b"]:hover,
 .admin-btn.btn-primary:hover,
 .admin-btn.btn-success:hover {
-    background-color: #FF9800 !important;
+    background-color: #995200 !important;
     color: white !important;
     transform: scale(1.03);
 }
@@ -68,7 +68,7 @@ button[style*="background-color: #d32f2f"]:hover,
 #add-category-btn:hover,
 #add-new-cactus-btn:hover,
 #checkout-btn:hover {
-    background-color: #FF9800 !important;
+    background-color: #995200 !important;
     color: white !important;
     transform: scale(1.02);
 }
@@ -79,21 +79,21 @@ button[style*="background-color: #d32f2f"]:hover,
 }
 
 .add-to-cart-btn:hover {
-    background-color: #FF9800 !important;
+    background-color: #995200 !important;
     color: white !important;
 }
 
 .header-btn:hover {
     background-color: #2f694b !important;
     color: #fdf2b8 !important;
-    border-color: #FF9800 !important;
+    border-color: #995200 !important;
     box-shadow: 0 0 0 2px rgba(255, 152, 0, .3);
 }
 
 .dropdown-link:hover,
 #account-dropdown a:hover {
     background: rgba(255, 152, 0, .15) !important;
-    color: #FF9800 !important;
+    color: #995200 !important;
 }
 
 .cta-button.primary:hover {
@@ -105,13 +105,13 @@ button[style*="background-color: #d32f2f"]:hover,
 .hover-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 24px rgba(255, 152, 0, .15) !important;
-    border-bottom-color: #FF9800 !important;
+    border-bottom-color: #995200 !important;
 }
 
 .product-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 16px rgba(255, 152, 0, .2) !important;
-    border-color: #FF9800 !important;
+    border-color: #995200 !important;
 }
 
 :is(#cacti-list, #recent-products),
@@ -145,7 +145,7 @@ body.view-grid :is(#cacti-list, #recent-products) {
 }
 
 .review-card:hover {
-    border-color: #FF9800 !important;
+    border-color: #995200 !important;
     box-shadow: 0 4px 12px rgba(255, 152, 0, .15);
 }
 
@@ -156,28 +156,56 @@ body.view-grid :is(#cacti-list, #recent-products) {
 
 #sidebar-categories-list button:hover {
     background: rgba(255, 152, 0, .15) !important;
-    color: #FF9800 !important;
-    border-color: #FF9800 !important;
+    color: #995200 !important;
+    border-color: #995200 !important;
 }
 
 .page-btn:hover:not(:disabled) {
-    background: #FF9800 !important;
+    background: #995200 !important;
     color: white !important;
-    border-color: #FF9800 !important;
+    border-color: #995200 !important;
 }
 
 .account-tab:hover,
 a[style*="color: #2f694b"]:hover {
-    color: #FF9800 !important;
+    color: #995200 !important;
 }
 
 a[style*="border-bottom: 2px solid #2f694b"]:hover,
 a[style*="border-bottom: 1px solid #2f694b"]:hover {
-    color: #FF9800 !important;
-    border-bottom-color: #FF9800 !important;
+    color: #995200 !important;
+    border-bottom-color: #995200 !important;
 }
 
-.star:hover { color: #FF9800 !important; }
+#star-picker {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 16px 0;
+}
+
+#star-picker .star {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #995200;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#star-picker .star:hover,
+#star-picker .star[aria-pressed="true"] {
+    color: #804300;
+    background: #fff4df;
+    border-color: #995200;
+}
 
 #cart-items-container > div:hover {
     background: rgba(255, 152, 0, .08);
@@ -201,8 +229,8 @@ a[style*="border-bottom: 1px solid #2f694b"]:hover {
 
 .reviews-section a:hover,
 a[style*="border-bottom: 2px solid #fdf2b8"]:hover {
-    color: #FF9800 !important;
-    border-bottom-color: #FF9800 !important;
+    color: #995200 !important;
+    border-bottom-color: #995200 !important;
 }
 
 .view-toggle-btn:hover {
@@ -379,7 +407,7 @@ body.view-list :is(#cacti-list, #recent-products) {
 .wishlist-btn:hover { color: #d32f2f !important; }
 .zoom-btn:hover { color: #2f694b !important; }
 .wishlist-btn { color: #607568; }
-.wishlist-btn[aria-pressed="true"] { color: #d32f2f; opacity: 1 !important; }
+.cactus-card .card-actions .wishlist-btn[aria-pressed="true"] { color: #d32f2f; opacity: 1 !important; }
 
 #scroll-top-btn {
     display: none;
@@ -405,10 +433,11 @@ body.view-list :is(#cacti-list, #recent-products) {
 
 .breadcrumbs { padding: 10px 0; font-size: .85em; color: #666; }
 .breadcrumbs a { color: #2f694b; text-decoration: none; }
-.breadcrumbs a:hover { color: #FF9800 !important; }
+.breadcrumbs a:hover { color: #995200 !important; }
 .breadcrumbs span { color: #999; margin: 0 6px; }
 
-a:focus-visible, button:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, summary:focus-visible {
     outline: 3px solid #2f694b;
     outline-offset: 3px;
 }
