@@ -8,7 +8,7 @@
     <meta name="description" content="Gestionează contul, adresa de livrare și comenzile tale Cactus Shop.">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/4f1b040aec.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="dist/styles.css">
+    <link rel="stylesheet" href="dist/styles.css?v=profile-20261029">
     <link rel="icon" href="images/logo.png" type="image/png">
 </head>
 <body class="account-page">
@@ -51,8 +51,10 @@
         </div>
         <div id="register-panel" style="display:none">
             <form id="register-form" class="account-form">
-                <label for="register-name">Nume complet</label>
-                <input id="register-name" autocomplete="name" maxlength="255" required>
+                <div class="account-fields-row"><div><label for="register-first-name">Prenume</label><input id="register-first-name" autocomplete="given-name" maxlength="100" required></div>
+                <div><label for="register-last-name">Nume</label><input id="register-last-name" autocomplete="family-name" maxlength="100" required></div></div>
+                <label for="register-salutation">Formulă de adresare</label><select id="register-salutation"><option value="">Nespecificată</option><option>Dl.</option><option>Dna.</option></select>
+                <label for="register-phone">Telefon (opțional)</label><input id="register-phone" type="tel" autocomplete="tel" maxlength="30" pattern="[+0-9() .\-]*">
                 <label for="register-email">Email</label>
                 <input type="email" id="register-email" autocomplete="email" maxlength="255" required>
                 <label for="register-password">Parolă</label>
@@ -79,7 +81,17 @@
         <div class="account-grid">
             <section class="account-card">
                 <p class="account-eyebrow">PROFIL</p><h2>Date personale</h2>
-                <dl class="account-details"><dt>Nume</dt><dd id="profile-name"></dd><dt>Email</dt><dd id="profile-email"></dd></dl>
+                <dl class="account-details"><dt>Prenume</dt><dd id="profile-first-name"></dd><dt>Nume</dt><dd id="profile-last-name"></dd><dt>Formulă de adresare</dt><dd id="profile-salutation"></dd><dt>Telefon</dt><dd id="profile-phone"></dd><dt>Email</dt><dd id="profile-email"></dd></dl>
+                <button type="button" id="edit-profile-btn" class="account-button account-button-outline" aria-expanded="false" aria-controls="profile-edit-form">Modifică datele contului</button>
+                <form id="profile-edit-form" class="account-form" hidden>
+                    <div class="account-fields-row"><div><label for="edit-first-name">Prenume</label><input id="edit-first-name" autocomplete="given-name" maxlength="100" required></div><div><label for="edit-last-name">Nume</label><input id="edit-last-name" autocomplete="family-name" maxlength="100" required></div></div>
+                    <label for="edit-salutation">Formulă de adresare</label><select id="edit-salutation"><option value="">Nespecificată</option><option>Dl.</option><option>Dna.</option></select>
+                    <label for="edit-phone">Telefon</label><input id="edit-phone" type="tel" autocomplete="tel" maxlength="30" pattern="[+0-9() .\-]*">
+                    <label for="edit-email">Email</label><input id="edit-email" type="email" readonly aria-describedby="email-help"><p id="email-help" class="account-help">Adresa de email nu poate fi modificată.</p>
+                    <label for="profile-address">Adresă de livrare</label><input id="profile-address" autocomplete="street-address" maxlength="255" required>
+                    <div class="account-fields-row"><button id="save-address-btn" type="submit" class="account-button">Salvează modificările</button><button id="cancel-profile-btn" type="button" class="account-button account-button-outline">Renunță</button></div>
+                </form>
+                <p id="profile-message" class="account-message" role="status" style="display:none"></p>
                 <p class="account-help">La această adresă primești mesajele despre cont și comenzi.</p>
             </section>
             <section class="account-card account-orders">
@@ -90,12 +102,8 @@
             <section class="account-card">
                 <p class="account-eyebrow">LIVRARE</p><h2>Adresa ta</h2>
                 <p class="account-help">Folosită la comenzile viitoare. Comenzile deja plasate rămân neschimbate.</p>
-                <form id="address-form" class="account-form">
-                    <label for="profile-address">Adresă de livrare</label>
-                    <input id="profile-address" autocomplete="street-address" maxlength="255" required>
-                    <button id="save-address-btn" class="account-button" type="submit">Salvează adresa</button>
-                    <p id="profile-message" class="account-message" role="status" style="display:none"></p>
-                </form>
+                <p id="profile-address-summary" class="account-address-summary"></p>
+                <p class="account-help">Poți actualiza adresa din „Modifică datele contului”.</p>
             </section>
             <section class="account-card">
                 <p class="account-eyebrow">SECURITATE</p><h2>Accesul la cont</h2>
@@ -107,7 +115,7 @@
     </div>
 </main>
 <footer class="account-footer">© 2026 Cactus Shop <span aria-hidden="true">·</span> <a href="terms.html">Termeni și condiții</a></footer>
-<script src="dist/shared.js"></script>
-<script src="dist/account.js"></script>
+<script src="dist/shared.js?v=profile-20261029"></script>
+<script src="dist/account.js?v=profile-20261029"></script>
 </body>
 </html>

@@ -31,7 +31,9 @@ public class CustomerService {
         }
 
         Customer customer = new Customer();
-        customer.setName(request.name().trim());
+        customer.setPersonalName(request.firstName(), request.lastName());
+        customer.setPhone(request.phone() == null ? "" : request.phone().trim());
+        customer.setSalutation(request.salutation() == null ? "" : request.salutation());
         customer.setEmail(email);
         customer.setPasswordHash(passwordEncoder.encode(request.password()));
         customer.setAddress(request.address().trim());
@@ -152,17 +154,24 @@ public class CustomerService {
                 .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
 
         return new CustomerProfileDTO(
-                customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified());
+                customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified(),
+                customer.getFirstName(), customer.getLastName(), customer.getPhone(), customer.getSalutation());
     }
 
-    public CustomerProfileDTO updateAddress(String email, CustomerUpdateDTO request) {
+    @org.springframework.transaction.annotation.Transactional
+    public CustomerProfileDTO updateProfile(String email, CustomerUpdateDTO request) {
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Cont inexistent."));
 
         customer.setAddress(request.address().trim());
+        if (request.firstName() != null && request.lastName() != null)
+            customer.setPersonalName(request.firstName(), request.lastName());
+        if (request.phone() != null) customer.setPhone(request.phone().trim());
+        if (request.salutation() != null) customer.setSalutation(request.salutation());
         customerRepository.save(customer);
 
         return new CustomerProfileDTO(
-                customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified());
+                customer.getName(), customer.getEmail(), customer.getAddress(), customer.isVerified(),
+                customer.getFirstName(), customer.getLastName(), customer.getPhone(), customer.getSalutation());
     }
 }

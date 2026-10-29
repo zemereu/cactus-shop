@@ -28,6 +28,10 @@ function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
 }
 
 interface CustomerProfile {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    salutation?: string;
     name: string;
     email: string;
     address: string;

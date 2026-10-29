@@ -160,7 +160,7 @@ public class CustomerAuthController {
             Authentication authentication,
             @Valid @RequestBody CustomerUpdateDTO request) {
         try {
-            CustomerProfileDTO profile = customerService.updateAddress(authentication.getName(), request);
+            CustomerProfileDTO profile = customerService.updateProfile(authentication.getName(), request);
             return ResponseEntity.ok(profile);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

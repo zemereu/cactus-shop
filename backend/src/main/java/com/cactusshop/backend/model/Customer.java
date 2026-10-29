@@ -12,6 +12,26 @@ public class Customer {
     private Long id;
 
     private String name;
+    @Column(length = 100)
+    private String firstName;
+    @Column(length = 100)
+    private String lastName;
+    @Column(length = 30)
+    private String phone;
+    @Column(length = 4)
+    private String salutation;
+
+    public String getFirstName() { return firstName == null ? (name == null ? "" : name) : firstName; }
+    public String getLastName() { return lastName == null ? "" : lastName; }
+    public String getPhone() { return phone == null ? "" : phone; }
+    public String getSalutation() { return salutation == null ? "" : salutation; }
+    public void setPhone(String value) { phone = value; }
+    public void setSalutation(String value) { salutation = value; }
+    public void setPersonalName(String first, String last) {
+        firstName = first.trim();
+        lastName = last.trim();
+        name = firstName + " " + lastName;
+    }
 
     @Column(unique = true)
     private String email;

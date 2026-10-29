@@ -5,11 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record CustomerRegisterDTO(
-        @NotBlank(message = "Numele este obligatoriu.")
-        @Size(
-                max = 255,
-                message = "Numele poate avea cel mult 255 de caractere.")
-        String name,
+        @NotBlank @Size(max = 100) String firstName,
+        @NotBlank @Size(max = 100) String lastName,
+        @Size(max = 30) @jakarta.validation.constraints.Pattern(regexp = "[+0-9() .-]*") String phone,
+        @jakarta.validation.constraints.Pattern(regexp = "|Dl\\.|Dna\\.") String salutation,
 
         @NotBlank(message = "Emailul este obligatoriu.")
         @Email(message = "Adresa de email nu este validă.")

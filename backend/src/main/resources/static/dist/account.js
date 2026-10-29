@@ -45,8 +45,10 @@ if (tabLogin)
 if (tabRegister)
     tabRegister.addEventListener('click', () => activateTab('register'));
 // --- Daca e deja logat, arata panoul de cont ---
+let currentAccountProfile = null;
 function checkLoggedInState() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const loggedInPanel = document.getElementById('logged-in-panel');
         const loggedInName = document.getElementById('logged-in-name');
         const tabsContainer = tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement;
@@ -59,6 +61,7 @@ function checkLoggedInState() {
                 return;
             }
             const profile = yield response.json();
+            currentAccountProfile = profile;
             if (loginPanel)
                 loginPanel.style.display = 'none';
             if (registerPanel)
@@ -78,15 +81,18 @@ function checkLoggedInState() {
             if (loggedInName)
                 loggedInName.innerText = profile.name;
             saveLocalValue(CUSTOMER_NAME_KEY, profile.name);
-            const profileName = document.getElementById('profile-name');
-            const profileEmail = document.getElementById('profile-email');
-            const profileAddress = document.getElementById('profile-address');
-            if (profileName)
-                profileName.innerText = profile.name;
-            if (profileEmail)
-                profileEmail.innerText = profile.email;
-            if (profileAddress)
-                profileAddress.value = profile.address;
+            const values = {
+                'profile-first-name': (_a = profile.firstName) !== null && _a !== void 0 ? _a : profile.name,
+                'profile-last-name': profile.lastName || 'De completat',
+                'profile-phone': profile.phone || 'Nespecificat',
+                'profile-salutation': profile.salutation || 'Nespecificată',
+                'profile-email': profile.email,
+                'profile-address-summary': profile.address
+            };
+            Object.keys(values).forEach(id => {
+                const value = values[id];
+                document.getElementById(id).textContent = value;
+            });
             const verifyBanner = document.getElementById('verify-banner');
             if (verifyBanner) {
                 if (profile.verified) {
@@ -190,12 +196,15 @@ if (registerSubmitBtn) {
         event.preventDefault();
         if (registerSubmitBtn.hasAttribute('disabled'))
             return;
-        const name = document.getElementById('register-name').value.trim();
+        const firstName = document.getElementById('register-first-name').value.trim();
+        const lastName = document.getElementById('register-last-name').value.trim();
+        const phone = document.getElementById('register-phone').value.trim();
+        const salutation = document.getElementById('register-salutation').value;
         const email = document.getElementById('register-email').value.trim();
         const password = document.getElementById('register-password').value;
         const address = document.getElementById('register-address').value.trim();
         const errorEl = document.getElementById('register-error');
-        if (!name || !email || !password || !address) {
+        if (!firstName || !lastName || !email || !password || !address) {
             if (errorEl) {
                 errorEl.innerText = "Completeaza toate campurile.";
                 errorEl.style.display = 'block';
@@ -216,7 +225,7 @@ if (registerSubmitBtn) {
             const response = yield authFetch(`${API_BASE}/api/customers/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password, address })
+                body: JSON.stringify({ firstName, lastName, phone, salutation, email, password, address })
             });
             if (!response.ok) {
                 const message = yield responseError(response);
@@ -253,10 +262,36 @@ if (registerSubmitBtn) {
         }
     }));
 }
+const profileEditForm = document.getElementById('profile-edit-form');
+const editProfileButton = document.getElementById('edit-profile-btn');
+function setProfileEditing(open) {
+    var _a;
+    profileEditForm.hidden = !open;
+    editProfileButton.setAttribute('aria-expanded', String(open));
+    if (open && currentAccountProfile) {
+        const p = currentAccountProfile;
+        const values = { 'edit-first-name': (_a = p.firstName) !== null && _a !== void 0 ? _a : p.name,
+            'edit-last-name': p.lastName || '', 'edit-phone': p.phone || '',
+            'edit-salutation': p.salutation || '', 'edit-email': p.email, 'profile-address': p.address };
+        Object.keys(values).forEach(id => {
+            const value = values[id];
+            document.getElementById(id).value = value;
+        });
+        document.getElementById('profile-message').style.display = 'none';
+        document.getElementById('edit-first-name').focus();
+    }
+    else if (!open)
+        editProfileButton.focus();
+}
+editProfileButton.addEventListener('click', () => setProfileEditing(profileEditForm.hidden === true));
+document.getElementById('cancel-profile-btn').addEventListener('click', () => {
+    if (!document.getElementById('save-address-btn').hasAttribute('disabled'))
+        setProfileEditing(false);
+});
 // --- Salvare adresa ---
 const saveAddressBtn = document.getElementById('save-address-btn');
 if (saveAddressBtn) {
-    document.getElementById('address-form').addEventListener('submit', (event) => __awaiter(void 0, void 0, void 0, function* () {
+    document.getElementById('profile-edit-form').addEventListener('submit', (event) => __awaiter(void 0, void 0, void 0, function* () {
         event.preventDefault();
         if (saveAddressBtn.hasAttribute('disabled'))
             return;
@@ -273,12 +308,19 @@ if (saveAddressBtn) {
             const response = yield authFetch(`${API_BASE}/api/customers/me`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ address: addressInput.value.trim() })
+                body: JSON.stringify({ address: addressInput.value.trim(),
+                    firstName: document.getElementById('edit-first-name').value.trim(),
+                    lastName: document.getElementById('edit-last-name').value.trim(),
+                    phone: document.getElementById('edit-phone').value.trim(),
+                    salutation: document.getElementById('edit-salutation').value
+                })
             });
             messageEl.style.display = 'block';
             if (response.ok) {
                 messageEl.style.color = '#2f694b';
-                messageEl.innerText = "Adresa a fost salvata.";
+                messageEl.innerText = "Datele contului au fost salvate.";
+                yield checkLoggedInState();
+                setProfileEditing(false);
             }
             else {
                 messageEl.style.color = '#d32f2f';

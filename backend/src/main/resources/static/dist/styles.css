@@ -1275,7 +1275,7 @@ body #account-dropdown.account-menu #dropdown-logout-btn { color: #a32b2b; borde
 .account-eyebrow { margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: .13em; color: var(--green); }
 .account-intro h1 { margin: 0 0 12px; color: var(--green); font-size: clamp(30px, 4vw, 42px); letter-spacing: -.04em; }
 .account-intro > p:last-child { max-width: 550px; margin: auto; color: var(--muted); font-size: 14px; line-height: 1.7; }
-.account-card { background: #fffdf6; border: 1px solid #ccd7c7; border-radius: 18px; padding: 28px; min-width: 0; }
+.account-card { background: #fffdf6; border: 2px solid var(--green); border-radius: 18px; padding: 28px; min-width: 0; }
 .account-auth { max-width: 480px; margin: auto; box-shadow: 0 8px 28px #2f694b0a; }
 .account-page h2 { margin: 0 0 18px; font-size: 21px; color: var(--green); letter-spacing: -.025em; }
 .account-page .account-tabs { display: flex; gap: 4px; padding: 4px; background: #efeedf; border-radius: 10px; margin-bottom: 26px; }
@@ -1302,7 +1302,7 @@ body #account-dropdown.account-menu #dropdown-logout-btn { color: #a32b2b; borde
 .account-status-pending { flex-wrap: wrap; background: #fff0d5; color: #774509; }
 .account-status button { border: 0; padding: 8px; min-height: 44px; font: inherit; font-weight: 700; color: inherit; text-decoration: underline; background: transparent; cursor: pointer; }
 .account-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
-.account-details { display: grid; gap: 5px; margin: 0 0 20px; }
+.account-details { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr); align-items: baseline; gap: 5px 16px; margin: 0 0 20px; }
 .account-details dt { font-size: 12px; color: var(--muted); }
 .account-details dd { margin: 0 0 12px; font-size: 15px; overflow-wrap: anywhere; }
 .account-orders { background: #e9efdf; display: flex; flex-direction: column; align-items: flex-start; }
@@ -1330,3 +1330,11 @@ body #account-dropdown.account-menu #dropdown-logout-btn { color: #a32b2b; borde
     .account-page .account-button { width: 100%; }
     .account-page .account-header .account-button { width: auto; }
 }
+
+.account-fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.account-fields-row > * { min-width: 0; }
+.account-page .account-form select { min-height: 48px; width: 100%; padding: 12px; border: 1px solid var(--green); border-radius: 9px; background: white; color: var(--green); font-size: 16px; }
+.account-page .account-form input { border-color: var(--green); }
+#profile-edit-form { margin-top: 22px; border-top: 1px solid var(--green); padding-top: 22px; }
+.account-address-summary { overflow-wrap: anywhere; line-height: 1.7; }
+@media (max-width: 480px) { .account-fields-row { grid-template-columns: 1fr; } }

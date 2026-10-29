@@ -40,6 +40,8 @@ if (tabLogin) tabLogin.addEventListener('click', () => activateTab('login'));
 if (tabRegister) tabRegister.addEventListener('click', () => activateTab('register'));
 
 // --- Daca e deja logat, arata panoul de cont ---
+let currentAccountProfile: CustomerProfile | null = null;
+
 async function checkLoggedInState() {
     const loggedInPanel = document.getElementById('logged-in-panel');
     const loggedInName = document.getElementById('logged-in-name');
@@ -55,6 +57,7 @@ async function checkLoggedInState() {
         }
 
         const profile: CustomerProfile = await response.json();
+        currentAccountProfile = profile;
 
         if (loginPanel) loginPanel.style.display = 'none';
         if (registerPanel) registerPanel.style.display = 'none';
@@ -72,13 +75,18 @@ async function checkLoggedInState() {
 
         saveLocalValue(CUSTOMER_NAME_KEY, profile.name);
 
-        const profileName = document.getElementById('profile-name');
-        const profileEmail = document.getElementById('profile-email');
-        const profileAddress = document.getElementById('profile-address') as HTMLInputElement;
-
-        if (profileName) profileName.innerText = profile.name;
-        if (profileEmail) profileEmail.innerText = profile.email;
-        if (profileAddress) profileAddress.value = profile.address;
+        const values: Record<string, string> = {
+            'profile-first-name': profile.firstName ?? profile.name,
+            'profile-last-name': profile.lastName || 'De completat',
+            'profile-phone': profile.phone || 'Nespecificat',
+            'profile-salutation': profile.salutation || 'Nespecificată',
+            'profile-email': profile.email,
+            'profile-address-summary': profile.address
+        };
+        Object.keys(values).forEach(id => {
+            const value = values[id];
+            document.getElementById(id)!.textContent = value;
+        });
 
         const verifyBanner = document.getElementById('verify-banner');
         if (verifyBanner) {
@@ -183,13 +191,16 @@ if (registerSubmitBtn) {
         event.preventDefault();
         if (registerSubmitBtn.hasAttribute('disabled')) return;
 
-        const name = (document.getElementById('register-name') as HTMLInputElement).value.trim();
+        const firstName = (document.getElementById('register-first-name') as HTMLInputElement).value.trim();
+        const lastName = (document.getElementById('register-last-name') as HTMLInputElement).value.trim();
+        const phone = (document.getElementById('register-phone') as HTMLInputElement).value.trim();
+        const salutation = (document.getElementById('register-salutation') as HTMLSelectElement).value;
         const email = (document.getElementById('register-email') as HTMLInputElement).value.trim();
         const password = (document.getElementById('register-password') as HTMLInputElement).value;
         const address = (document.getElementById('register-address') as HTMLInputElement).value.trim();
         const errorEl = document.getElementById('register-error');
 
-        if (!name || !email || !password || !address) {
+        if (!firstName || !lastName || !email || !password || !address) {
             if (errorEl) {
                 errorEl.innerText = "Completeaza toate campurile.";
                 errorEl.style.display = 'block';
@@ -212,7 +223,7 @@ if (registerSubmitBtn) {
             const response = await authFetch(`${API_BASE}/api/customers/register`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name, email, password, address})
+                body: JSON.stringify({firstName, lastName, phone, salutation, email, password, address})
             });
 
             if (!response.ok) {
@@ -253,11 +264,34 @@ if (registerSubmitBtn) {
     });
 }
 
+const profileEditForm = document.getElementById('profile-edit-form')!;
+const editProfileButton = document.getElementById('edit-profile-btn')!;
+function setProfileEditing(open: boolean) {
+    profileEditForm.hidden = !open;
+    editProfileButton.setAttribute('aria-expanded', String(open));
+    if (open && currentAccountProfile) {
+        const p = currentAccountProfile;
+        const values: Record<string, string> = {'edit-first-name': p.firstName ?? p.name,
+            'edit-last-name': p.lastName || '', 'edit-phone': p.phone || '',
+            'edit-salutation': p.salutation || '', 'edit-email': p.email, 'profile-address': p.address};
+        Object.keys(values).forEach(id => {
+            const value = values[id];
+            (document.getElementById(id) as HTMLInputElement | HTMLSelectElement).value = value;
+        });
+        document.getElementById('profile-message')!.style.display = 'none';
+        document.getElementById('edit-first-name')!.focus();
+    } else if (!open) editProfileButton.focus();
+}
+editProfileButton.addEventListener('click', () => setProfileEditing(profileEditForm.hidden === true));
+document.getElementById('cancel-profile-btn')!.addEventListener('click', () => {
+    if (!document.getElementById('save-address-btn')!.hasAttribute('disabled')) setProfileEditing(false);
+});
+
 // --- Salvare adresa ---
 const saveAddressBtn = document.getElementById('save-address-btn');
 
 if (saveAddressBtn) {
-    document.getElementById('address-form')!.addEventListener('submit', async event => {
+    document.getElementById('profile-edit-form')!.addEventListener('submit', async event => {
         event.preventDefault();
         if (saveAddressBtn.hasAttribute('disabled')) return;
         const addressInput = document.getElementById('profile-address') as HTMLInputElement;
@@ -270,13 +304,20 @@ if (saveAddressBtn) {
             const response = await authFetch(`${API_BASE}/api/customers/me`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({address: addressInput.value.trim()})
+                body: JSON.stringify({address: addressInput.value.trim(),
+                    firstName: (document.getElementById('edit-first-name') as HTMLInputElement).value.trim(),
+                    lastName: (document.getElementById('edit-last-name') as HTMLInputElement).value.trim(),
+                    phone: (document.getElementById('edit-phone') as HTMLInputElement).value.trim(),
+                    salutation: (document.getElementById('edit-salutation') as HTMLSelectElement).value
+                })
             });
 
             messageEl.style.display = 'block';
             if (response.ok) {
                 messageEl.style.color = '#2f694b';
-                messageEl.innerText = "Adresa a fost salvata.";
+                messageEl.innerText = "Datele contului au fost salvate.";
+                await checkLoggedInState();
+                setProfileEditing(false);
             } else {
                 messageEl.style.color = '#d32f2f';
                 messageEl.innerText = await responseError(response);
