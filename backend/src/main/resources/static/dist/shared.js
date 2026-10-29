@@ -120,7 +120,7 @@ function formatOrderDate(value) {
 }
 function initAccountDropdown() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         if (document.getElementById('login-container') || document.getElementById('tab-login'))
             return;
         let accountLink = document.getElementById('account-link');
@@ -137,7 +137,35 @@ function initAccountDropdown() {
         link.innerHTML = '<i class="fa-solid fa-user" aria-hidden="true"></i>';
         link.setAttribute('aria-label', 'Cont');
         link.title = 'Cont';
-        const dropdown = document.getElementById('account-dropdown');
+        (_a = document.getElementById('account-dropdown')) === null || _a === void 0 ? void 0 : _a.remove();
+        const host = document.createElement('div');
+        host.className = 'account-menu-host';
+        link.replaceWith(host);
+        host.appendChild(link);
+        const dropdown = document.createElement('div');
+        dropdown.id = 'account-dropdown';
+        dropdown.className = 'account-menu';
+        dropdown.style.display = 'none';
+        dropdown.innerHTML = `<a href="orders.html"><i class="fa-solid fa-box" aria-hidden="true"></i> Vezi comenzi</a>
+        <a href="account.html"><i class="fa-solid fa-gear" aria-hidden="true"></i> Detalii cont</a>
+        <button type="button" id="dropdown-logout-btn"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Deconectare</button>`;
+        host.appendChild(dropdown);
+        link.setAttribute('aria-controls', dropdown.id);
+        link.setAttribute('aria-expanded', 'false');
+        const closeDropdown = () => {
+            dropdown.style.display = 'none';
+            link.setAttribute('aria-expanded', 'false');
+        };
+        host.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeDropdown();
+                link.focus();
+            }
+        });
+        host.addEventListener('focusout', event => {
+            if (!host.contains(event.relatedTarget))
+                closeDropdown();
+        });
         let authenticated = false;
         const refresh = () => __awaiter(this, void 0, void 0, function* () {
             try {
@@ -147,8 +175,7 @@ function initAccountDropdown() {
                 }
                 else {
                     link.title = 'Autentificare';
-                    if (dropdown)
-                        dropdown.style.display = 'none';
+                    closeDropdown();
                     try {
                         localStorage.removeItem(CUSTOMER_NAME_KEY);
                     }
@@ -167,17 +194,18 @@ function initAccountDropdown() {
                 return;
             event.preventDefault();
             event.stopPropagation();
-            dropdown.style.display =
-                dropdown.style.display === 'block' ? 'none' : 'block';
+            const open = dropdown.style.display !== 'block';
+            dropdown.style.display = open ? 'block' : 'none';
+            link.setAttribute('aria-expanded', String(open));
         });
         window.addEventListener('click', event => {
             if (dropdown &&
                 !dropdown.contains(event.target) &&
                 !link.contains(event.target)) {
-                dropdown.style.display = 'none';
+                closeDropdown();
             }
         });
-        (_a = document.getElementById('dropdown-logout-btn')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', (event) => __awaiter(this, void 0, void 0, function* () {
+        (_b = document.getElementById('dropdown-logout-btn')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', (event) => __awaiter(this, void 0, void 0, function* () {
             event.preventDefault();
             try {
                 const response = yield authFetch(`${API_BASE}/api/customers/logout`, {

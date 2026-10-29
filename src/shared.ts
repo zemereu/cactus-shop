@@ -187,7 +187,31 @@ async function initAccountDropdown() {
     link.setAttribute('aria-label', 'Cont');
     link.title = 'Cont';
 
-    const dropdown = document.getElementById('account-dropdown');
+    document.getElementById('account-dropdown')?.remove();
+    const host = document.createElement('div');
+    host.className = 'account-menu-host';
+    link.replaceWith(host);
+    host.appendChild(link);
+    const dropdown = document.createElement('div');
+    dropdown.id = 'account-dropdown';
+    dropdown.className = 'account-menu';
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = `<a href="orders.html"><i class="fa-solid fa-box" aria-hidden="true"></i> Vezi comenzi</a>
+        <a href="account.html"><i class="fa-solid fa-gear" aria-hidden="true"></i> Detalii cont</a>
+        <button type="button" id="dropdown-logout-btn"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Deconectare</button>`;
+    host.appendChild(dropdown);
+    link.setAttribute('aria-controls', dropdown.id);
+    link.setAttribute('aria-expanded', 'false');
+    const closeDropdown = () => {
+        dropdown.style.display = 'none';
+        link.setAttribute('aria-expanded', 'false');
+    };
+    host.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { closeDropdown(); link.focus(); }
+    });
+    host.addEventListener('focusout', event => {
+        if (!host.contains(event.relatedTarget as Node | null)) closeDropdown();
+    });
     let authenticated = false;
 
     const refresh = async () => {
@@ -198,7 +222,7 @@ async function initAccountDropdown() {
                 link.title = 'Contul meu';
             } else {
                 link.title = 'Autentificare';
-                if (dropdown) dropdown.style.display = 'none';
+                closeDropdown();
 
                 try {
                     localStorage.removeItem(CUSTOMER_NAME_KEY);
@@ -217,8 +241,9 @@ async function initAccountDropdown() {
 
         event.preventDefault();
         event.stopPropagation();
-        dropdown.style.display =
-            dropdown.style.display === 'block' ? 'none' : 'block';
+        const open = dropdown.style.display !== 'block';
+        dropdown.style.display = open ? 'block' : 'none';
+        link.setAttribute('aria-expanded', String(open));
     });
 
     window.addEventListener('click', event => {
@@ -227,7 +252,7 @@ async function initAccountDropdown() {
             !dropdown.contains(event.target as Node) &&
             !link.contains(event.target as Node)
         ) {
-            dropdown.style.display = 'none';
+            closeDropdown();
         }
     });
 

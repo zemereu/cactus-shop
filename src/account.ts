@@ -32,10 +32,8 @@ function activateTab(tab: 'login' | 'register') {
     loginPanel.style.display = isLogin ? 'block' : 'none';
     registerPanel.style.display = isLogin ? 'none' : 'block';
 
-    tabLogin.style.color = isLogin ? '#2f694b' : '#999';
-    tabLogin.style.borderBottom = isLogin ? '3px solid #2f694b' : '3px solid transparent';
-    tabRegister.style.color = isLogin ? '#999' : '#2f694b';
-    tabRegister.style.borderBottom = isLogin ? '3px solid transparent' : '3px solid #2f694b';
+    tabLogin.setAttribute('aria-pressed', String(isLogin));
+    tabRegister.setAttribute('aria-pressed', String(!isLogin));
 }
 
 if (tabLogin) tabLogin.addEventListener('click', () => activateTab('login'));
@@ -51,7 +49,8 @@ async function checkLoggedInState() {
         const response = await authFetch(`${API_BASE}/api/customers/me`);
 
         if (!response.ok) {
-            localStorage.removeItem(CUSTOMER_NAME_KEY);
+            if (response.status !== 401) throw new Error(await responseError(response));
+            saveLocalValue(CUSTOMER_NAME_KEY, '');
             return;
         }
 
@@ -61,6 +60,14 @@ async function checkLoggedInState() {
         if (registerPanel) registerPanel.style.display = 'none';
         if (tabsContainer) tabsContainer.style.display = 'none';
         if (loggedInPanel) loggedInPanel.style.display = 'block';
+        document.getElementById('account-auth')!.hidden = true;
+        document.getElementById('account-description')!.textContent = 'Găsești aici datele contului, adresa de livrare și accesul la comenzi.';
+        const recovery = document.getElementById('password-recovery')!;
+        document.getElementById('account-security-body')!.appendChild(recovery);
+        recovery.querySelector('summary')!.textContent = 'Schimbă parola prin email';
+        const recoveryEmail = document.getElementById('recovery-email') as HTMLInputElement;
+        recoveryEmail.value = profile.email;
+        recoveryEmail.readOnly = true;
         if (loggedInName) loggedInName.innerText = profile.name;
 
         saveLocalValue(CUSTOMER_NAME_KEY, profile.name);
@@ -76,14 +83,10 @@ async function checkLoggedInState() {
         const verifyBanner = document.getElementById('verify-banner');
         if (verifyBanner) {
             if (profile.verified) {
-                verifyBanner.innerHTML = `<div style="background: #e8f5e9; color: #2f694b; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                    <i class="fa-solid fa-circle-check"></i> Cont verificat
-                </div>`;
+                verifyBanner.innerHTML = `<span class="account-status"><span aria-hidden="true">✓</span> Email verificat</span>`;
             } else {
-                verifyBanner.innerHTML = `<div style="background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Contul nu este verificat.
-                    <button id="resend-verify-btn" style="margin-left: 8px; background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85em;">Retrimite codul</button>
-                </div>`;
+                verifyBanner.innerHTML = `<div class="account-status account-status-pending"><span>Email neverificat</span>
+                    <button id="resend-verify-btn" type="button">Retrimite emailul</button></div>`;
 
                 const resendBtn = document.getElementById('resend-verify-btn');
                 if (resendBtn) {
@@ -107,17 +110,26 @@ async function checkLoggedInState() {
             }
         }
     } catch (error) {
-        console.error("Eroare la incarcarea contului:", error);
+        showToast('Nu am putut încărca datele contului. Reîncearcă.');
+    } finally {
+        document.getElementById('account-loading')!.hidden = true;
+        document.getElementById('account-content')!.hidden = false;
     }
 }
 
 if (!passwordResetToken) checkLoggedInState();
+else {
+    document.getElementById('account-loading')!.hidden = true;
+    document.getElementById('account-content')!.hidden = false;
+}
 
 // --- Login ---
 const loginSubmitBtn = document.getElementById('login-submit-btn');
 
 if (loginSubmitBtn) {
-    loginSubmitBtn.addEventListener('click', async () => {
+    document.getElementById('login-form')!.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (loginSubmitBtn.hasAttribute('disabled')) return;
         const email = (document.getElementById('login-email') as HTMLInputElement).value.trim();
         const password = (document.getElementById('login-password') as HTMLInputElement).value;
         const errorEl = document.getElementById('login-error');
@@ -130,6 +142,8 @@ if (loginSubmitBtn) {
             return;
         }
 
+        loginSubmitBtn.setAttribute('disabled', 'true');
+        if (errorEl) errorEl.style.display = 'none';
         try {
             const response = await authFetch(`${API_BASE}/api/customers/login`, {
                 method: 'POST',
@@ -155,6 +169,8 @@ if (loginSubmitBtn) {
                 errorEl.innerText = "Nu am putut contacta serverul.";
                 errorEl.style.display = 'block';
             }
+        } finally {
+            loginSubmitBtn.removeAttribute('disabled');
         }
     });
 }
@@ -163,7 +179,8 @@ if (loginSubmitBtn) {
 const registerSubmitBtn = document.getElementById('register-submit-btn');
 
 if (registerSubmitBtn) {
-    registerSubmitBtn.addEventListener('click', async () => {
+    document.getElementById('register-form')!.addEventListener('submit', async event => {
+        event.preventDefault();
         if (registerSubmitBtn.hasAttribute('disabled')) return;
 
         const name = (document.getElementById('register-name') as HTMLInputElement).value.trim();
@@ -215,7 +232,7 @@ if (registerSubmitBtn) {
                 notice = document.createElement('p');
                 notice.id = 'registration-notice';
                 notice.setAttribute('role', 'status');
-                tabLogin?.parentElement?.insertAdjacentElement('beforebegin', notice);
+                document.getElementById('logged-in-panel')?.prepend(notice);
             }
 
             notice.style.cssText = 'padding:12px; border-radius:8px; background:#fff3e0; color:#333; margin-bottom:15px;';
@@ -240,10 +257,14 @@ if (registerSubmitBtn) {
 const saveAddressBtn = document.getElementById('save-address-btn');
 
 if (saveAddressBtn) {
-    saveAddressBtn.addEventListener('click', async () => {
+    document.getElementById('address-form')!.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (saveAddressBtn.hasAttribute('disabled')) return;
         const addressInput = document.getElementById('profile-address') as HTMLInputElement;
         const messageEl = document.getElementById('profile-message');
         if (!addressInput || !messageEl) return;
+        if (!addressInput.value.trim()) { addressInput.focus(); return; }
+        saveAddressBtn.setAttribute('disabled', 'true');
 
         try {
             const response = await authFetch(`${API_BASE}/api/customers/me`, {
@@ -258,13 +279,15 @@ if (saveAddressBtn) {
                 messageEl.innerText = "Adresa a fost salvata.";
             } else {
                 messageEl.style.color = '#d32f2f';
-                messageEl.innerText = "Nu am putut salva adresa.";
+                messageEl.innerText = await responseError(response);
             }
         } catch (error) {
             console.error(error);
             messageEl.style.display = 'block';
             messageEl.style.color = '#d32f2f';
             messageEl.innerText = "Eroare de conexiune.";
+        } finally {
+            saveAddressBtn.removeAttribute('disabled');
         }
     });
 }
@@ -274,9 +297,17 @@ const logoutBtn = document.getElementById('logout-btn');
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
-        await authFetch(`${API_BASE}/api/customers/logout`, {method: 'POST'});
-        localStorage.removeItem(CUSTOMER_NAME_KEY);
-        window.location.href = REDIRECT_FALLBACK;
+        if (logoutBtn.hasAttribute('disabled')) return;
+        logoutBtn.setAttribute('disabled', 'true');
+        try {
+            const response = await authFetch(`${API_BASE}/api/customers/logout`, {method: 'POST'});
+            if (!response.ok) throw new Error(await responseError(response));
+            saveLocalValue(CUSTOMER_NAME_KEY, '');
+            window.location.href = REDIRECT_FALLBACK;
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Deconectarea a eșuat. Reîncearcă.');
+            logoutBtn.removeAttribute('disabled');
+        }
     });
 }
 
