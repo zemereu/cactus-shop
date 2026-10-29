@@ -5,143 +5,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contul meu - Cactus Shop</title>
-    <meta name="description" content="Contul tău Cactus Shop — autentificare, înregistrare, gestionare date.">
+    <meta name="description" content="Gestionează contul, adresa de livrare și comenzile tale Cactus Shop.">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/4f1b040aec.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="dist/styles.css">
     <link rel="icon" href="images/logo.png" type="image/png">
 </head>
-<body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column;">
-
-<header style="display: flex; align-items: center; justify-content: center; padding: 20px; border-bottom: 2px solid rgba(47, 105, 75, 0.1);">
-    <a href="index.html" style="display: flex; align-items: center; gap: 15px; text-decoration: none;">
-        <img src="images/logo.png" alt="Logo" style="height: 60px; width: auto; object-fit: contain;">
-        <h1 style="margin: 0; color: #2f694b; font-size: 1.8em;">Cactus Shop</h1>
-    </a>
+<body class="account-page">
+<header class="account-header">
+    <a class="account-brand" href="index.html"><img src="images/logo.png" alt="" width="48" height="48">Cactus Shop</a>
+    <a class="account-button account-button-outline" href="shop.html">Înapoi la magazin <span aria-hidden="true">↗</span></a>
 </header>
-
-<main style="flex-grow: 1; padding: 40px 20px;">
-    <div style="max-width: 440px; margin: 0 auto;">
-
-        <div style="background: white; padding: 35px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); border: 2px solid #2f694b;">
-
-            <div style="text-align: center; margin-bottom: 25px;">
-                <div style="width: 70px; height: 70px; background: #2f694b; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-                    <i class="fa-solid fa-user" style="color: #fdf2b8; font-size: 1.8em;"></i>
-                </div>
-            </div>
-
-            <div style="display: flex; margin-bottom: 25px; background: #f5f0d8; border-radius: 8px; padding: 4px;">
-                <button id="tab-login" class="account-tab" style="flex: 1; padding: 10px; background: #2f694b; border: none; cursor: pointer; font-weight: bold; color: #fdf2b8; border-radius: 6px; font-family: 'Poppins', sans-serif;">
-                    <i class="fa-solid fa-right-to-bracket"></i> Autentificare
-                </button>
-                <button id="tab-register" class="account-tab" style="flex: 1; padding: 10px; background: transparent; border: none; cursor: pointer; font-weight: bold; color: #59645c; border-radius: 6px; font-family: 'Poppins', sans-serif;">
-                    <i class="fa-solid fa-user-plus"></i> Cont Nou
-                </button>
-            </div>
-
-            <div id="login-panel">
-                <div style="position: relative; margin-bottom: 12px;">
-                    <i class="fa-solid fa-envelope" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
-                    <input type="email" id="login-email" placeholder="Email" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                </div>
-                <div style="position: relative; margin-bottom: 18px;">
-                    <i class="fa-solid fa-lock" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
-                    <input type="password" id="login-password" placeholder="Parolă" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                </div>
-                <button id="login-submit-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1em; font-family: 'Poppins', sans-serif;">
-                    <i class="fa-solid fa-arrow-right"></i> Autentificare
-                </button>
-                <p id="login-error" style="color: #b32626; margin-top: 10px; display: none; font-size: 0.9em; text-align: center;"></p>
-            </div>
-
-            <details id="password-recovery" style="margin: 16px 0;">
-                <summary style="cursor:pointer; color:#2f694b;">Ai uitat parola?</summary>
-                <form id="forgot-password-form" style="display:grid; gap:10px; margin-top:12px;">
+<main class="account-shell">
+    <div class="account-intro">
+        <p class="account-eyebrow">SPAȚIUL TĂU</p>
+        <h1 id="account-heading">Contul meu</h1>
+        <p id="account-description">Intră în cont pentru a-ți gestiona comenzile și datele de livrare.</p>
+    </div>
+    <div id="account-loading" role="status">Se încarcă contul…</div>
+    <div id="account-content" hidden>
+    <section id="account-auth" class="account-card account-auth">
+        <div class="account-tabs" aria-label="Acces în cont">
+            <button type="button" id="tab-login" class="account-tab" aria-pressed="true" aria-controls="login-panel">Autentificare</button>
+            <button type="button" id="tab-register" class="account-tab" aria-pressed="false" aria-controls="register-panel">Creează un cont</button>
+        </div>
+        <div id="login-panel">
+            <form id="login-form" class="account-form">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" autocomplete="username" maxlength="255" required>
+                <label for="login-password">Parolă</label>
+                <input type="password" id="login-password" autocomplete="current-password" required>
+                <button id="login-submit-btn" class="account-button" type="submit">Intră în cont <span aria-hidden="true">→</span></button>
+                <p id="login-error" class="account-message account-error" role="alert" style="display:none"></p>
+            </form>
+            <details id="password-recovery">
+                <summary>Ai uitat parola?</summary>
+                <p class="account-help">Îți trimitem un link prin email pentru a alege o parolă nouă.</p>
+                <form id="forgot-password-form" class="account-form">
                     <label for="recovery-email">Emailul contului</label>
                     <input id="recovery-email" type="email" autocomplete="email" maxlength="255" required>
-                    <button type="submit">Trimite linkul de resetare</button>
+                    <button type="submit" class="account-button account-button-outline">Trimite linkul de resetare</button>
                 </form>
-                <p id="recovery-message" role="status"></p>
+                <p id="recovery-message" class="account-message" role="status"></p>
             </details>
-
-            <form id="reset-password-form" style="display:none; margin:16px 0;">
-                <h2>Parolă nouă</h2>
-                <label for="reset-password">Parolă (minimum 8 caractere)</label>
-                <input id="reset-password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required style="display:block; width:100%; box-sizing:border-box; margin:10px 0;">
-                <label for="reset-password-confirm">Confirmă parola</label>
-                <input id="reset-password-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="72" required style="display:block; width:100%; box-sizing:border-box; margin:10px 0;">
-                <button type="submit">Salvează parola</button>
-                <p id="reset-message" role="status"></p>
-            </form>
-
-            <div id="register-panel" style="display: none;">
-                <div style="position: relative; margin-bottom: 12px;">
-                    <i class="fa-solid fa-user" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
-                    <input type="text" id="register-name" placeholder="Nume complet" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                </div>
-                <div style="position: relative; margin-bottom: 12px;">
-                    <i class="fa-solid fa-envelope" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
-                    <input type="email" id="register-email" placeholder="Email" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                </div>
-                <div style="position: relative; margin-bottom: 12px;">
-                    <i class="fa-solid fa-lock" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
-                    <input type="password" id="register-password" placeholder="Parolă (minim 8 caractere)" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                </div>
-                <div style="position: relative; margin-bottom: 18px;">
-                    <i class="fa-solid fa-location-dot" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
-                    <input type="text" id="register-address" placeholder="Adresă de livrare" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                </div>
-                <button id="register-submit-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1em; font-family: 'Poppins', sans-serif;">
-                    <i class="fa-solid fa-user-plus"></i> Creează Cont
-                </button>
-                <p id="register-error" style="color: #b32626; margin-top: 10px; display: none; font-size: 0.9em; text-align: center;"></p>
-            </div>
-
-            <div id="logged-in-panel" style="display: none;">
-                <div id="verify-banner"></div>
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #2f694b; margin: 0;">Bun venit, <span id="logged-in-name"></span>!</h2>
-                </div>
-
-                <div style="background: #f8f4e0; border-radius: 10px; padding: 20px; margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                        <i class="fa-solid fa-user" style="color: #2f694b; width: 20px; text-align: center;"></i>
-                        <span><strong>Nume:</strong> <span id="profile-name"></span></span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
-                        <i class="fa-solid fa-envelope" style="color: #2f694b; width: 20px; text-align: center;"></i>
-                        <span><strong>Email:</strong> <span id="profile-email"></span></span>
-                    </div>
-
-                    <label for="profile-address" style="font-weight: bold; color: #2f694b; font-size: 0.9em;">
-                        <i class="fa-solid fa-location-dot"></i> Adresă de livrare
-                    </label>
-                    <input type="text" id="profile-address" style="width: 100%; padding: 12px; margin-top: 6px; margin-bottom: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
-                    <button id="save-address-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                        <i class="fa-solid fa-floppy-disk"></i> Salvează adresa
-                    </button>
-                    <p id="profile-message" style="margin-top: 8px; display: none; font-size: 0.9em; text-align: center;"></p>
-                </div>
-
-                <button id="logout-btn" style="width: 100%; background-color: #d32f2f; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                    <i class="fa-solid fa-right-from-bracket"></i> Deconectare
-                </button>
-            </div>
         </div>
-
-        <div style="text-align: center; margin-top: 25px;">
-            <a href="index.html" style="color: #2f694b; text-decoration: none; font-weight: bold;">
-                <i class="fa-solid fa-arrow-left"></i> Înapoi la magazin
-            </a>
+        <div id="register-panel" style="display:none">
+            <form id="register-form" class="account-form">
+                <label for="register-name">Nume complet</label>
+                <input id="register-name" autocomplete="name" maxlength="255" required>
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" autocomplete="email" maxlength="255" required>
+                <label for="register-password">Parolă</label>
+                <input type="password" id="register-password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="register-password-help" required>
+                <p id="register-password-help" class="account-help">Folosește minimum 8 caractere.</p>
+                <label for="register-address">Adresă de livrare</label>
+                <input id="register-address" autocomplete="street-address" maxlength="255" required>
+                <button id="register-submit-btn" class="account-button" type="submit">Creează contul</button>
+                <p id="register-error" class="account-message account-error" role="alert" style="display:none"></p>
+            </form>
+        </div>
+        <form id="reset-password-form" class="account-form" style="display:none">
+            <h2>Alege o parolă nouă</h2>
+            <label for="reset-password">Parolă nouă (minimum 8 caractere)</label>
+            <input id="reset-password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+            <label for="reset-password-confirm">Confirmă parola</label>
+            <input id="reset-password-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+            <button type="submit" class="account-button">Salvează parola</button>
+            <p id="reset-message" class="account-message" role="status"></p>
+        </form>
+    </section>
+    <div id="logged-in-panel" style="display:none">
+        <div class="account-welcome"><div><h2>Bun venit, <span id="logged-in-name"></span>!</h2><p>Datele și comenzile tale, într-un singur loc.</p></div><div id="verify-banner" aria-live="polite"></div></div>
+        <div class="account-grid">
+            <section class="account-card">
+                <p class="account-eyebrow">PROFIL</p><h2>Date personale</h2>
+                <dl class="account-details"><dt>Nume</dt><dd id="profile-name"></dd><dt>Email</dt><dd id="profile-email"></dd></dl>
+                <p class="account-help">La această adresă primești mesajele despre cont și comenzi.</p>
+            </section>
+            <section class="account-card account-orders">
+                <p class="account-eyebrow">COMENZILE TALE</p><h2>De la seră, spre tine</h2>
+                <p>Vezi produsele comandate și urmărește starea fiecărei comenzi.</p>
+                <a href="orders.html" class="account-button">Vezi comenzile <span aria-hidden="true">→</span></a>
+            </section>
+            <section class="account-card">
+                <p class="account-eyebrow">LIVRARE</p><h2>Adresa ta</h2>
+                <p class="account-help">Folosită la comenzile viitoare. Comenzile deja plasate rămân neschimbate.</p>
+                <form id="address-form" class="account-form">
+                    <label for="profile-address">Adresă de livrare</label>
+                    <input id="profile-address" autocomplete="street-address" maxlength="255" required>
+                    <button id="save-address-btn" class="account-button" type="submit">Salvează adresa</button>
+                    <p id="profile-message" class="account-message" role="status" style="display:none"></p>
+                </form>
+            </section>
+            <section class="account-card">
+                <p class="account-eyebrow">SECURITATE</p><h2>Accesul la cont</h2>
+                <div id="account-security-body"></div>
+                <div class="account-signout"><p class="account-help">Folosești un dispozitiv comun? Deconectează-te când ai terminat.</p><button id="logout-btn" type="button" class="account-button account-button-danger">Deconectare</button></div>
+            </section>
         </div>
     </div>
+    </div>
 </main>
-
-<footer style="text-align: center; padding: 20px; color: #2f694b; font-weight: bold; border-top: 1px solid rgba(47, 105, 75, 0.1); font-size: 0.85em;">
-    &copy; 2026 Cactus Shop. Toate drepturile rezervate.
-</footer>
-
+<footer class="account-footer">© 2026 Cactus Shop <span aria-hidden="true">·</span> <a href="terms.html">Termeni și condiții</a></footer>
 <script src="dist/shared.js"></script>
 <script src="dist/account.js"></script>
 </body>
