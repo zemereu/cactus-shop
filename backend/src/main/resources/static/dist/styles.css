@@ -1301,13 +1301,9 @@ body #account-dropdown.account-menu #dropdown-logout-btn { color: #a32b2b; borde
 .account-status { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; color: #24533a; background: #e5efdf; font-size: 13px; }
 .account-status-pending { flex-wrap: wrap; background: #fff0d5; color: #774509; }
 .account-status button { border: 0; padding: 8px; min-height: 44px; font: inherit; font-weight: 700; color: inherit; text-decoration: underline; background: transparent; cursor: pointer; }
-.account-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
 .account-details { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr); align-items: baseline; gap: 5px 16px; margin: 0 0 20px; }
 .account-details dt { font-size: 12px; color: var(--muted); }
 .account-details dd { margin: 0 0 12px; font-size: 15px; overflow-wrap: anywhere; }
-.account-orders { background: #e9efdf; display: flex; flex-direction: column; align-items: flex-start; }
-.account-orders > p:not(.account-eyebrow) { color: var(--muted); font-size: 14px; line-height: 1.8; margin: 0 0 24px; }
-.account-orders .account-button { margin-top: auto; }
 .account-page #password-recovery { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
 .account-page #password-recovery summary { min-height: 44px; padding: 10px 0; font-size: 14px; font-weight: 700; color: var(--green); cursor: pointer; }
 .account-page #password-recovery[open] summary { margin-bottom: 10px; }
@@ -1325,7 +1321,6 @@ body #account-dropdown.account-menu #dropdown-logout-btn { color: #a32b2b; borde
     .account-page .account-header .account-button { padding: 9px 10px; font-size: 11px; }
     .account-shell { width: calc(100% - 32px); margin: 30px auto 40px; }
     .account-card { padding: 22px 18px; border-radius: 14px; }
-    .account-grid { grid-template-columns: 1fr; gap: 16px; }
     .account-welcome { flex-direction: column; align-items: flex-start; }
     .account-page .account-button { width: 100%; }
     .account-page .account-header .account-button { width: auto; }
@@ -1338,3 +1333,9 @@ body #account-dropdown.account-menu #dropdown-logout-btn { color: #a32b2b; borde
 #profile-edit-form { margin-top: 22px; border-top: 1px solid var(--green); padding-top: 22px; }
 .account-address-summary { overflow-wrap: anywhere; line-height: 1.7; }
 @media (max-width: 480px) { .account-fields-row { grid-template-columns: 1fr; } }
+
+.account-profile-card { max-width: 720px; margin: 0 auto; }
+.account-profile-card .account-welcome { padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.account-profile-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.account-password-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.account-password-section h2 { font-size: 18px; }
