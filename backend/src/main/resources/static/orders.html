@@ -7,7 +7,7 @@
     <meta name="description" content="Verifică statusul comenzii tale sau vezi istoricul comenzilor.">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/4f1b040aec.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="dist/styles.css">
+    <link rel="stylesheet" href="dist/styles.css?v=consistent-20261030">
     <link rel="icon" href="images/logo.png" type="image/png">
 </head>
 <body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column;">
@@ -53,7 +53,7 @@
 
         <!-- Panou Verificare (guest) -->
         <div id="lookup-panel" style="display: none;">
-            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #2f694b;">
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #2f694b;" class="site-panel">
                 <p style="color: #555; margin-top: 0;">Introdu codul comenzii si emailul folosit la plasare.</p>
                 <div style="position: relative; margin-bottom: 12px;">
                     <i class="fa-solid fa-hashtag" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
@@ -63,7 +63,7 @@
                     <i class="fa-solid fa-envelope" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2f694b;"></i>
                     <input type="email" id="lookup-email" placeholder="Email folosit la comanda" style="width: 100%; padding: 12px 12px 12px 38px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif;">
                 </div>
-                <button id="lookup-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Poppins', sans-serif;">
+                <button id="lookup-btn" style="width: 100%; background-color: #2f694b; color: #fdf2b8; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Poppins', sans-serif;" class="site-button">
                     <i class="fa-solid fa-magnifying-glass"></i> Verifica
                 </button>
                 <div id="lookup-result" style="margin-top: 20px;"></div>

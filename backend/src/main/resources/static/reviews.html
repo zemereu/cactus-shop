@@ -7,7 +7,7 @@
     <meta name="description" content="Recenzii clienți Cactus Shop — vezi ce spun alții și lasă propria recenzie.">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/4f1b040aec.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="dist/styles.css">
+    <link rel="stylesheet" href="dist/styles.css?v=consistent-20261030">
     <link rel="icon" href="images/logo.png" type="image/png">
 </head>
 <body style="font-family: 'Poppins', sans-serif; background-color: #fdf2b8; color: #333; margin: 0; padding: 20px;">
@@ -24,7 +24,7 @@
     <h2 id="reviews-title" style="color: #2f694b; text-align: center;">Recenzii</h2>
 
     <!-- Formular de trimitere — vizibil doar dacă ești logat -->
-    <div id="review-form-container" style="display: none; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b; margin-bottom: 30px;">
+    <div id="review-form-container" style="display: none; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #2f694b; margin-bottom: 30px;" class="site-panel">
         <h3 style="color: #2f694b; margin-top: 0;">Lasă o recenzie</h3>
 
         <div id="star-picker" role="group" aria-label="Nota recenziei">
@@ -38,14 +38,14 @@
         <label for="review-comment">Comentariul tău</label>
         <textarea maxlength="1000" id="review-comment" placeholder="Scrie părerea ta..." rows="4" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #2f694b; border-radius: 4px; font-family: inherit; margin-bottom: 15px;"></textarea>
 
-        <button id="submit-review-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+        <button id="submit-review-btn" style="background-color: #2f694b; color: #fdf2b8; border: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;" class="site-button">
             Trimite Recenzia
         </button>
         <p role="status" aria-live="polite" id="review-form-message" style="margin-top: 10px; display: none;"></p>
     </div>
 
     <!-- Mesaj pentru cei nelogați -->
-    <div id="login-prompt" style="display: none; background: white; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #2f694b; margin-bottom: 30px;">
+    <div id="login-prompt" style="display: none; background: white; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #2f694b; margin-bottom: 30px;" class="site-panel">
         <p style="margin: 0 0 10px 0;">Trebuie să fii autentificat ca să lași o recenzie.</p>
         <a href="account.html" style="color: #2f694b; font-weight: bold;">Autentifică-te →</a>
     </div>
