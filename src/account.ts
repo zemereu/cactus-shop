@@ -48,15 +48,9 @@ async function checkLoggedInState() {
     const tabsContainer = tabLogin?.parentElement;
 
     try {
-        const response = await authFetch(`${API_BASE}/api/customers/me`);
+        const profile = await getCustomerProfile();
+        if (!profile) return;
 
-        if (!response.ok) {
-            if (response.status !== 401) throw new Error(await responseError(response));
-            saveLocalValue(CUSTOMER_NAME_KEY, '');
-            return;
-        }
-
-        const profile: CustomerProfile = await response.json();
         currentAccountProfile = profile;
 
         if (loginPanel) loginPanel.style.display = 'none';

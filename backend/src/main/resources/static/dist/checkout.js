@@ -111,6 +111,16 @@ if (checkoutSubmitBtn) {
         }
         if (errorEl)
             errorEl.style.display = 'none';
+        if (!isLoggedIn) {
+            for (const id of ['checkout-name', 'checkout-email', 'checkout-address']) {
+                const field = document.getElementById(id);
+                field.value = field.value.trim();
+                field.setCustomValidity(field.value.length > 255
+                    ? 'Folosește cel mult 255 de caractere.' : '');
+                if (!field.reportValidity())
+                    return;
+            }
+        }
         checkoutSubmitting = true;
         checkoutSubmitBtn.setAttribute('disabled', 'true');
         checkoutSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Se procesează...';
@@ -134,9 +144,12 @@ if (checkoutSubmitBtn) {
                 const prices = new Map();
                 for (const [id, { qty }] of cartCounts) {
                     const r = yield fetch(`${API_BASE}/api/cacti/${id}`);
-                    if (!r.ok) {
+                    if (r.status === 404) {
                         problems.push(`Produsul #${id} nu mai este disponibil.`);
                         continue;
+                    }
+                    if (!r.ok) {
+                        throw new Error('Nu am putut verifica produsele. Coșul a fost păstrat. Reîncearcă mai târziu.');
                     }
                     const fresh = yield r.json();
                     if (!Number.isFinite(fresh.price) || fresh.price < 0) {
@@ -185,9 +198,12 @@ if (checkoutSubmitBtn) {
                 entry.qty--;
                 return false;
             });
-            // Păstrăm cheia dacă salvarea coșului eșuează.
             if (saveCartToStorage(remaining)) {
-                sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
+                try {
+                    sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
+                }
+                catch (_a) {
+                }
             }
             document.querySelector('main > div > div[style*="display: flex"]').style.display = 'none';
             const confirm = document.getElementById('order-confirmation');

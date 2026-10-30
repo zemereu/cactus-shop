@@ -53,14 +53,9 @@ function checkLoggedInState() {
         const loggedInName = document.getElementById('logged-in-name');
         const tabsContainer = tabLogin === null || tabLogin === void 0 ? void 0 : tabLogin.parentElement;
         try {
-            const response = yield authFetch(`${API_BASE}/api/customers/me`);
-            if (!response.ok) {
-                if (response.status !== 401)
-                    throw new Error(yield responseError(response));
-                saveLocalValue(CUSTOMER_NAME_KEY, '');
+            const profile = yield getCustomerProfile();
+            if (!profile)
                 return;
-            }
-            const profile = yield response.json();
             currentAccountProfile = profile;
             if (loginPanel)
                 loginPanel.style.display = 'none';
